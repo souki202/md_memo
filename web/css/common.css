@@ -1,0 +1,146 @@
+:root {
+    --header-height: 64px;
+    --footer-height: 64px;
+    --transition-base-time: 200ms;
+}
+
+/**
+ * Commons
+ */
+.absolute-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.no-visible {
+    display: none;
+}
+
+[v-cloak] {
+    display: none;
+}
+
+/**
+ * App
+ */
+
+body {
+    background-color: #111115;
+    color: #eeeeee;
+    font-size: 18px;
+    font-family: "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro", "Yu Gothic Medium", "游ゴシック Medium", YuGothic, "游ゴシック体", "メイリオ", sans-serif;
+}
+
+header {
+    background-color: #222229;
+    height: var(--header-height);
+}
+
+.header-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.header-container > * {
+    
+}
+
+header nav {
+    margin-right: 24px;
+}
+
+header nav ul {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    height: var(--header-height);
+    padding: 12px 0;
+}
+
+header nav ul li {
+    list-style: none;
+    margin: 0 4px;
+    width: 100px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.signup-button {
+    transition: all var(--transition-base-time) 0s ease;
+}
+
+.login-button, .home-button {
+    border: #ddd solid 1px;
+    background-color: transparent;
+    transition: all var(--transition-base-time) 0s ease;
+    transition-property: border background-color;
+}
+
+.login-button:hover, .home-button:hover {
+    border: #444 solid 1px;
+    background-color: #444;
+}
+
+header nav ul li a {
+    display: block;
+    padding: 8px 12px;
+    line-height: 24px;
+    color: inherit;
+}
+
+.btn {
+    transition: color 200ms 0s ease;
+    transition-property: border, color, background-color;
+}
+
+.btn-link:link, .btn-link:visited, .btn-link:hover, .btn-link:active {
+    color: inherit;
+    text-decoration: none;
+}
+
+.footer-container {
+    background-color: #222229;
+    height: var(--footer-height);
+}
+
+footer nav ul {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding: 12px 0;
+}
+
+footer nav ul li {
+    list-style: none;
+    margin: 0 4px;
+    width: auto;
+    text-align: center;
+    border-radius: 4px;
+}
+
+footer nav ul li a {
+    display: block;
+    padding: 8px 12px;
+    line-height: 24px;
+    color: inherit;
+    transition: color var(--transition-base-time) 0s ease;
+}
+
+.footer-link:link, .footer-link:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+.footer-link:hover, .footer-link:active {
+    color: #888;
+}
+
+.errors p {
+    margin-bottom: 0;
+}

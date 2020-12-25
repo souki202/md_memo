@@ -1,0 +1,16 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "uuid",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_sessions_dev",
+    "KeySchema": [
+        {
+            "AttributeName": "uuid",
+            "KeyType": "HASH"
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}

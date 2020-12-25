@@ -1,0 +1,75 @@
+main {
+    min-height: calc(100vh - 64px * 2);
+}
+
+.memo-list-table {
+    background-color: #222229;
+    margin: 0;
+}
+
+.memo-list-table, .memo-list-table > * {
+    width: 100%;
+}
+
+.memo-list-table td {
+    vertical-align: middle;
+}
+
+.memo-list-table .memo-date {
+    width: 14rem
+}
+
+.memo-list-title {
+    font-size: 22px;
+}
+
+.memo-list-title a {
+    color: inherit;
+}
+
+.memo-list-link:link, .memo-list-link:hover, .memo-list-link:active, .memo-list-link:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+.memo-list-link:hover {
+    color: #aaa;
+}
+
+.memo-checkbox {
+    width: 2rem;
+}
+
+.memo-check-button-container {
+    margin-bottom: 0;
+}
+
+.new-memo-container {
+    margin: 8px;
+}
+
+.new-memo-container a {
+    text-decoration: none;
+}
+
+.new-memo .fa-plus-square {
+    color: #ddd;
+}
+
+.new-memo {
+    height: 48px;
+    width: 150px;
+}
+
+.new-memo .btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    width: 150px;
+}
+
+.new-memo-text {
+    margin-left: 8px;
+}

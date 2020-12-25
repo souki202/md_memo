@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <script src="/js/loadCommonParts.js"></script>
+    <link rel="stylesheet" href="/css/login.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD-MEMO Login</title>
+</head>
+<body>
+    <div id="header"></div>
+    <main id="main">
+        <div class="login-container">
+            <h1>Log In</h1>
+            <form id="loginForm" @submit.prevent="submit">
+                <!-- email form -->
+                <div class="form-group">
+                    <input type="email" class="form-control text-light bg-dark" id="email" name="email" placeholder="Email" v-model="form.email" required>
+                </div>
+                <!-- password form -->
+                <div class="form-group">
+                    <input type="password" class="form-control text-light bg-dark" id="password" name="password" placeholder="Password"  v-model="form.password" required>
+                </div>
+                <button type="submit" class="btn btn-light btn-login">Log In</button>
+                <!-- remember me -->
+                <div class="form-group form-check">
+                    <input type="checkbox" name="rememberMe" id="rememberMe" class="form-check-input" v-model="form.rememberMe">
+                    <label for="rememberMe" class="form-check-label">Remember Me</label>
+                </div>
+                <!-- messages -->
+                <div class="errors alert alert-danger" v-if="errorMessage != ''">
+                    <p>{{ errorMessage }}</p>
+                </div>
+            </form>
+        </div>
+    </main>
+    <div id="footer"></div>
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/login.js', true);
+            appendScript('/js/authCheckInPublicPage.js', true);
+        })
+    </script>
+</body>
+</html>

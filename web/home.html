@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <script src="/js/loadCommonParts.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD-Memo Home</title>
+</head>
+<body>
+    <div id="header"></div>
+    <main id="main">
+        <div class="new-memo-container">
+            <div class="new-memo">
+                <a href="/memo.html">
+                    <div class="btn btn-dark">
+                        <i class="far fa-plus-square fa-2x"></i>
+                        <div class="new-memo-text">New Memo</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="memo-list-container" id="homeMemoList">
+            <div>
+                <table class="table table-dark table-hover memo-list-table">
+                    <thead>
+                        <tr>
+                            <th class="memo-checkbox">
+                                <div class="form-group memo-check-button-container">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="memoAllCheck" @change="switchAllCheck" v-model="memoAllCheck">
+                                        <label class="custom-control-label" for="memoAllCheck"></label>
+                                    </div>
+                                </div>
+                            </th>
+                            <th>Title</th>
+                            <!-- <th>Description</th> -->
+                            <th class="memo-date">Update</th>
+                            <th class="memo-date">Create</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="memo of memos">
+                            <td>
+                                <div class="form-group memo-check-button-container">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" :id="'memoCheck'+memo.uuid" v-model="memo.checked">
+                                        <label class="custom-control-label" :for="'memoCheck' + memo.uuid"></label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="memo-list-title"><a :href="'/memo.html?memo_id=' + memo.uuid" class="memo-list-link">{{ memo.title }}</a></td>
+                            <!-- <td>{{ memo.description }}</td> -->
+                            <td>{{ memo.updated_at }}</td>
+                            <td>{{ memo.created_at }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- messages -->
+            <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
+                <p>{{ errorMessage }}</p>
+            </div>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/auth.js', true);
+            appendScript('/js/home.js', true);
+            appendCss('/css/home.css')
+        })
+    </script>
+</body>
+</html>

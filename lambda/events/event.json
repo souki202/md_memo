@@ -1,0 +1,117 @@
+{
+  "resource": "/login",
+  "path": "/login",
+  "httpMethod": "POST",
+  "headers": {
+      "accept": "application/json, text/plain, */*",
+      "accept-encoding": "gzip, deflate, br",
+      "accept-language": "en-US,en;q=0.9,ja-JP;q=0.8,ja;q=0.7",
+      "content-type": "application/json;charset=UTF-8",
+      "cookie": "_ga=GA1.2.1009630615.1593391399; session_token=qv5dZRfi5gyOtXI-CytYSR14MfhktmwVtgSH9bb3r__UaLcomKRcq4U2HDf8XFvFnG8lY25gpoM5_Zt925uoEg",
+      "Host": "api.dev-md-memo.tori-blog.net",
+      "origin": "http://dev-md-memo.tori-blog.net",
+      "referer": "http://dev-md-memo.tori-blog.net/",
+      "sec-ch-ua": "\"Google Chrome\";v=\"87\", \" Not;A Brand\";v=\"99\", \"Chromium\";v=\"87\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "cross-site",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+      "X-Amzn-Trace-Id": "Root=1-5fdb22a4-2d1b23283742558a600e2d15",
+      "X-Forwarded-For": "14.10.121.32",
+      "X-Forwarded-Port": "443",
+      "X-Forwarded-Proto": "https"
+  },
+  "multiValueHeaders": {
+      "accept": [
+          "application/json, text/plain, */*"
+      ],
+      "accept-encoding": [
+          "gzip, deflate, br"
+      ],
+      "accept-language": [
+          "en-US,en;q=0.9,ja-JP;q=0.8,ja;q=0.7"
+      ],
+      "content-type": [
+          "application/json;charset=UTF-8"
+      ],
+      "cookie": [
+          "_ga=GA1.2.1009630615.1593391399; session_token=qv5dZRfi5gyOtXI-CytYSR14MfhktmwVtgSH9bb3r__UaLcomKRcq4U2HDf8XFvFnG8lY25gpoM5_Zt925uoEg"
+      ],
+      "Host": [
+          "api.dev-md-memo.tori-blog.net"
+      ],
+      "origin": [
+          "http://dev-md-memo.tori-blog.net"
+      ],
+      "referer": [
+          "http://dev-md-memo.tori-blog.net/"
+      ],
+      "sec-ch-ua": [
+          "\"Google Chrome\";v=\"87\", \" Not;A Brand\";v=\"99\", \"Chromium\";v=\"87\""
+      ],
+      "sec-ch-ua-mobile": [
+          "?0"
+      ],
+      "sec-fetch-dest": [
+          "empty"
+      ],
+      "sec-fetch-mode": [
+          "cors"
+      ],
+      "sec-fetch-site": [
+          "cross-site"
+      ],
+      "User-Agent": [
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+      ],
+      "X-Amzn-Trace-Id": [
+          "Root=1-5fdb22a4-2d1b23283742558a600e2d15"
+      ],
+      "X-Forwarded-For": [
+          "14.10.121.32"
+      ],
+      "X-Forwarded-Port": [
+          "443"
+      ],
+      "X-Forwarded-Proto": [
+          "https"
+      ]
+  },
+  "queryStringParameters": null,
+  "multiValueQueryStringParameters": null,
+  "pathParameters": null,
+  "stageVariables": null,
+  "requestContext": {
+      "resourceId": "3gazvg",
+      "resourcePath": "/login",
+      "httpMethod": "POST",
+      "extendedRequestId": "XsJZsHIjNjMFZ0g=",
+      "requestTime": "17/Dec/2020:09:19:32 +0000",
+      "path": "/login",
+      "accountId": "913905735063",
+      "protocol": "HTTP/1.1",
+      "stage": "Dev",
+      "domainPrefix": "api",
+      "requestTimeEpoch": 1608196772373,
+      "requestId": "9c544815-1d29-49a5-a5c2-4e3baa57d2ad",
+      "identity": {
+          "cognitoIdentityPoolId": null,
+          "accountId": null,
+          "cognitoIdentityId": null,
+          "caller": null,
+          "sourceIp": "14.10.121.32",
+          "principalOrgId": null,
+          "accessKey": null,
+          "cognitoAuthenticationType": null,
+          "cognitoAuthenticationProvider": null,
+          "userArn": null,
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+          "user": null
+      },
+      "domainName": "api.dev-md-memo.tori-blog.net",
+      "apiId": "ibdekwd9m1"
+  },
+  "body": "{\"params\":{\"email\":\"290livermorium@gmail.com\",\"password\":\"123\"}}",
+  "isBase64Encoded": false
+}

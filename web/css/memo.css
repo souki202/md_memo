@@ -1,0 +1,232 @@
+body {
+    height: 100vh;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: calc(100% - 64px * 2);
+}
+
+#memoEditor {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.memo-title-container {
+    position: relative;
+}
+
+.memo-title-container, .memo-title {
+    height: 64px;
+    margin-bottom: 0;
+}
+
+.memo-title, .memo-title[readonly], .memo-title:focus {
+    background-color: #222229;
+    color: #eee;
+    font-size: 22px;
+    background-color: inherit;
+    border: none;
+    box-shadow: none;
+}
+
+.memo-title + .memo-title-border {
+    position: absolute;
+    bottom: 12px;
+    width: 100%;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom 200ms 0s ease;
+}
+
+.memo-editor-container {
+    position: relative;
+    height: 100%;
+}
+
+.memo-title:focus + .memo-title-border {
+    border-bottom: 1px solid #888;
+}
+
+.memo-body-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    flex-grow: 1;
+    height: 100%;
+}
+
+#memoEditor .memo-body, #memoEditor .memo-body:focus {
+    background-color: #222229;
+    color: #eee;
+    box-shadow: none;
+    height: 100%;
+    width: 100%;
+}
+
+#memoEditor .memo-body-edit-container, #memoEditor .memo-body-preview-container {
+    width: 50%;
+}
+
+#memoEditor .memo-body-preview-container {
+    position: relative;
+    overflow: auto;
+}
+
+.memo-body-container .form-group {
+    margin-bottom: 0;
+}
+
+.memo-body-preview {
+    padding: 8px;
+    position: absolute;
+}
+
+#memoEditor .CodeMirror {
+    height: 100%;
+    font-family: consolas, monospace;
+}
+
+#memoBodyPreview pre {
+    color: inherit;
+}
+
+.memo-body-edit-container {
+    position: relative;
+}
+
+.memo-body-edit-container .CodeMirror {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: auto;
+    width: auto;
+}
+
+.memo-editor-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 8px;
+    color: #aaa;
+}
+
+.memo-editor-overlay .memo-message {
+    text-align: right;
+}
+
+/* ソースモード時の表示 */
+
+#memoEditor .source-only .memo-body-preview-container {
+    width: 0;
+}
+
+#memoEditor .source-only .memo-body-edit-container {
+    width: 100%;
+}
+
+/* プレビュー時の表示 */
+
+#memoEditor .preview-only .memo-body-preview-container {
+    width: 100%;
+}
+
+#memoEditor .preview-only .memo-body-edit-container {
+    width: 0;
+}
+/**
+ * ツールチップ部分
+ */
+
+.tool-tip {
+    position: absolute;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    right: 4px;
+    bottom: 4px;
+    height: auto;
+    background-color: #222229;
+}
+
+.tool-tip-icons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.tool-tip-icons .tool-tip-icon-container {
+    margin: 4px;
+    margin-bottom: 0;
+}
+
+
+.tool-tip-icons .tool-tip-icon-container:last-child {
+    margin-bottom: 4px;
+}
+
+.tool-tip-icon {
+    cursor: pointer;
+    color: #ddd;
+}
+
+/**
+ * シェア設定ダイアログ
+ */
+
+.share-dialog-container {
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: -1;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 200ms 0s ease;
+}
+
+.share-dialog-container.is-show-dialog {
+    z-index: 1000;
+    opacity: 1;
+}
+
+.share-dialog-bg {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+}
+
+.share-dialog-body {
+    position: relative;
+    background-color:  #111115;
+    margin: auto;
+    margin-top: 3rem;
+    width: 480px;
+    height: 480px;
+    padding: 0 12px;
+}
+
+.share-header-container {
+    border-bottom: 1px solid #ddd;
+    width: 100%;
+    text-align: center;
+    padding-top: 8px;
+    margin: 12px 0;
+}
+
+.share-header-container h3 {
+    margin: 8px 0;
+}
+
+.copy-to-clipboard {
+    background-color: #222229;
+    color: #ddd;
+    cursor: pointer;
+}
+
+.share-setting-update-container {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    margin: 0;
+}

@@ -1,0 +1,214 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  Sample SAM Template for sam-app
+
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+      - prod
+      - stg
+      - dev
+    Default: stg
+
+Mappings:
+  EnvMap:
+    prod:
+      ApiCustomDomain: 'api.md-memo.tori-blog.net'
+      StaticPageDomain: 'md-memo.tori-blog.net'
+      StaticPageBucket: 'md-memo-staticpage-prod'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/8758016f-7700-4566-b6bb-53ffdbf6c503'
+      ApiStageName: 'Prod'
+      AllowOrigin: "'https://md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '0.0.0.0'
+      WhiteIpAddressTo: '255.255.255.255'
+      APIName: 'MD Memo API'
+      DbSuffix: '_prod'
+    stg:
+      ApiCustomDomain: 'api.stg-md-memo.tori-blog.net'
+      StaticPageDomain: "'stg-md-memo.tori-blog.net'"
+      StaticPageBucket: 'md-memo-staticpage-stg'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/0b1dc21b-3546-491d-8802-4d22af2e66a2'
+      ApiStageName: 'Stg'
+      AllowOrigin: "'https://stg-md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '14.10.121.32'
+      WhiteIpAddressTo: '14.10.121.32'
+      APIName: 'MD Memo API staging'
+      DbSuffix: '_stg'
+    dev:
+      ApiCustomDomain: 'api.dev-md-memo.tori-blog.net'
+      StaticPageDomain: "'dev-md-memo.tori-blog.net'"
+      StaticPageBucket: 'md-memo-staticpage-dev'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04'
+      ApiStageName: 'Dev'
+      AllowOrigin: "'http://dev-md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '14.10.121.32'
+      WhiteIpAddressTo: '14.10.121.32'
+      APIName: 'MD Memo develop'
+      DbSuffix: '_dev'
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    CodeUri: app/
+    Environment:
+      Variables:
+        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
+        DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
+        EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
+    MemorySize: 512
+    Runtime: python3.8
+    Timeout: 5
+
+
+Resources:
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Auth:
+        ResourcePolicy:
+          IpRangeWhitelist:
+            - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
+            - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowCredentials: true
+        AllowHeaders: "'Origin, Authorization, Accept, Content-Type, Cookie'"
+        AllowMethods: "'GET, PUT, POST, OPTIONS'"
+        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
+      Domain:
+        DomainName: !FindInMap [EnvMap, !Ref Env, ApiCustomDomain]
+        CertificateArn: !FindInMap [EnvMap, !Ref Env, CertificateArn]
+        Route53:
+          HostedZoneId: Z2JCR6TK8NIB6U
+        SecurityPolicy: TLS_1_2
+      Name: !FindInMap [EnvMap, !Ref Env, APIName]
+      StageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
+  
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.login
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /login
+            Method: post
+  
+  SignupFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.signup
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /signup
+            Method: post
+  
+  LogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.logout
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /logout
+            Method: post
+  
+  CheckTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.check_token
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /check_token
+            Method: post
+  
+  GetMemoListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.get_memo_list_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_memo_list
+            Method: get
+  
+  GetMemoDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.get_memo_data_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_memo_data
+            Method: get
+  
+  GetMemoDataByShareIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.get_memo_data_by_share_id
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_memo_data_by_share_id
+            Method: get
+  
+  SaveMemoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.save_memo_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /save_memo
+            Method: post
+
+  UpdateShareSettingsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.update_share_settings_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /update_share_settings
+            Method: post
+# Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  # HelloWorldApi:
+  #   Description: "API Gateway endpoint URL for Stg stage for Hello World function"
+  #   Value: !Sub "https://${ApiCustomDomain}/Stage/hello/"
+

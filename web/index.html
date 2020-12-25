@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <script src="/js/loadCommonParts.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD-Memo</title>
+</head>
+<body>
+    <div id="header"></div>
+    <main id="main">
+        {{ message }}
+    </main>
+    <div id="footer"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/index.js', true);
+            appendScript('/js/authCheckInPublicPage.js', true);
+        })
+    </script>
+</body>
+</html>
