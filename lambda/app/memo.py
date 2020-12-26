@@ -342,6 +342,8 @@ def save_memo_event(event, context):
                 edit_auth = check_has_auth_memo(user_data, memo_data['user_uuid'], share_users)
             if share_settings['share_scope'] == ShareScope.PUBLIC.value:
                 edit_auth = True
+        else: # シェア設定がない場合
+            edit_auth = check_has_auth_memo(user_data, memo_data['user_uuid'], share_users)
         if not memo_data or not edit_auth:
             print('Unauthorized memo save.')
             print({'user': user_uuid, 'memo_id': memo_id})
