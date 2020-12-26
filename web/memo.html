@@ -71,6 +71,69 @@
                 <div class="memo-body-container" :class="[{'source-only': this.viewModes.mode == 1}, {'preview-only': this.viewModes.mode == 2}]">
                     <!-- メモエディター本体 -->
                     <div class="form-group memo-body-edit-container">
+                        <!-- 入力ヘルパー -->
+                        <div class="memo-input-helper">
+                            <div class="helper-button-set">
+                                <!-- 文字装飾 -->
+                                <div class="helper-button helper-bold" @click="invokeCodemirrorOperation('bold')">
+                                    <i class="fas fa-bold"></i>
+                                </div>
+                                <div class="helper-button helper-italic" @click="invokeCodemirrorOperation('italic')">
+                                    <i class="fas fa-italic"></i>
+                                </div>
+                                <div class="helper-button helper-delete-text" @click="invokeCodemirrorOperation('deleteText')">
+                                    <i class="fas fa-strikethrough"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- ヘッダー -->
+                            <div class="helper-button-set header-button-set">
+                                <div class="helper-button helper-header1" v-for="i in [...Array(3).keys()]" @click="invokeCodemirrorOperation('header', i + 1)">
+                                    H{{i + 1}}
+                                </div>
+                            </div>
+
+                            <!-- リスト列挙 -->
+                            <div class="helper-button-set list-button-set">
+                                <div class="helper-button helper-unorderd-list" @click="invokeCodemirrorOperation('unorderdList')">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <div class="helper-button helper-orderd-list" @click="invokeCodemirrorOperation('orderdList')">
+                                    <i class="fas fa-list-ol"></i>
+                                </div>
+                                <div class="helper-button helper-list-indent" @click="invokeCodemirrorOperation('addIndent')">
+                                    <i class="fas fa-indent"></i>
+                                </div>
+                            </div>
+
+                            <!-- リンク, 引用 -->
+                            <div class="helper-button-set">
+                                <div class="helper-button helper-link" @click="invokeCodemirrorOperation('link')">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <div class="helper-button helper-quote" @click="invokeCodemirrorOperation('addQuote')">
+                                    <i class="fas fa-quote-left"></i>
+                                </div>
+                            </div>
+
+                            <!-- 水平線 -->
+                            <div class="helper-button-set">
+                                <div class="helper-button helper-hr" @click="invokeCodemirrorOperation('hr')">
+                                    hr
+                                </div>
+                            </div>
+
+                            <!-- コード -->
+                            <div class="helper-button-set code-button-set">
+                                <div class="helper-button helper-single-line-code" @click="invokeCodemirrorOperation('singleLineCode')">
+                                    `code`
+                                </div>
+    
+                                <div class="helper-button helper-single-line-code" @click="invokeCodemirrorOperation('multiLineCode')">
+                                    ```code```
+                                </div>
+                            </div>
+                        </div>
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
@@ -149,6 +212,7 @@
 
             appendScript('/js/marked.min.js');
             appendScript('/js/auth.js', true);
+            appendScript('/js/memoHelper.js', true);
             appendScript('/js/editor.js', true);
             appendCss('/css/memo.css');
         })
