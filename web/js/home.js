@@ -1,4 +1,5 @@
 import getApiUrl from '/js/getApiUrl.js';
+import getTheme from '/js/colorTheme.js';
 import '/js/js.cookie.min.js';
 
 new Vue({
@@ -8,6 +9,7 @@ new Vue({
             errorMessage: '',
             memos: [],
             memoAllCheck: false,
+            theme: 'light',
         }
     },
     mounted() {
@@ -23,6 +25,9 @@ new Vue({
             this.errorMessage = 'Failed to get the memo list.';
         }).then(() => {
         })
+
+        // tableのカラーを設定
+        this.theme = getTheme();
     },
     methods: {
         switchAllCheck() {

@@ -25,8 +25,8 @@ body {
 }
 
 .memo-title, .memo-title[readonly], .memo-title:focus {
-    background-color: #222229;
-    color: #eee;
+    background-color: var(--memo-title-bg-color);
+    color: var(--base-text-color);
     font-size: 22px;
     background-color: inherit;
     border: none;
@@ -47,7 +47,7 @@ body {
 }
 
 .memo-title:focus + .memo-title-border {
-    border-bottom: 1px solid #888;
+    border-bottom: 1px solid var(--memo-title-border);
 }
 
 .memo-body-container {
@@ -59,8 +59,8 @@ body {
 }
 
 #memoEditor .memo-body, #memoEditor .memo-body:focus {
-    background-color: #222229;
-    color: #eee;
+    background-color: var(--assort-bg-color);
+    color: var(--base-text-color);
     box-shadow: none;
     height: 100%;
     width: 100%;
@@ -111,7 +111,7 @@ body {
     position: absolute;
     bottom: 0;
     right: 8px;
-    color: #aaa;
+    color: var(--memo-editor-overlay-text-color);
 }
 
 .memo-editor-overlay .memo-message {
@@ -143,12 +143,12 @@ body {
 
 .tool-tip {
     position: absolute;
-    border: 1px solid #ddd;
+    border: 1px solid var(--memo-tooltip-border-color);
     border-radius: 4px;
     right: 4px;
     bottom: 4px;
     height: auto;
-    background-color: #222229;
+    background-color: var(--memo-tooltip-bg-color);
 }
 
 .tool-tip-icons {
@@ -170,7 +170,7 @@ body {
 
 .tool-tip-icon {
     cursor: pointer;
-    color: #ddd;
+    color: var(--memo-tooltip-icon-color);
 }
 
 /**
