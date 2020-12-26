@@ -71,6 +71,19 @@
                 <div class="memo-body-container" :class="[{'source-only': this.viewModes.mode == 1}, {'preview-only': this.viewModes.mode == 2}]">
                     <!-- メモエディター本体 -->
                     <div class="form-group memo-body-edit-container">
+                        <!-- 入力ヘルパー -->
+                        <div class="memo-input-helper">
+                            <div class="helper-button helper-bold" @click="invokeCodemirrorOperation('bold')">
+                                <i class="fas fa-bold"></i>
+                            </div>
+                            <div class="helper-button helper-bold" @click="invokeCodemirrorOperation('italic')">
+                                <i class="fas fa-italic"></i>
+                            </div>
+                            <!-- debug -->
+                            <div class="helper-button helper-bold" @click="invokeCodemirrorOperation('debug')">
+                                <i class="fas fa-italic"></i>
+                            </div>
+                        </div>
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
@@ -149,6 +162,7 @@
 
             appendScript('/js/marked.min.js');
             appendScript('/js/auth.js', true);
+            appendScript('/js/memoHelper.js', true);
             appendScript('/js/editor.js', true);
             appendCss('/css/memo.css');
         })

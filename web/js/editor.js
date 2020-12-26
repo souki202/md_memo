@@ -4,6 +4,7 @@ import urlParameter from '/js/urlParameter.js';
 import '/codemirror/lib/codemirror.js';
 import '/js/js.cookie.min.js';
 import '/js/uuidv4.min.js';
+import CodeMirrorHelper from '/js/memoHelper.js';
 
 class ShareTypes {
     static DoNotShare = 1
@@ -86,9 +87,11 @@ new Vue({
             updatePreviewTimeout: null,
             autoSaveTimeout: null,
             autoSaveDelay: 5000,
-            codemriror: null,
-            showMessageTime: 3000,
 
+            codemriror: null,
+            codemirrorHelper: null,
+
+            showMessageTime: 3000,
             isShowShareDialog: false,
 
             isSharedView: false,
@@ -140,6 +143,7 @@ new Vue({
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
             this.autoSaveTimeout = setTimeout(this.save, this.autoSaveDelay);
         })
+        this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
 
         // memo idを取得
         const memoId = urlParameter('memo_id');
@@ -326,5 +330,9 @@ new Vue({
         switchViewMode() {
             this.viewModes.switchMode();
         },
+
+        invokeCodemirrorOperation(op, ...args) {
+            this.codemirrorHelper.invoke(op, args);
+        }
     },
 })

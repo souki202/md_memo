@@ -24,4 +24,7 @@
     --memo-tooltip-border-color: #161b22;
     --memo-tooltip-bg-color: #161b22;
     --memo-tooltip-icon-color: #ddd;
+
+    --memo-helper-icon-color: #161b22;
+    --memo-helper-icon-hover-color: #58a6ff;
 }

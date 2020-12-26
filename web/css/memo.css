@@ -85,7 +85,8 @@ body {
 }
 
 #memoEditor .CodeMirror {
-    height: 100%;
+    height: calc(100% - 64px);
+    top: 64px;
     font-family: consolas, monospace;
 }
 
@@ -137,6 +138,30 @@ body {
 #memoEditor .preview-only .memo-body-edit-container {
     width: 0;
 }
+
+/* 入力ヘルパー部分 */
+.memo-input-helper {
+    display: flex;
+    flex-direction: row;
+    height: 64px;
+    background-color: var(--assort-bg-color);
+    color: var(--assort-text-color);
+}
+
+.helper-button {
+    height: 32px;
+    width: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--memo-helper-icon-color);
+    transition: color 200ms 0s ease;
+}
+
+.helper-button:hover {
+    color: var(--memo-helper-icon-hover-color);
+}
+
 /**
  * ツールチップ部分
  */
