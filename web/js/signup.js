@@ -7,6 +7,7 @@ new Vue({
     data: () => {
         return {
             errorMessage: '',
+            successMessage: '',
             form: {
                 email: '',
                 password: '',
@@ -23,12 +24,14 @@ new Vue({
             const password2 = this.form.password2;
 
             if (!email || !password || !password2) {
-                this.errorMessage = 'There are not enough input items.'
+                // this.errorMessage = 'There are not enough input items.'
+                this.errorMessage = '入力が不足しています'
                 return false;
             }
 
             if (password != password2) {
-                this.errorMessage = 'Password input does not match.';
+                // this.errorMessage = 'Password input does not match.';
+                this.errorMessage = '確認用のパスワードが一致しません';
                 return false;
             }
             axios.post(getApiUrl() + '/signup', {
@@ -39,16 +42,14 @@ new Vue({
             }, {
                 withCredentials: true
             }).then((res) => {
-                const token = res.data.token
-                Cookies.set('session_token', token, { domain: document.domain})
-                location.href = "/home.html"
+                this.successMessage = '本登録用のメールを送信しました';
             }).catch((err) => {
                 console.log(err.response.status)
                 if (err.response.status == 403) {
-                    this.errorMessage = "The user is already registered."
+                    this.errorMessage = "そのユーザはすでに登録されています"
                 }
                 else {
-                    this.errorMessage = "Unknown error"
+                    this.errorMessage = "サーバーエラーが発生しました"
                 }
             }).then(() => {
                 // always executed

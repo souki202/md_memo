@@ -114,6 +114,19 @@ Resources:
             Path: /signup
             Method: post
   
+  RegistCompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.regist_complete
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /regist_complete
+            Method: post
+  
   LogoutFunction:
     Type: AWS::Serverless::Function
     Properties:

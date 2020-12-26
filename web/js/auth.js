@@ -25,7 +25,7 @@ new Vue({
                 console.log(err);
                 if (!shareId) {
                     console.log(shareId)
-                    // location.href = '/login.html';
+                    location.href = '/login.html';
                 }
             }).then(() => {
                 // always executed
