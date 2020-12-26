@@ -9,20 +9,20 @@
 <body>
     <div id="header"></div>
     <main id="main">
-        <div class="new-memo-container">
-            <div class="new-memo">
-                <a href="/memo.html">
-                    <div class="btn btn-dark">
-                        <i class="far fa-plus-square fa-2x"></i>
-                        <div class="new-memo-text">New Memo</div>
-                    </div>
-                </a>
-            </div>
-        </div>
         
         <div class="memo-list-container" id="homeMemoList">
+            <div class="new-memo-container">
+                <div class="new-memo">
+                    <a href="/memo.html">
+                        <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
+                            <i class="far fa-plus-square fa-2x"></i>
+                            <div class="new-memo-text">New Memo</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
             <div>
-                <table class="table table-dark table-hover memo-list-table">
+                <table class="table table-hover memo-list-table" :class="[{'table-dark': theme == 'dark'}]">
                     <thead>
                         <tr>
                             <th class="memo-checkbox">

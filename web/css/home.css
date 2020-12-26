@@ -3,12 +3,16 @@ main {
 }
 
 .memo-list-table {
-    background-color: #222229;
+    background-color: var(--assort-bg-color);
     margin: 0;
 }
 
 .memo-list-table, .memo-list-table > * {
     width: 100%;
+}
+
+.memo-list-table th {
+    background-color: var(--table-header-bg);
 }
 
 .memo-list-table td {
@@ -33,7 +37,7 @@ main {
 }
 
 .memo-list-link:hover {
-    color: #aaa;
+    color: var(--link-hover-text-color);
 }
 
 .memo-checkbox {
@@ -52,10 +56,6 @@ main {
     text-decoration: none;
 }
 
-.new-memo .fa-plus-square {
-    color: #ddd;
-}
-
 .new-memo {
     height: 48px;
     width: 150px;
@@ -68,6 +68,11 @@ main {
     justify-content: center;
     height: 48px;
     width: 150px;
+    border: var(--new-memo-border);
+}
+
+.new-memo .fa-plus-square {
+    color: var(--new-memo-icon-color);
 }
 
 .new-memo-text {

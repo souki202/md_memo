@@ -1,4 +1,5 @@
 import getApiUrl from '/js/getApiUrl.js'
+import getTheme from '/js/colorTheme.js';
 import urlParameter from '/js/urlParameter.js';
 import '/codemirror/lib/codemirror.js';
 import '/js/js.cookie.min.js';
@@ -92,6 +93,8 @@ new Vue({
 
             isSharedView: false,
 
+            theme: 'light',
+
             memoMessages: [],
         }
     },
@@ -113,12 +116,15 @@ new Vue({
         },
     },
     mounted() {
+        // まずテーマ取得
+        this.theme = getTheme();
+
         // codemirrorの適用
         this.codemirror = CodeMirror.fromTextArea(document.getElementById('memoBodyTextarea'), {
             mode: 'markdown',
             lineNumber: true,
             indentUnit: 4,
-            theme: 'darcula',
+            theme: this.theme == 'light' ? 'mdn-like' : 'darcula',
             lineNumbers: true,
             autoCloseBrackets: true,
             scrollbarStyle: "simple",
