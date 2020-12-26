@@ -85,8 +85,8 @@ body {
 }
 
 #memoEditor .CodeMirror {
-    height: calc(100% - 64px);
-    top: 64px;
+    height: calc(100% - 80px);
+    top: 80px;
     font-family: consolas, monospace;
 }
 
@@ -143,19 +143,44 @@ body {
 .memo-input-helper {
     display: flex;
     flex-direction: row;
-    height: 64px;
+    flex-wrap: wrap;
+    align-items: center;
+    overflow: hidden;
+    height: 80px;
     background-color: var(--assort-bg-color);
     color: var(--assort-text-color);
 }
 
+.helper-button-set {
+    display: flex;
+    flex-direction: row;
+
+    height: 32px;
+    border-radius: 4px;
+    border: var(--memo-helper-border-color) solid 1px;
+    margin: 4px 8px;
+    box-sizing: content-box;
+}
+
 .helper-button {
     height: 32px;
-    width: 32px;
+    min-width: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
     color: var(--memo-helper-icon-color);
     transition: color 200ms 0s ease;
+    cursor: pointer;
+    border-right: var(--memo-helper-border-color) solid 1px;
+    box-sizing: border-box;
+}
+
+.helper-button:last-child {
+    border: none;
+}
+
+.header-button-set .helper-button, .code-button-set .helper-button {
+    padding: 0 8px;
 }
 
 .helper-button:hover {
@@ -174,6 +199,7 @@ body {
     bottom: 4px;
     height: auto;
     background-color: var(--memo-tooltip-bg-color);
+    z-index: 100;
 }
 
 .tool-tip-icons {

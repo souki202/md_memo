@@ -133,6 +133,7 @@ new Vue({
             scrollbarStyle: "simple",
             keyMap: 'default',
             historyEventDelay: 300,
+            autofocus: true,
             extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"},
         });
         // body変更時の挙動設定
