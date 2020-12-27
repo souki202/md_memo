@@ -2,7 +2,7 @@ import getApiUrl from '/js/getApiUrl.js'
 import urlParameter from '/js/urlParameter.js';
 
 new Vue({
-    el: '#headerMenuNav',
+    el: '#header',
     data: () => {
         return {
             isLogin: false,

@@ -138,6 +138,12 @@ def get_user_uuid_by_token(session_token) -> str:
         return None
     return None
 
+'''
+lambdaのイベントからcookieを取り出し, そのトークンを利用してuser_uuidを取得する
+トークンが不正な場合はNone
+
+@return {str} user_uuid
+'''
 def get_user_uuid_by_event(event) -> str:
     cookie = create_simple_cookie(event)
     if not cookie.get('session_token', None):
@@ -163,6 +169,16 @@ def get_user_data_by_uuid(user_uuid: str) -> dict:
         print(e)
         return None
     return None
+
+def get_user_data_for_view(user_uuid: str) -> dict:
+    user_data = get_user_data_by_uuid(user_uuid)
+    if not user_data:
+        return None
+    del user_data['uuid']
+    del user_data['password']
+    if 'temporary_token' in user_data:
+        del user_data['temporary_token']
+    return user_data
 
 def update_session(token):
     try:
