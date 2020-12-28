@@ -50,6 +50,7 @@ main {
 
 .new-memo-container {
     margin: 8px;
+    margin-left: 24px;
 }
 
 .new-memo-container a {

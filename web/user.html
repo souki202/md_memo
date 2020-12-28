@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/js/loadCommonParts.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD Writer</title>
+</head>
+<body>
+    <div id="header"></div>
+
+    <main id="userSettings">
+        <div class="settings-group">
+            <div class="group-title">
+                ユーザ情報
+            </div>
+            <div class="group-body">
+                <form action="" @submit.prevent="updateUserData">
+                    <div class="form-group">
+                        <label class="col-form-label" for="email">Email</label>
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" if="email" type="email" placholder="Email" v-model="form.basic.email">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-form-label" for="password">現在のパスワード</label>
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="password" type="password" placholder="Password" v-model="form.basic.password">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-form-label" for="newPassword">新しいパスワード</label>
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="newPassword" type="password" placholder="Password" v-model="form.basic.newPassword">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-form-label" for="confirmNewPassword">新しいパスワード(確認用)</label>
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="confirmNewPassword" type="password" placholder="Password" v-model="form.basic.confirmNewPassword">
+                    </div>
+                    <button type="submit" class="btn" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]">保存</button>
+                </form>
+            </div>
+        </div>
+        <div class="setting-group">
+            <div class="group-title">
+                全体設定
+            </div>
+            <div class="group-body">
+                <div class="form-group">
+                    <label class="col-form-label" for="theme">テーマ</label>
+                    <select class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="theme" type="password" placholder="Password" v-model="theme" @change="switchTheme">
+                        <option value="light">ライトテーマ</option>
+                        <option value="dark">ダークテーマ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/auth.js', true);
+            appendScript('/js/userSettings.js', true);
+            appendCss('/css/user.css')
+        })
+    </script>
+</body>
+</html>

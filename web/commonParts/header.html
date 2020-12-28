@@ -1,6 +1,13 @@
 <header id="header">
     <div class="header-container">
-        <div class="logo"></div>
+        <div class="logo" v-if="!isLogin"></div>
+        <div class="user-button-container" v-cloak v-if="isLogin">
+            <div class="user-button btn-light">
+                <a href="/user.html" class="btn-link">
+                    {{ userViewName }}
+                </a>
+            </div>
+        </div>
         <div class="header-menu">
             <nav id="headerMenuNav">
                 <ul v-cloak>
