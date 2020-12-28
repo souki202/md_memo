@@ -10,16 +10,16 @@ new Vue({
     },
     mounted() {
         const token = urlParameter('token');
-        axios.post(getApiUrl() + '/regist_complete', {
-            token: token,
+        axios.post(getApiUrl() + '/execute_reset_password', {
+            params: {token: token},
         }, {
             withCredentials: true
         }).then(res => {
-            const token = res.data.token;
-            Cookies.set('session_token', token, { domain: document.domain, expires: new Date('1 Jan 2037 00:00:00 GMT') });
-            location.href = '/home.html';
+            console.log(res);
+            // location.href = '/login.html';
         }).catch(err => {
-            this.errorMessage = '本登録の処理に失敗しました.'
+            console.log(err)
+            this.errorMessage = 'パスワードリセットの処理に失敗しました.'
         }).then(() => {
 
         })

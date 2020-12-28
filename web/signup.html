@@ -12,7 +12,7 @@
     <main id="main">
         <div class="login-container">
             <h1>Sign up</h1>
-            <form id="signupForm" @submit.prevent="submit">
+            <form id="signupForm" @submit.prevent="submit" v-cloak>
                 <!-- email form -->
                 <div class="form-group">
                     <input type="email" class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="email" name="email" placeholder="Email" v-model="form.email" required>

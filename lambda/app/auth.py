@@ -16,6 +16,46 @@ from user import *
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
+reset_password_table = db_client.Table('md_memo_reset_password' + os.environ['DbSuffix'])
+EXPIRATION_RESET_PASS = 60 * 5 # 5分
+
+'''
+パスワードリセット用のデータを登録する
+
+@return {dict, str} 成功時はその結果とreset_token
+'''
+def add_reset_password(new_password: str, user_id: str):
+    try:
+        ttl = int(time.time()) + EXPIRATION_RESET_PASS
+        reset_token = secrets.token_urlsafe(64)
+        ph = PasswordHasher()
+        pass_hash = ph.hash(new_password)
+        result = reset_password_table.put_item(
+            Item = {
+                'reset_token': reset_token,
+                'user_id': user_id,
+                'password': pass_hash,
+                'expiration_time': ttl,
+            }
+        )
+        return result, reset_token
+    except Exception as e:
+        print(e)
+        return False, None
+    return False, None
+
+def get_reset_password(token: str) -> dict:
+    try:
+        result = reset_password_table.query(
+            KeyConditionExpression=Key('reset_token').eq(token)
+        )['Items']
+        if len(result) == 0:
+            return None
+        return result[0]
+    except Exception as e:
+        print(e)
+        return False
+    return False
 
 def login(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -252,3 +292,94 @@ def regist_complete(event, context):
         "headers": create_common_header(),
         "body": json.dumps({"token": session_token,}),
     }
+
+'''
+パスワードリセット用の登録とメール送信まで
+'''
+def reset_password_event(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+
+    params = json.loads(event['body'] or '')
+    if not params:
+        return {
+            "statusCode": 406,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Insufficient input'}),
+        }
+    email = params['params']['email'] or ''
+    if not email:
+        return {
+            "statusCode": 406,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Insufficient input'}),
+        }
+
+    # ユーザがいるか調べる
+    if not get_user(email):
+        print('User not found. : ' + email)
+        return {
+            "statusCode": 200,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'User Not Found.'}),
+        }
+    
+    # 新規パス発行
+    new_password = secrets.token_urlsafe(12)
+    result, reset_token = add_reset_password(new_password, email)
+    if not result or not reset_token:
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Failed to reset password.'}),
+        }
+    
+    # メール送信
+    send_reset_password_mail(email, new_password, reset_token)
+
+    return {
+            "statusCode": 200,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'User Not Found.'}),
+        }
+
+def execute_reset_password_event(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+
+    params = json.loads(event['body'] or '')
+    if not params:
+        return {
+            "statusCode": 406,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Insufficient input'}),
+        }
+    reset_token = params['params']['token'] or ''
+    if not reset_token:
+        return {
+            "statusCode": 406,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Insufficient input'}),
+        }
+
+    reset_info = get_reset_password(reset_token)
+
+    if not reset_info or not reset_info.get('user_id') or not reset_info.get('password'):
+        return {
+            "statusCode": 404,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Not Found'}),
+        }
+    
+    if not reset_password(reset_info['user_id'], reset_info['password'], reset_token):
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Failed to reset password'}),
+        }
+
+    return {
+            "statusCode": 200,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'success'}),
+        }
