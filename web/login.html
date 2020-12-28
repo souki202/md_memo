@@ -15,13 +15,13 @@
             <form id="loginForm" @submit.prevent="submit">
                 <!-- email form -->
                 <div class="form-group">
-                    <input type="email" class="form-control text-light bg-dark" id="email" name="email" placeholder="Email" v-model="form.email" required>
+                    <input type="email" class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="email" name="email" placeholder="Email" v-model="form.email" required>
                 </div>
                 <!-- password form -->
                 <div class="form-group">
-                    <input type="password" class="form-control text-light bg-dark" id="password" name="password" placeholder="Password"  v-model="form.password" required>
+                    <input type="password" class="form-control"  :class="[{'text-light bg-dark': theme == 'dark'}]" id="password" name="password" placeholder="Password"  v-model="form.password" required>
                 </div>
-                <button type="submit" class="btn btn-light btn-login">Log In</button>
+                <button type="submit" class="btn btn-login" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]">Log In</button>
                 <!-- remember me -->
                 <div class="form-group form-check">
                     <input type="checkbox" name="rememberMe" id="rememberMe" class="form-check-input" v-model="form.rememberMe">
