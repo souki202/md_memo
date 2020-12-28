@@ -70,6 +70,23 @@ header nav ul li {
     border-radius: 4px;
 }
 
+.user-button-container {
+    padding: 12px 0;
+    margin-left: 24px;
+}
+
+.logo {
+    margin-left: 24px;
+}
+
+.user-button {
+    height: 40px;
+    line-height: 24px;
+    font-size: 18px;
+    text-align: center;
+    border-radius: 4px;
+}
+
 .signup-button {
     transition: all var(--transition-base-time) 0s ease;
 }
@@ -78,7 +95,7 @@ header nav ul li {
     border: #ddd solid 1px;
     background-color: transparent;
     transition: all var(--transition-base-time) 0s ease;
-    transition-property: border background-color;
+    transition-property: border, background-color;
 }
 
 .login-button:hover, .home-button:hover {
@@ -86,7 +103,7 @@ header nav ul li {
     background-color: #444;
 }
 
-header nav ul li a {
+header nav ul li a, .user-button-container .user-button a {
     display: block;
     padding: 8px 12px;
     line-height: 24px;
@@ -101,6 +118,10 @@ header nav ul li a {
 .btn-link:link, .btn-link:visited, .btn-link:hover, .btn-link:active {
     color: inherit;
     text-decoration: none;
+}
+
+footer {
+    color: var(--footer-text-color);
 }
 
 .footer-container {

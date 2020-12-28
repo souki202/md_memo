@@ -2,10 +2,11 @@ import getApiUrl from '/js/getApiUrl.js'
 import urlParameter from '/js/urlParameter.js';
 
 new Vue({
-    el: '#headerMenuNav',
+    el: '#header',
     data: () => {
         return {
             isLogin: false,
+            userViewName: '',
         }
     },
     mounted() {
@@ -18,6 +19,10 @@ new Vue({
             }).then((res) => {
                 console.log('token check success');
                 this.isLogin = true;
+                try {
+                    this.getUserData();
+                } catch (e) {
+                }
             }).catch((err) => {
                 // シェアされたメモを見る場合は, 非ログイン状態でも見れる設定があるので確認
                 const shareId = urlParameter('share_id');
@@ -27,6 +32,20 @@ new Vue({
                     console.log(shareId)
                     location.href = '/login.html';
                 }
+            }).then(() => {
+                // always executed
+            })
+        },
+        getUserData() {
+            axios.get(getApiUrl() + '/get_user_data', {
+                withCredentials: true
+            }).then((res) => {
+                console.log(res);
+                const userId = res.data.user.user_id;
+                this.userViewName = userId.substring(0, userId.indexOf('@'));
+            }).catch((err) => {
+                console.log(err);
+                this.userViewName = 'エラーが発生しました'
             }).then(() => {
                 // always executed
             })

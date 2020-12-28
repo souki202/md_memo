@@ -3,8 +3,8 @@
 ## 各種URL
 
 <http://dev-md-memo.tori-blog.net/>
-<http://stg-md-memo.tori-blog.net/>
-<http://md-memo.tori-blog.net/>
+<https://stg-md-memo.tori-blog.net/>
+<https://md-memo.tori-blog.net/>
 
 ## ローカル環境
 

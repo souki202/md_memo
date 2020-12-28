@@ -4,6 +4,7 @@ import os
 import time
 import datetime
 import secrets
+from argon2 import PasswordHasher
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 
@@ -138,6 +139,12 @@ def get_user_uuid_by_token(session_token) -> str:
         return None
     return None
 
+'''
+lambdaのイベントからcookieを取り出し, そのトークンを利用してuser_uuidを取得する
+トークンが不正な場合はNone
+
+@return {str} user_uuid
+'''
 def get_user_uuid_by_event(event) -> str:
     cookie = create_simple_cookie(event)
     if not cookie.get('session_token', None):
@@ -147,22 +154,6 @@ def get_user_uuid_by_event(event) -> str:
     if not token:
         return None
     return get_user_uuid_by_token(token)
-
-def get_user_data_by_uuid(user_uuid: str) -> dict:
-    if not user_uuid:
-        return None
-    try:
-        result = users_table.query(
-            IndexName = 'uuid-index',
-            KeyConditionExpression=Key('uuid').eq(user_uuid)
-        )['Items']
-        if len(result) == 0:
-            return None
-        return result[0]
-    except Exception as e:
-        print(e)
-        return None
-    return None
 
 def update_session(token):
     try:
@@ -181,3 +172,17 @@ def update_session(token):
         print(e)
         return False
     return False
+
+'''
+入力されたパスワードが, ユーザのものと一致するか確認
+
+@return {bool} 一致すればtrue
+'''
+def check_password(input_password, hashed_password):
+    # パスワードチェック
+    ph = PasswordHasher()
+    try:
+        ph.verify(hashed_password, input_password)
+    except Exception as e:
+        return False
+    return True

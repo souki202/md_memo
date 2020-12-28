@@ -251,7 +251,7 @@ def get_memo_list_event(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "session timeout",}),
+            "body": json.dumps({'message': "session timeout",}),
         }
     memos = get_memo_list(user_uuid)
     if memos is None:
@@ -278,7 +278,7 @@ def get_memo_data_event(event, content):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "session timeout",}),
+            "body": json.dumps({'message': "session timeout",}),
         }
     
     memo_id = ''
@@ -317,7 +317,7 @@ def save_memo_event(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "session timeout",}),
+            "body": json.dumps({'message': "session timeout",}),
         }
     # 各種値を変数に
     params           = json.loads(event['body'] or '{ }')
@@ -380,7 +380,7 @@ def update_share_settings_event(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "session timeout",}),
+            "body": json.dumps({'message': "session timeout",}),
         }
 
     params           = json.loads(event['body'] or '{ }')

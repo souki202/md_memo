@@ -1,0 +1,32 @@
+#userSettings {
+    width: 640px;
+    margin: auto;
+    padding-top: 2rem;
+}
+
+.settings-group {
+    margin-bottom: 1rem;
+}
+
+.group-title {
+    font-size: 18px;
+    border-bottom: 1px solid var(--settings-group-title-border-color);
+    margin-bottom: 1rem;
+}
+
+#userSettings .form-group {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+#userSettings .form-group label {
+    flex-shrink: 0;
+    min-width: 30%;
+    font-size: 14px;
+}
+
+#userSettings .form-group .form-control {
+    flex-grow: 1;
+}
