@@ -156,7 +156,7 @@ Resources:
   GetUserDataFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: auth.get_user_data_event
+      Handler: user.get_user_data_event
       Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
       Events:
         DefaultEvent:
@@ -165,6 +165,19 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /get_user_data
             Method: get
+  
+  UpdateUserDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: user.update_user_data_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /update_user_data
+            Method: post
 
   GetMemoListFunction:
     Type: AWS::Serverless::Function

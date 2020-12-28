@@ -11,79 +11,11 @@ from argon2 import PasswordHasher
 from common_headers import create_common_header
 from my_session import *
 from my_mail import *
+from user import *
 
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
-
-def get_user(id: str) -> dict:
-    try:
-        result = users_table.query(
-            KeyConditionExpression=Key('user_id').eq(id)
-        )['Items']
-        if len(result) == 0:
-            return None
-        return result[0]
-    except Exception as e:
-        print(e)
-        return False
-    return None
-
-def get_user_by_temporary_token(token: str) -> dict:
-    try:
-        result = users_table.query(
-            IndexName = 'temporary_token-index',
-            KeyConditionExpression = Key('temporary_token').eq(token)
-        )['Items']
-        if len(result) == 0:
-            return None
-        return result[0]
-    except Exception as e:
-        print(e)
-        return None
-    return None
-
-def release_temporary(user_id) -> bool:
-    try:
-        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        result = users_table.update_item(
-            Key = {
-                'user_id': user_id,
-            },
-            UpdateExpression = 'set is_temporary=:is_temporary, updated_at=:updated_at',
-            ExpressionAttributeValues = {
-                ':is_temporary': False,
-                ':updated_at': now,
-            },
-            ReturnValues="UPDATED_NEW"   
-        )
-        return not not result
-    except Exception as e:
-        print(e)
-        return False
-    return False
-
-def add_user(id, passHash):
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    user_uuid = str(uuid.uuid4())
-    temp_token = secrets.token_urlsafe(64)
-    try:
-        res = users_table.put_item(
-           Item = {
-               'user_id': id,
-               'uuid': user_uuid,
-               'password': passHash,
-               'created_at': now,
-               'updated_at': now,
-               'is_temporary': True,
-               'temporary_token': temp_token,
-           }
-        )
-        return res, user_uuid, temp_token
-    except Exception as e:
-        print(e)
-        return False, None, None
-    return False, None, None
 
 def login(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -96,7 +28,7 @@ def login(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Missing Email or Password.",}),
+            "body": json.dumps({'message': "Missing Email or Password.",}),
         }
 
     # 既存のユーザがいるか調べる
@@ -107,7 +39,7 @@ def login(event, context):
         return {
             "statusCode": 500,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Failure search existing user",}),
+            "body": json.dumps({'message': "Failure search existing user",}),
         }
     # ユーザがいなかった
     if existing_user is None:
@@ -115,7 +47,7 @@ def login(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Wrong email or password.",}),
+            "body": json.dumps({'message': "Wrong email or password.",}),
         }
     
     # 仮登録状態なら終了
@@ -124,20 +56,17 @@ def login(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Temporary user.",}),
+            "body": json.dumps({'message': "Temporary user.",}),
         }
 
     # パスワードチェック
-    ph = PasswordHasher()
-    try:
-        ph.verify(existing_user['password'], password)
-    except Exception as e:
+    if not check_password(password, existing_user['password']):
         print('Wrong password: ' + email)
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Wrong email or password.",}),
-        }  
+            "body": json.dumps({'message': "Wrong email or password.",}),
+        }
     
     # セッション作成
     user_uuid = existing_user['uuid']
@@ -146,7 +75,7 @@ def login(event, context):
         return {
             "statusCode": 500,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Failure create session.",}),
+            "body": json.dumps({'message': "Failure create session.",}),
         }
     return {
         "statusCode": 200,
@@ -164,25 +93,15 @@ def signup(event, context):
         return {
             "statusCode": 403,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Missing Email or Password.",}),
+            "body": json.dumps({'message': "Missing Email or Password.",}),
         }
 
-    # 既存のユーザがいるか調べる
-    existing_user = get_user(email)
-
-    # ユーザの取得でエラーが発生した
-    if existing_user == False:
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({"message": "Failure search existing user",}),
-        }
-    # ユーザが既に存在した
-    if existing_user is not None:
+    # 登録できるユーザIDかチェック
+    if not get_can_be_registered_user(email):
         return {
             "statusCode": 403,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "The user is already registered.",}),
+            "body": json.dumps({'message': "Cannot be registered user id",}),
         }
 
     # ユーザがいないので新規登録
@@ -196,7 +115,7 @@ def signup(event, context):
         return {
             "statusCode": 500,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Failure add user.",}),
+            "body": json.dumps({'message': "Failure add user.",}),
         }
 
     # セッション作成
@@ -205,7 +124,7 @@ def signup(event, context):
     #     return {
     #         "statusCode": 500,
     #         "headers": create_common_header(),
-    #         "body": json.dumps({"message": "Failure create session.",}),
+    #         "body": json.dumps({'message': "Failure create session.",}),
     #     }
 
     # 仮登録メール送信
@@ -226,37 +145,14 @@ def check_token(event, context):
         return {
             "statusCode": 401,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "session timeout",}),
+            "body": json.dumps({'message': "session timeout",}),
         }
 
     return {
             "statusCode": 200,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "ok",}),
+            "body": json.dumps({'message': "ok",}),
         }
-
-def get_user_data_event(event, context):
-    if os.environ['EnvName'] != 'Prod':
-        print(json.dumps(event))
-    user_uuid: str = get_user_uuid_by_event(event)
-    if not user_uuid:
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({"message": "session timeout",}),
-        }
-    user_data: dict = get_user_data_for_view(user_uuid)
-    if not user_data:
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({"message": "Failed to get user data.",}),
-        }
-    return {
-        "statusCode": 200,
-        "headers": create_common_header(),
-        "body": json.dumps({"user": user_data,}),
-    }
 
 def logout(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -346,7 +242,7 @@ def regist_complete(event, context):
         return {
             "statusCode": 500,
             "headers": create_common_header(),
-            "body": json.dumps({"message": "Failure create session.",}),
+            "body": json.dumps({'message': "Failure create session.",}),
         }
 
     print("registrated")

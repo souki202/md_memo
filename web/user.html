@@ -10,6 +10,14 @@
     <div id="header"></div>
 
     <main id="userSettings">
+        <!-- messages -->
+        <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
+            <p>{{ errorMessage }}</p>
+        </div>
+        
+        <div class="errors alert alert-success" v-if="successMessage != ''">
+            <p>{{ successMessage }}</p>
+        </div>
         <div class="settings-group">
             <div class="group-title">
                 ユーザ情報

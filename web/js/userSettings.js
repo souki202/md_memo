@@ -41,6 +41,9 @@ new Vue({
             })
         },
         updateUserData() {
+            this.successMessage = '';
+            this.errorMessage = '';
+
             axios.post(getApiUrl() + '/update_user_data', {
                 params: this.form.basic
             }, {
@@ -49,8 +52,13 @@ new Vue({
                 console.log(res);
                 this.successMessage = '更新しました';
             }).catch((err) => {
-                console.log(err);
-                this.userViewName = 'エラーが発生しました';
+                console.log(err.response);
+                if (err.response.status == 401) {
+                    this.errorMessage = '認証に失敗しました';
+                }
+                else {
+                    this.errorMessage = '更新に失敗しました';
+                }
             }).then(() => {
                 // always executed
             })
