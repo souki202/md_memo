@@ -12,9 +12,11 @@ new Vue({
                 rememberMe: false,
             },
             isLogin: false,
+            theme: 'light',
         }
     },
     mounted() {
+        this.theme = getTheme();
         // ログイン済みならhomeへ
         axios.post(getApiUrl() + '/check_token', {}, {
             withCredentials: true

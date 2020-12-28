@@ -12,8 +12,12 @@ new Vue({
                 email: '',
                 password: '',
                 password2: '',
-            }
+            },
+            theme: 'light',
         }
+    },
+    mounted() {
+        this.theme = getTheme();
     },
     methods: {
         submit() {

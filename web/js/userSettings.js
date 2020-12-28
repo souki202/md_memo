@@ -21,8 +21,8 @@ new Vue({
         }
     },
     mounted() {
-        this.getUserData();
         this.theme = getTheme();
+        this.getUserData();
     },
     methods: {
         getUserData() {
