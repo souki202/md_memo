@@ -28,8 +28,14 @@
                     <label for="rememberMe" class="form-check-label">Remember Me</label>
                 </div>
                 <!-- messages -->
-                <div class="errors alert alert-danger" v-if="errorMessage != ''">
+                <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
                     <p>{{ errorMessage }}</p>
+                </div>
+                <div class="errors alert alert-success" v-if="successMessage != ''">
+                    <p>{{ successMessage }}</p>
+                </div>
+                <div class="form-group form-option">
+                    <p><a href="#" @click="resetPassword">パスワードリセット(Emailのみ入力)</a></p>
                 </div>
             </form>
         </div>

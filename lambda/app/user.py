@@ -16,8 +16,10 @@ from dynamo_utility import *
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 USERS_TABLE_NAME = 'md_memo_users' + os.environ['DbSuffix']
+RESET_PASS_TABLE_NAME = 'md_memo_reset_password' + os.environ['DbSuffix']
 users_table = db_resource.Table(USERS_TABLE_NAME)
 sessions_table = db_resource.Table('md_memo_sessions' + os.environ['DbSuffix'])
+reset_password_table = db_resource.Table(RESET_PASS_TABLE_NAME)
 
 '''
 user_idからユーザ情報を取得
@@ -110,9 +112,44 @@ def update_user_id(user_data: dict, new_user_id: str):
         return False
     return False
 
+def reset_password(user_id: str, pass_hash: str, reset_token: str):
+    try:
+        result = db_client.transact_write_items(
+            TransactItems = [
+                {
+                    'Delete': {
+                        'TableName': RESET_PASS_TABLE_NAME,
+                        'Key': {
+                            'reset_token': to_dynamo_format(reset_token),
+                        },
+                    }
+                },
+                {
+                    'Update': {
+                        'TableName': USERS_TABLE_NAME,
+                        'Key': {
+                            'user_id': to_dynamo_format(user_id)
+                        },
+                        'UpdateExpression': 'SET password=:password',
+                        'ExpressionAttributeValues': {
+                            ':password': to_dynamo_format(pass_hash)
+                        }
+                    }
+                }
+            ]
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
 def update_password(user_id: str, new_password: str):
     ph = PasswordHasher()
     pass_hash = ph.hash(new_password)
+    return update_password_hash(user_id, pass_hash)
+
+def update_password_hash(user_id: str, pass_hash: str):
     try:
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         result = users_table.update_item(

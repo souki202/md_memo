@@ -178,7 +178,32 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /update_user_data
             Method: post
+  
+  ResetPasswordPrepareFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.reset_password_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /reset_password
+            Method: post
 
+  ExecuteResetPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.execute_reset_password_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /execute_reset_password
+            Method: post
   GetMemoListFunction:
     Type: AWS::Serverless::Function
     Properties:
