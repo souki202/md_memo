@@ -26,11 +26,11 @@
                 <form action="" @submit.prevent="updateUserData">
                     <div class="form-group">
                         <label class="col-form-label" for="email">Email</label>
-                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" if="email" type="email" placholder="Email" v-model="form.basic.email">
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" if="email" type="email" placholder="Email" v-model="form.basic.email" required>
                     </div>
                     <div class="form-group">
                         <label class="col-form-label" for="password">現在のパスワード</label>
-                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="password" type="password" placholder="Password" v-model="form.basic.password">
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="password" type="password" placholder="Password" v-model="form.basic.password" required>
                     </div>
                     <div class="form-group">
                         <label class="col-form-label" for="newPassword">新しいパスワード</label>
