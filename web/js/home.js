@@ -9,6 +9,8 @@ new Vue({
             errorMessage: '',
             memos: [],
             memoAllCheck: false,
+
+            operationType: '',
             theme: 'light',
         }
     },
@@ -30,10 +32,75 @@ new Vue({
         this.theme = getTheme();
     },
     methods: {
+        clearMessage() {
+            this.errorMessage = '';
+        },
+
         switchAllCheck() {
             for (const i in this.memos) {
                 this.$set(this.memos[i], 'checked', this.memoAllCheck)
             }
+        },
+
+        /**
+         * @returns {Array<string>} チェックされたメモのuuid一覧
+         */
+        getCheckMemoList() {
+            let result = [];
+            this.memos.forEach(e => {
+                if (e.checked) result.push(e.uuid);
+            });
+            return result;
+        },
+
+        /**
+         * メモのハードデリートを実行する
+         */
+        executeHardDeleteMemo() {
+            this.clearMessage()
+            const checkedMemoList = this.getCheckMemoList();
+            if (!checkedMemoList.length) {
+                window.alert('メモが選択されていません');
+                return;
+            }
+
+            if (!window.confirm('削除したメモは復元できません。よろしいですか?')) {
+                return;
+            }
+            
+            axios.post(getApiUrl() + '/hard_delete_memo', {
+                params: checkedMemoList
+            }, {
+                withCredentials: true
+            }).then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+            })
+        },
+
+        /**
+         * メモのソフトデリートを実行する
+         */
+        executeSoftDeleteMemo() {
+            this.clearMessage()
+            const checkedMemoList = this.getCheckMemoList();
+            if (!checkedMemoList.length) {
+                window.alert('メモが選択されていません');
+                return;
+            }
+        },
+
+        memoOperation() {
+            switch (this.operationType) {
+                case 'del':
+                    this.executeHardDeleteMemo();
+                    break;
+            }
+            this.operationType  = '';
         }
     },
 });
