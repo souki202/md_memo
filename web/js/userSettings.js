@@ -44,6 +44,15 @@ new Vue({
             this.successMessage = '';
             this.errorMessage = '';
 
+            if (this.form.basic.email == '' || this.form.basic.password == '') {
+                this.errorMessage = 'Emailと現在のパスワードは必須です'
+                return;
+            }
+            if (this.form.basic.newPassword != this.form.basic.confirmNewPassword) {
+                this.errorMessage = '確認用のパスワードが一致しません'
+                return;
+            }
+
             axios.post(getApiUrl() + '/update_user_data', {
                 params: this.form.basic
             }, {
