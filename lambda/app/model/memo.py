@@ -7,9 +7,10 @@ import time
 import secrets
 from enum import Enum
 from boto3.dynamodb.conditions import Key
-from common_headers import create_common_header
+from common_headers import *
 from my_session import *
 from my_common import *
+from dynamo_utility import *
 
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
@@ -43,7 +44,7 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
                     'description': description,
                     'memo_type': memo_type,
                     'user_uuid': user_uuid,
-                    'state': MemoStates.AVAILABLE.value,
+                    'availability': MemoStates.AVAILABLE.value,
                     'created_at': now,
                     'updated_at': now,
                 }
@@ -91,12 +92,59 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
         print(e)
         return False
 
+'''
+すべてのメモが持ち主と一致しているか確認する
+'''
+def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool:
+    all_memo = get_memo_list_include_garbage(user_uuid)
+    all_memo_id_list = {}
+    # まずはsetに整理
+    for memo in all_memo:
+        all_memo_id_list[memo.get('uuid', 'invalid')] = 1
+    # 引数にあるメモが, そのユーザのメモ所持リストにあるか調べる
+    for memo_id in memo_id_list:
+        if memo_id not in all_memo_id_list:
+            return False
+    return True
+
+def get_memo_list_include_garbage(user_uuid):
+    try:
+        result = memo_overviews_table.query(
+            IndexName = 'user_uuid-index',
+            KeyConditionExpression = Key('user_uuid').eq(user_uuid),
+            FilterExpression='availability <> :availability',
+            ExpressionAttributeValues={
+                ':availability': MemoStates.DELETED.value
+            })['Items']
+        if len(result) == 0:
+            return []
+        return result
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
+def get_memo_list_in_garbage(user_uuid: str):
+    try:
+        result = memo_overviews_table.query(
+            IndexName = 'user_uuid-index',
+            KeyConditionExpression = Key('user_uuid').eq(user_uuid),
+            FilterExpression=Key('availability').eq(MemoStates.GARBAGE.value),
+        )['Items']
+        if len(result) == 0:
+            return []
+        return result
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
 def get_memo_list(user_uuid):
     try:
         result = memo_overviews_table.query(
             IndexName = 'user_uuid-index',
             KeyConditionExpression = Key('user_uuid').eq(user_uuid),
-            FilterExpression=Key('state').eq(MemoStates.AVAILABLE.value),
+            FilterExpression=Key('availability').eq(MemoStates.AVAILABLE.value),
         )['Items']
         if len(result) == 0:
             return []
@@ -113,9 +161,9 @@ def get_memo_overview(memo_id: str) -> dict:
         # overviewの取得
         result = memo_overviews_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id),
-            FilterExpression='state <> :state',
+            FilterExpression='availability <> :availability',
             ExpressionAttributeValues={
-                ':state': MemoStates.DELETED.value
+                ':availability': MemoStates.DELETED.value
             }
         )['Items']
         if len(result) == 0:
@@ -137,10 +185,10 @@ def get_memo_data(memo_id: str):
         # overviewの取得
         result = memo_overviews_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id),
-            FilterExpression='state <> :state',
+            FilterExpression='availability <> :availability',
             ExpressionAttributeValues={
-                ':state': MemoStates.DELETED.value
-            }        )['Items']
+                ':availability': MemoStates.DELETED.value
+            })['Items']
         if len(result) == 0:
             return None
         memo_data = result[0]
@@ -247,17 +295,27 @@ def check_has_auth_memo(user_data: dict, memo_user_uuid: str, share_targets: str
     # メモが共有対象かどうか
     return check_is_in_share_target(user_data['user_id'], share_targets)
 
-def delete_memo(memo_id: str) -> bool:
+def delete_memo_multi(memo_id_list: list) -> bool:
     try:
-        result = memo_overviews_table.update_item(
-            Key = {
-                'memo_id': memo_id,
-            },
-            UpdateExpression = 'set state=:state, updated_at=:updated_at',
-            ExpressionAttributeValues = {
-                ':state': MemoStates.DELETED.value,
-                ':updated_at': get_now_string()
-            }
+        transacts = []
+        for memo_id in memo_id_list:
+            transacts.append(
+                {
+                    'Update': {
+                        'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                        'Key': {
+                            'uuid': to_dynamo_format(memo_id)
+                        },
+                        'UpdateExpression': 'SET availability=:availability',
+                        'ExpressionAttributeValues': {
+                            ':availability': to_dynamo_format(MemoStates.DELETED.value)
+                        }
+                    }
+                }
+            )
+
+        result = db_client.transact_write_items(
+            TransactItems = transacts
         )
         # TODO: 紐づく画像をs3から削除
         return not not result

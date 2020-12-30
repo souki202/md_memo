@@ -9,8 +9,9 @@ from enum import Enum
 from decimal import Decimal
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
-from common_headers import create_common_header
+from common_headers import *
 from my_session import *
+from my_common import *
 from user import *
 from model.memo import *
 
@@ -27,6 +28,8 @@ class ShareType(Enum):
     NO_SHARE = 1
     READONLY = 2
     EDITABLE = 4
+
+MULTIPLE_SELECT_MEMO_LIMIT = 25
 
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
@@ -88,13 +91,13 @@ def get_memo_data_event(event, content):
         }
     # メモ情報の取得
     memo_data = get_memo_data(memo_id)
-    del memo_data['user_uuid']
     if not memo_data:
         return {
             'statusCode': 404,
             'headers': create_common_header(),
             'body': json.dumps({'message': 'Not Found',}),
         }
+    del memo_data['user_uuid']
     return {
         "statusCode": 200,
         "headers": create_common_header(),
@@ -257,19 +260,26 @@ def delete_memo(event, context):
         return create_common_return_array(401, {'message': "Failed to delete memo.",})
 
     params = json.loads(event['body'] or '{ }')
-    if not params:
+    if not params or not params.get('params'):
         return create_common_return_array(406, {'message': "Failed to delete memo.",})
 
-    memo_id = params.get('memo_id')
-    if not memo_id:
+    memo_id_list = params['params'].get('memo_id_list')
+    if not memo_id_list:
         return create_common_return_array(406, {'message': "Failed to delete memo.",})
     
+    if len(memo_id_list) > MULTIPLE_SELECT_MEMO_LIMIT:
+        return create_common_return_array(406, {'message': "The maximum number of selections is 25.",})
+
+    # 重複消去
+    memo_id_list = list(set(memo_id_list))
+
     # メモの持ち主と一致してるか調べる
-    if not check_is_owner_of_the_memo(memo_id, user_uuid):
+    if not check_is_owner_of_the_memo_multi(memo_id_list, user_uuid):
+        print('Unauthorized delete operation.')
         return create_common_return_array(401, {'message': "Failed to delete memo.",})
     
     # 削除
-    if not delete_memo(memo_id):
+    if not delete_memo_multi(memo_id_list):
         return create_common_return_array(500, {'message': "Failed to delete memo.",})
     
     return create_common_return_array(200, {'memo': 'success',})

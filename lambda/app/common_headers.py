@@ -8,7 +8,6 @@ def decimal_default_proc(obj):
     raise TypeError
 
 def get_allow_origin():
-    print(os.environ['AllowOrigin'][1:-1])
     return os.environ['AllowOrigin'][1:-1]
 
 def create_common_header():

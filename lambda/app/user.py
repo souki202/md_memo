@@ -8,7 +8,7 @@ import secrets
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
-from common_headers import create_common_header
+from common_headers import *
 from my_session import *
 from my_mail import *
 from dynamo_utility import *

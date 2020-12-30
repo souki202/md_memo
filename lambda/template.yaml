@@ -216,6 +216,7 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /execute_reset_password
             Method: post
+
   GetMemoListFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -268,7 +269,7 @@ Resources:
             Path: /save_memo
             Method: post
   
-  HardDeleteMemoFunction:
+  DeleteMemoFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.delete_memo

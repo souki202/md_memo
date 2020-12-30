@@ -2,6 +2,8 @@ import getApiUrl from '/js/getApiUrl.js';
 import getTheme from '/js/colorTheme.js';
 import '/js/js.cookie.min.js';
 
+axios.defaults.withCredentials = true;
+
 new Vue({
     el: '#homeMemoList',
     data: () => {
@@ -15,18 +17,7 @@ new Vue({
         }
     },
     mounted() {
-        axios.get(getApiUrl() + '/get_memo_list', {
-            withCredentials: true
-        }).then((res) => {
-            for (let item of res.data.items) {
-                item.checked = false;
-                this.memos.push(item);
-            }
-        }).catch((err) => {
-            console.log(err);
-            this.errorMessage = 'Failed to get the memo list.';
-        }).then(() => {
-        })
+        this.getMemoList();
 
         // tableのカラーを設定
         this.theme = getTheme();
@@ -40,6 +31,19 @@ new Vue({
             for (const i in this.memos) {
                 this.$set(this.memos[i], 'checked', this.memoAllCheck)
             }
+        },
+
+        getMemoList() {
+            axios.get(getApiUrl() + '/get_memo_list').then((res) => {
+                for (let item of res.data.items) {
+                    item.checked = false;
+                    this.memos.push(item);
+                }
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'Failed to get the memo list.';
+            }).then(() => {
+            })
         },
 
         /**
@@ -64,14 +68,17 @@ new Vue({
                 return;
             }
 
+            if (checkedMemoList.length > 25) {
+                window.alert('25件より多くの選択はできません');
+                return; 
+            }
+
             if (!window.confirm('削除したメモは復元できません。よろしいですか?')) {
                 return;
             }
             
             axios.post(getApiUrl() + '/delete_memo', {
-                params: checkedMemoList
-            }, {
-                withCredentials: true
+                params: {memo_id_list: checkedMemoList}
             }).then((res) => {
                 console.log(res);
                 location.reload();
