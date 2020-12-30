@@ -12,7 +12,8 @@ Parameters:
       - prod
       - stg
       - dev
-    Default: stg
+      - local
+    Default: local
 
 Mappings:
   EnvMap:
@@ -44,9 +45,20 @@ Mappings:
       StaticPageBucket: 'md-memo-staticpage-dev'
       CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04'
       ApiStageName: 'Dev'
-      AllowOrigin: "'http://dev-md-memo.tori-blog.net'"
+      AllowOrigin: "'https://dev-md-memo.tori-blog.net'"
       WhiteIpAddressFrom: '14.10.121.32'
       WhiteIpAddressTo: '14.10.121.32'
+      APIName: 'MD Memo develop'
+      DbSuffix: '_dev'
+    local:
+      ApiCustomDomain: 'localapi.dev-md-memo.tori-blog.net'
+      StaticPageDomain: "'dev-md-memo.tori-blog.net'"
+      StaticPageBucket: 'md-memo-staticpage-dev'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04'
+      ApiStageName: 'Local'
+      AllowOrigin: "'https://dev-md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '0.0.0.0'
+      WhiteIpAddressTo: '255.255.255.255'
       APIName: 'MD Memo develop'
       DbSuffix: '_dev'
 
@@ -76,7 +88,7 @@ Resources:
       EndpointConfiguration: REGIONAL
       Cors:
         AllowCredentials: true
-        AllowHeaders: "'Origin, Authorization, Accept, Content-Type, Cookie'"
+        AllowHeaders: "'Origin, Authorization, Accept, Content-Type'"
         AllowMethods: "'GET, PUT, POST, OPTIONS'"
         AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
       Domain:
@@ -204,6 +216,7 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /execute_reset_password
             Method: post
+
   GetMemoListFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -254,6 +267,19 @@ Resources:
           Properties:
             RestApiId: !Ref RestApi
             Path: /save_memo
+            Method: post
+  
+  DeleteMemoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.delete_memo
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /delete_memo
             Method: post
 
   UpdateShareSettingsFunction:

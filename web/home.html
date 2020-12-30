@@ -9,18 +9,33 @@
 <body>
     <div id="header"></div>
     <main id="main">
-        
         <div class="memo-list-container" id="homeMemoList">
-            <div class="new-memo-container">
-                <div class="new-memo">
-                    <a href="/memo.html">
-                        <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
-                            <i class="far fa-plus-square fa-2x"></i>
-                            <div class="new-memo-text">New Memo</div>
-                        </div>
-                    </a>
+            <!-- messages -->
+            <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
+                <p>{{ errorMessage }}</p>
+            </div>
+            <div class="memo-operation-items">
+                <!-- 新規メモボタン -->
+                <div class="new-memo-container">
+                    <div class="new-memo">
+                        <a href="/memo.html">
+                            <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
+                                <i class="far fa-plus-square fa-2x"></i>
+                                <div class="new-memo-text">New Memo</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- その他操作用 -->
+                <div class="memo-operation-selector-container">
+                    <select class="form-control" name="memoOperationSelector" id="memoOperationSelector" @change="memoOperation" v-model="operationType">
+                        <option value="">操作を選択</option>
+                        <option value="del">削除</option>
+                    </select>
                 </div>
             </div>
+            <!-- メモ一覧 -->
             <div>
                 <table class="table table-hover memo-list-table" :class="[{'table-dark': theme == 'dark'}]">
                     <thead>
@@ -56,10 +71,6 @@
                         </tr>
                     </tbody>
                 </table>
-            </div>
-            <!-- messages -->
-            <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
-                <p>{{ errorMessage }}</p>
             </div>
         </div>
     </main>

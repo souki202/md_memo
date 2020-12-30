@@ -1,6 +1,10 @@
 import getApiUrl from '/js/getApiUrl.js'
 import urlParameter from '/js/urlParameter.js';
 
+const instance = axios.create({
+    withCredentials: true
+})
+
 new Vue({
     el: '#header',
     data: () => {
@@ -14,9 +18,7 @@ new Vue({
     },
     methods: {
         checkLoggedIn() {
-            axios.post(getApiUrl() + '/check_token', {}, {
-                withCredentials: true
-            }).then((res) => {
+            instance.post(getApiUrl() + '/check_token').then((res) => {
                 console.log('token check success');
                 this.isLogin = true;
                 try {
@@ -37,9 +39,7 @@ new Vue({
             })
         },
         getUserData() {
-            axios.get(getApiUrl() + '/get_user_data', {
-                withCredentials: true
-            }).then((res) => {
+            instance.get(getApiUrl() + '/get_user_data').then((res) => {
                 console.log(res);
                 const userId = res.data.user.user_id;
                 this.userViewName = userId.substring(0, userId.indexOf('@'));
@@ -51,9 +51,7 @@ new Vue({
             })
         },
         logout() {
-            axios.post(getApiUrl() + '/logout', {}, {
-                withCredentials: true
-            }).then(res => {
+            instance.post(getApiUrl() + '/logout').then(res => {
                 console.log('success logout');
             }).catch(err => {
                 console.log('failed to logout on server.');

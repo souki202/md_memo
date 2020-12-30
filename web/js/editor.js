@@ -6,6 +6,8 @@ import '/js/js.cookie.min.js';
 import '/js/uuidv4.min.js';
 import CodeMirrorHelper from '/js/memoHelper.js';
 
+axios.defaults.withCredentials = true;
+
 class ShareTypes {
     static DoNotShare = 1
     static Readonly = 2
@@ -171,9 +173,7 @@ new Vue({
          * メモを保存する
          */
         save() {
-            axios.post(getApiUrl() + '/save_memo', {params: this.memo}, {
-                withCredentials: true
-            }).then(res => {
+            axios.post(getApiUrl() + '/save_memo', {params: this.memo}).then(res => {
                 console.log('auto save complete: ' + res.data.id);
                 this.memo.id = res.data.id
                 this.drawMessage('saved');
@@ -190,18 +190,20 @@ new Vue({
             if (this.memo.id) {
                 axios.get(getApiUrl() + '/get_memo_data', {
                     params: {memo_id: this.memo.id},
-                    withCredentials: true
                 }).then(res => {
+                    console.log(res.data)
                     const memo = res.data.memo;
                     this.memo.id = memo.uuid;
                     this.memo.title = memo.title;
                     this.memo.description = memo.description;
                     this.memo.tyoe = memo.memo_type;
                     this.memo.body = memo.body;
-                    this.memo.share.id = memo.share.share_id;
-                    this.memo.share.type = memo.share.share_type;
-                    this.memo.share.scope = memo.share.share_scope;
-                    this.memo.share.users = memo.share.share_users;
+                    if (memo.share) {
+                        this.memo.share.id = memo.share.share_id;
+                        this.memo.share.type = memo.share.share_type;
+                        this.memo.share.scope = memo.share.share_scope;
+                        this.memo.share.users = memo.share.share_users;
+                    }
                     this.codemirror.setValue(this.memo.body);
                     this.updatePreviewCallback();
                 }).catch(err => {
@@ -215,7 +217,6 @@ new Vue({
             if (shareId) {
                 axios.get(getApiUrl() + '/get_memo_data_by_share_id', {
                     params: {share_id: shareId},
-                    withCredentials: true
                 }).then(res => {
                     console.log(res.data)
                     const memo = res.data.memo;
@@ -314,8 +315,6 @@ new Vue({
                     id: this.memo.id,
                     share: this.memo.share,
                 }
-            }, {
-                withCredentials: true
             }).then(res => {
                 this.memo.share.id = res.data.share_id;
                 console.log(res);

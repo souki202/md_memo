@@ -113,7 +113,8 @@ def delete_session(token):
         if not res:
             return False
         # 項目削除
-        res = sessions_table.delete_item(Key = {
+        res = sessions_table.delete_item(
+            Key = {
                 'session_token': token,
             },
         )
