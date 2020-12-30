@@ -1,5 +1,7 @@
 import getApiUrl from '/js/getApiUrl.js'
 
+axios.defaults.withCredentials = true;
+
 new Vue({
     el: '#headerMenuNav',
     data: () => {
@@ -12,9 +14,7 @@ new Vue({
     },
     methods: {
         checkLoggedIn() {
-            axios.post(getApiUrl() + '/check_token', {}, {
-                withCredentials: true
-            }).then((res) => {
+            axios.post(getApiUrl() + '/check_token').then((res) => {
                 console.log('token check success');
                 this.isLogin = true;
             }).catch((err) => {
@@ -23,9 +23,7 @@ new Vue({
             })
         },
         logout() {
-            axios.post(getApiUrl() + '/logout', {}, {
-                withCredentials: true
-            }).then(res => {
+            axios.post(getApiUrl() + '/logout').then(res => {
                 console.log('success logout');
             }).catch(err => {
                 console.log('failed to logout on server.');

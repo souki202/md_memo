@@ -56,7 +56,7 @@ new Vue({
         /**
          * メモのハードデリートを実行する
          */
-        executeHardDeleteMemo() {
+        deleteMemo() {
             this.clearMessage()
             const checkedMemoList = this.getCheckMemoList();
             if (!checkedMemoList.length) {
@@ -68,7 +68,7 @@ new Vue({
                 return;
             }
             
-            axios.post(getApiUrl() + '/hard_delete_memo', {
+            axios.post(getApiUrl() + '/delete_memo', {
                 params: checkedMemoList
             }, {
                 withCredentials: true
@@ -85,7 +85,7 @@ new Vue({
         /**
          * メモのソフトデリートを実行する
          */
-        executeSoftDeleteMemo() {
+        moveToGarbageMemo() {
             this.clearMessage()
             const checkedMemoList = this.getCheckMemoList();
             if (!checkedMemoList.length) {
@@ -97,7 +97,7 @@ new Vue({
         memoOperation() {
             switch (this.operationType) {
                 case 'del':
-                    this.executeHardDeleteMemo();
+                    this.deleteMemo();
                     break;
             }
             this.operationType  = '';

@@ -6,17 +6,27 @@ import datetime
 import time
 import secrets
 from enum import Enum
-from decimal import Decimal
-from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 from common_headers import create_common_header
 from my_session import *
+from my_common import *
 
-users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
-sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
-memo_overviews_table = db_client.Table('md_memo_overviews' + os.environ['DbSuffix'])
-memo_bodies_table = db_client.Table('md_memo_bodies' + os.environ['DbSuffix'])
-memo_shares_table = db_client.Table('md_memo_shares' + os.environ['DbSuffix'])
+db_resource = boto3.resource("dynamodb")
+db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
+
+class MemoStates(Enum):
+    AVAILABLE = 1
+    GARBAGE = 2
+    DELETED = 3
+
+
+MEMO_OVERVIEWS_TABLE_NAME = 'md_memo_overviews' + os.environ['DbSuffix']
+MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
+MEMO_SHARES_TABLE_NAME = 'md_memo_shares' + os.environ['DbSuffix']
+
+memo_overviews_table = db_resource.Table('md_memo_overviews' + os.environ['DbSuffix'])
+memo_bodies_table = db_resource.Table('md_memo_bodies' + os.environ['DbSuffix'])
+memo_shares_table = db_resource.Table('md_memo_shares' + os.environ['DbSuffix'])
 
 def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: int, user_uuid: str) -> str:
     # 新規作成時はuuidを新しく付与
@@ -33,6 +43,7 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
                     'description': description,
                     'memo_type': memo_type,
                     'user_uuid': user_uuid,
+                    'state': MemoStates.AVAILABLE.value,
                     'created_at': now,
                     'updated_at': now,
                 }
@@ -66,7 +77,7 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
 '''
 メモの持ち主とログインユーザが一致しているか確認する
 '''
-def check_is_correct_user_memo(memo_id: str, user_uuid: str) -> bool:
+def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
     if not memo_id or not user_uuid:
         return False
     try:
@@ -84,7 +95,8 @@ def get_memo_list(user_uuid):
     try:
         result = memo_overviews_table.query(
             IndexName = 'user_uuid-index',
-            KeyConditionExpression = Key('user_uuid').eq(user_uuid)
+            KeyConditionExpression = Key('user_uuid').eq(user_uuid),
+            FilterExpression=Key('state').eq(MemoStates.AVAILABLE.value),
         )['Items']
         if len(result) == 0:
             return []
@@ -100,7 +112,11 @@ def get_memo_overview(memo_id: str) -> dict:
     try:
         # overviewの取得
         result = memo_overviews_table.query(
-            KeyConditionExpression=Key('uuid').eq(memo_id)
+            KeyConditionExpression=Key('uuid').eq(memo_id),
+            FilterExpression='state <> :state',
+            ExpressionAttributeValues={
+                ':state': MemoStates.DELETED.value
+            }
         )['Items']
         if len(result) == 0:
             return None
@@ -120,8 +136,11 @@ def get_memo_data(memo_id: str):
     try:
         # overviewの取得
         result = memo_overviews_table.query(
-            KeyConditionExpression=Key('uuid').eq(memo_id)
-        )['Items']
+            KeyConditionExpression=Key('uuid').eq(memo_id),
+            FilterExpression='state <> :state',
+            ExpressionAttributeValues={
+                ':state': MemoStates.DELETED.value
+            }        )['Items']
         if len(result) == 0:
             return None
         memo_data = result[0]
@@ -228,5 +247,22 @@ def check_has_auth_memo(user_data: dict, memo_user_uuid: str, share_targets: str
     # メモが共有対象かどうか
     return check_is_in_share_target(user_data['user_id'], share_targets)
 
-
+def delete_memo(memo_id: str) -> bool:
+    try:
+        result = memo_overviews_table.update_item(
+            Key = {
+                'memo_id': memo_id,
+            },
+            UpdateExpression = 'set state=:state, updated_at=:updated_at',
+            ExpressionAttributeValues = {
+                ':state': MemoStates.DELETED.value,
+                ':updated_at': get_now_string()
+            }
+        )
+        # TODO: 紐づく画像をs3から削除
+        return not not result
+    except Exception as e:
+        print(e)
+        return False
+    return False
 

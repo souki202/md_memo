@@ -11,7 +11,7 @@
 ### ドメイン
 
 `dev-md-memo.tori-blog.net`
-hostsに `127.0.0.1 dev-md-memo.tori-blog.net`を追加
+`C:\Windows\System32\drivers\etc\hosts`に `127.0.0.1 dev-md-memo.tori-blog.net`を追加
 
 ### dynamodb
 

@@ -18,3 +18,13 @@ s3_prefix = "md-memo-dev"
 region = "ap-northeast-1"
 capabilities = "CAPABILITY_IAM"
 parameter_overrides = "Env=\"dev\""
+
+[local]
+[local.deploy]
+[local.deploy.parameters]
+stack_name = "md-memo-local"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1azphhnlpwj0y"
+s3_prefix = "md-memo-dev"
+region = "ap-northeast-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Env=\"local\""

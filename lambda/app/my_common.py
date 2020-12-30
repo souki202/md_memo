@@ -1,4 +1,5 @@
 import os
+import datetime
 
 def get_api_url():
     if os.environ['EnvName'] == 'Prod':
@@ -7,6 +8,8 @@ def get_api_url():
         return 'https://api.stg-md-memo.tori-blog.net'
     elif os.environ['EnvName'] == 'Dev':
         return 'https://api.dev-md-memo.tori-blog.net'
+    elif os.environ['EnvName'] == 'Local':
+        return 'https://api2.dev-md-memo.tori-blog.net'
 
 def get_page_url():
     if os.environ['EnvName'] == 'Prod':
@@ -15,3 +18,8 @@ def get_page_url():
         return 'https://stg-md-memo.tori-blog.net'
     elif os.environ['EnvName'] == 'Dev':
         return 'http://dev-md-memo.tori-blog.net'
+    elif os.environ['EnvName'] == 'Local':
+        return 'http://dev-md-memo.tori-blog.net'
+
+def get_now_string():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

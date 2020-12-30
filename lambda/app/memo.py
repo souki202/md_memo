@@ -28,6 +28,7 @@ class ShareType(Enum):
     READONLY = 2
     EDITABLE = 4
 
+db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
 memo_overviews_table = db_client.Table('md_memo_overviews' + os.environ['DbSuffix'])
@@ -77,7 +78,7 @@ def get_memo_data_event(event, content):
     if 'queryStringParameters' in event:
         memo_id = event['queryStringParameters'].get('memo_id', '')
     # 取得時はメモの持ち主が一致しているか確認
-    if not check_is_correct_user_memo(memo_id, user_uuid):
+    if not check_is_owner_of_the_memo(memo_id, user_uuid):
         print('Unauthorized get memo data.')
         print({'user': user_uuid, 'memo_id': memo_id})
         return {
@@ -182,7 +183,7 @@ def update_share_settings_event(event, context):
     share_users: str = params['params']['share']['users'] or ''
 
     # シェア設定は持ち主しか変更できない
-    if not check_is_correct_user_memo(memo_id, user_uuid):
+    if not check_is_owner_of_the_memo(memo_id, user_uuid):
         print('Unauthorized memo save.')
         print({'user': user_uuid, 'memo_id': memo_id})
         return {
@@ -247,3 +248,28 @@ def get_memo_data_by_share_id(event, context):
         "headers": create_common_header(),
         "body": json.dumps({'memo': memo_data,}, default=decimal_default_proc),
     }
+
+def delete_memo(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "Failed to delete memo.",})
+
+    params = json.loads(event['body'] or '{ }')
+    if not params:
+        return create_common_return_array(406, {'message': "Failed to delete memo.",})
+
+    memo_id = params.get('memo_id')
+    if not memo_id:
+        return create_common_return_array(406, {'message': "Failed to delete memo.",})
+    
+    # メモの持ち主と一致してるか調べる
+    if not check_is_owner_of_the_memo(memo_id, user_uuid):
+        return create_common_return_array(401, {'message': "Failed to delete memo.",})
+    
+    # 削除
+    if not delete_memo(memo_id):
+        return create_common_return_array(500, {'message': "Failed to delete memo.",})
+    
+    return create_common_return_array(200, {'memo': 'success',})

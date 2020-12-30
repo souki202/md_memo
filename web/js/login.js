@@ -1,6 +1,8 @@
 import getApiUrl from '/js/getApiUrl.js'
 import getTheme from '/js/colorTheme.js';
 
+axios.defaults.withCredentials = true;
+
 new Vue({
     el: '#loginForm',
     data: () => {
@@ -19,9 +21,7 @@ new Vue({
     mounted() {
         this.theme = getTheme();
         // ログイン済みならhomeへ
-        axios.post(getApiUrl() + '/check_token', {}, {
-            withCredentials: true
-        }).then((res) => {
+        axios.post(getApiUrl() + '/check_token').then((res) => {
             location.href = '/home.html'
         }).catch((err) => {
         }).then(() => {
@@ -50,8 +50,6 @@ new Vue({
                     email: email,
                     password: password,
                 }
-            }, {
-                withCredentials: true
             }).then((res) => {
                 const token = res.data.token
                 Cookies.remove('session_token');
@@ -89,8 +87,6 @@ new Vue({
                 params: {
                     email: email,
                 }
-            }, {
-                withCredentials: true
             }).then((res) => {
                 const token = res.data.token
                 this.successMessage = 'パスワードリセット用メールを送信しました'
