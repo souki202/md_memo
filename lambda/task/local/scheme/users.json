@@ -1,0 +1,50 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "user_id",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "uuid",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_users_dev",
+    "KeySchema": [
+        {
+            "AttributeName": "user_id",
+            "KeyType": "HASH"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "uuid-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "uuid",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        },
+        {
+            "IndexName": "temporary_token",
+            "KeySchema": [
+                {
+                    "AttributeName": "uuid",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "INCLUDE",
+                "NonKeyAttributes": [
+                    "uuid",
+                    "is_temporary"
+                ]
+            }
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}
