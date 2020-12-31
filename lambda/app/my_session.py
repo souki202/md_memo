@@ -7,9 +7,9 @@ import secrets
 from argon2 import PasswordHasher
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
+from model.user import *
 
 db_client = boto3.resource("dynamodb")
-users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
 
 EXPIRATION_TIME_PERIOD = 3600 * 24 * 30

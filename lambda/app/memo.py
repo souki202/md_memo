@@ -12,7 +12,7 @@ from boto3.dynamodb.conditions import Key
 from common_headers import *
 from my_session import *
 from my_common import *
-from user import *
+from model.user import *
 from model.memo import *
 
 def decimal_default_proc(obj):
