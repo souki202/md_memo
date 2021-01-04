@@ -73,6 +73,24 @@ new Vue({
             })
             return false;
         },
+
+        withdrawal() {
+            if (!window.confirm('退会すると、現在ご利用中のデータはご利用できなくなります。本当に退会しますか?')) {
+                return;
+            }
+            axios.post(getApiUrl() + '/withdrawal', {}, {
+                withCredentials: true
+            }).then((res) => {
+                window.alert('本サービスをご利用いただき、誠にありがとうございました。')
+                Cookies.remove('session_token');
+                location.href = '/';
+                console.log(res);
+            }).catch((err) => {
+            }).then(() => {
+                // always executed
+            })
+        },
+
         switchTheme() {
             Cookies.set('theme', this.theme, {expires: new Date('1 Jan 2037 00:00:00 GMT')});
             console.log("update theme.: " + this.theme);

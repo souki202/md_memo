@@ -128,7 +128,40 @@ def update_user_data_event(event, context):
         "body": json.dumps({'message': 'success',}),
     }
 
-def leave_service(event, context):
+def withdrawal_event(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return {
+            "statusCode": 401,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': "session timeout",}),
+        }
+    
+    user_data: dict = get_user_data_by_uuid(user_uuid)
+
+    if not user_data:
+        print('failed to get user data')
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': "Failed to leave service.",}),
+        }
+    
+    if not withdrawal(user_data):
+        print('failed to delete user data')
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': "Failed to leave service.",}),
+        }
+
+    return {
+        "statusCode": 200,
+        "headers": create_common_header(),
+        "body": json.dumps({'message': 'success',}),
+    }
 
 
 

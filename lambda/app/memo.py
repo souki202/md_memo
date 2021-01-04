@@ -49,7 +49,7 @@ def get_memo_list_event(event, context):
             "headers": create_common_header(),
             "body": json.dumps({'message': "session timeout",}),
         }
-    memos = get_memo_list(user_uuid)
+    memos = get_available_memo_list(user_uuid)
     if memos is None:
         print('Failed get memo list.')
         print('user_uuid: ' + user_uuid)
@@ -283,3 +283,4 @@ def delete_memo(event, context):
         return create_common_return_array(500, {'message': "Failed to delete memo.",})
     
     return create_common_return_array(200, {'memo': 'success',})
+

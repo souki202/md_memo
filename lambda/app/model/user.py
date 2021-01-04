@@ -9,6 +9,7 @@ from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
 from common_headers import *
+from my_common import *
 from my_session import *
 from my_mail import *
 from dynamo_utility import *
@@ -16,8 +17,10 @@ from dynamo_utility import *
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 USERS_TABLE_NAME = 'md_memo_users' + os.environ['DbSuffix']
+DELETED_USERS_TABLE_NAME = 'md_memo_deleted_users' + os.environ['DbSuffix']
 RESET_PASS_TABLE_NAME = 'md_memo_reset_password' + os.environ['DbSuffix']
 users_table = db_resource.Table(USERS_TABLE_NAME)
+deleted_users_table = db_resource.Table(DELETED_USERS_TABLE_NAME)
 reset_password_table = db_resource.Table(RESET_PASS_TABLE_NAME)
 
 '''
@@ -28,6 +31,20 @@ user_idからユーザ情報を取得
 def get_user(id: str):
     try:
         result = users_table.query(
+            KeyConditionExpression=Key('user_id').eq(id)
+        )['Items']
+        if len(result) == 0:
+            print('Not found user id: ' + id)
+            return None
+        return result[0]
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def get_deleted_user(id: str):
+    try:
+        result = deleted_users_table.query(
             KeyConditionExpression=Key('user_id').eq(id)
         )['Items']
         if len(result) == 0:
@@ -51,6 +68,18 @@ def get_can_be_registered_user(user_id: str) -> bool:
     if existing_user is not None:
         print('The user is already registered.')
         return False
+    
+    # 退会済みアカウント 今は再登録できるようにする
+    # deleted_user = get_deleted_user(user_id)
+
+    # # ユーザの取得でエラーが発生した
+    # if deleted_user == False:
+    #     print('Failure search deleted user')
+    #     return False
+    # # ユーザが既に存在した
+    # if deleted_user is not None:
+    #     print('The user has been deleted.')
+    #     return False
     return True
 
 def get_user_data_by_uuid(user_uuid: str) -> dict:
@@ -227,8 +256,35 @@ def add_user(id, passHash):
         return False, None, None
     return False, None, None
 
-
-
+def withdrawal(user_data):
+    now = get_now_string()
+    user_data['deleted_at'] = now
+    del_user_id = user_data['user_id']
+    user_data['user_id'] += '_' + secrets.token_urlsafe(8)
+    try:
+        result = db_client.transact_write_items(
+            TransactItems = [
+                {
+                    'Delete': {
+                        'TableName': USERS_TABLE_NAME,
+                        'Key': {
+                            'user_id': to_dynamo_format(del_user_id)
+                        },
+                    }
+                },
+                {
+                    'Put': {
+                        'TableName': DELETED_USERS_TABLE_NAME,
+                        'Item': dict2dynamoformat(user_data),
+                    }
+                }
+            ]
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        return False
+    return True
 
 
 
