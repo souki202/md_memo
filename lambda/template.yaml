@@ -333,6 +333,19 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /update_share_settings
             Method: post
+
+  SwitchPinnedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.switch_pinned_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /switch_pinned
+            Method: post
 # Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

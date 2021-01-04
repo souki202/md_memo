@@ -24,6 +24,10 @@ class ShareType(Enum):
     READONLY = 2
     EDITABLE = 4
 
+class PinnedType(Enum):
+    NO_PINNED = 1
+    PINNED = 2
+
 MEMO_OVERVIEWS_TABLE_NAME = 'md_memo_overviews' + os.environ['DbSuffix']
 MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
 MEMO_SHARES_TABLE_NAME = 'md_memo_shares' + os.environ['DbSuffix']
@@ -94,6 +98,9 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
     except Exception as e:
         print(e)
         return False
+
+def check_id_owner_of_the_memo_by_data(memo_data: dict, user_uuid: str) -> bool:
+    return memo_data['user_uuid'] == user_uuid
 
 '''
 すべてのメモが持ち主と一致しているか確認する
@@ -367,5 +374,26 @@ def change_all_memos_to_private(user_uuid: str) -> bool:
                 print('Failed to share settings: ' + memo_id)
                 return False
     return True
+
+def update_pinned_memo(memo_id: str, state: int) -> bool:
+    if not memo_id or not state:
+        return False
+
+    try:
+        result = memo_overviews_table.update_item(
+            Key = {
+                'uuid': memo_id
+            },
+            UpdateExpression = 'set pinned_type=:pinned_type',
+            ExpressionAttributeValues = {
+                ':pinned_type': state,
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        return False
+    return False
 
 

@@ -167,6 +167,10 @@
                         <div class="tool-tip-icon-container switch-view-icon">
                             <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
                         </div>
+                        <!-- ピン留め -->
+                        <div class="tool-tip-icon-container switch-view-icon">
+                            <i class="fas fa-thumbtack fa-2x tool-tip-icon" @click="switchPinned"></i>
+                        </div>
                     </div>
                 </div>
                 <div class="errors alert alert-danger" v-if="errorMessage != ''">

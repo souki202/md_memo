@@ -331,8 +331,24 @@ new Vue({
             this.viewModes.switchMode();
         },
 
+        switchPinned() {
+            axios.post(getApiUrl() + '/switch_pinned', {
+                params: {
+                    id: this.memo.id,
+                }
+            }).then(res => {
+                console.log(res);
+            }).catch(err => {
+                this.errorMessage = 'Failed to save share settings.';
+                console.log(err);
+            }).then(() => {
+
+            });
+            return false;
+        },
+
         invokeCodemirrorOperation(op, ...args) {
             this.codemirrorHelper.invoke(op, args);
-        }
+        },
     },
 })

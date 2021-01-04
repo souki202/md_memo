@@ -280,3 +280,39 @@ def delete_memo(event, context):
     
     return create_common_return_array(200, {'memo': 'success',})
 
+def switch_pinned_event(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "session timeout.",})
+
+    params = json.loads(event['body'] or '{ }')
+    if not params or not params.get('params'):
+        return create_common_return_array(406, {'message': "Failed to pinned memo.",})
+        
+    memo_id: str = params['params']['id'] or ''
+
+    if not memo_id:
+        print('no memo id')
+        return create_common_return_array(406, {'message': "Failed to pinned memo.",})
+
+    memo_overview = get_memo_overview(memo_id)
+
+    if not memo_overview:
+        print('not found memo')
+        return create_common_return_array(404, {'message': "Failed to pinned memo.",})
+
+    # ピン設定は持ち主しか変更できない
+    if not check_id_owner_of_the_memo_by_data(memo_overview, user_uuid):
+        print('Unauthorized memo save.')
+        print({'user': user_uuid, 'memo_id': memo_id})
+        return create_common_return_array(401, {'message': "Unauthorized",})
+
+    now_pinned_type = memo_overview.get('pinned_type', PinnedType.NO_PINNED.value)
+    new_pinned_type = PinnedType.PINNED.value if now_pinned_type != PinnedType.PINNED.value else PinnedType.NO_PINNED.value
+
+    if not update_pinned_memo(memo_id, new_pinned_type):
+        print('failed to update pinned memo')
+        return create_common_return_array(500, {'message': "Failed to pinned memo.",})
+    return create_common_return_array(200, {'message': "updated.",})
