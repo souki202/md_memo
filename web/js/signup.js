@@ -51,7 +51,7 @@ new Vue({
             }).catch((err) => {
                 console.log(err.response.status)
                 if (err.response.status == 403) {
-                    this.errorMessage = "そのユーザはすでに登録されています"
+                    this.errorMessage = "そのユーザはすでに登録されているか、退会済みのユーザです。"
                 }
                 else {
                     this.errorMessage = "サーバーエラーが発生しました"

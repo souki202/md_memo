@@ -8,7 +8,6 @@ import secrets
 from enum import Enum
 from boto3.dynamodb.conditions import Key
 from common_headers import *
-from my_session import *
 from my_common import *
 from dynamo_utility import *
 
@@ -20,6 +19,10 @@ class MemoStates(Enum):
     GARBAGE = 2
     DELETED = 3
 
+class ShareType(Enum):
+    NO_SHARE = 1
+    READONLY = 2
+    EDITABLE = 4
 
 MEMO_OVERVIEWS_TABLE_NAME = 'md_memo_overviews' + os.environ['DbSuffix']
 MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
@@ -109,46 +112,72 @@ def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool
 
 def get_memo_list_include_garbage(user_uuid):
     try:
-        result = memo_overviews_table.query(
-            IndexName = 'user_uuid-index',
-            KeyConditionExpression = Key('user_uuid').eq(user_uuid),
-            FilterExpression='availability <> :availability',
-            ExpressionAttributeValues={
-                ':availability': MemoStates.DELETED.value
-            })['Items']
-        if len(result) == 0:
+        exclusive_start_key = None
+        items = []
+        while True:
+            if exclusive_start_key is None:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    FilterExpression='availability <> :availability',
+                    ExpressionAttributeValues={
+                        ':availability': MemoStates.DELETED.value
+                    })
+            else:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    FilterExpression='availability <> :availability',
+                    ExpressionAttributeValues={
+                        ':availability': MemoStates.DELETED.value
+                    },
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend(response['Items'])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
+                break
+        if len(items) == 0:
             return []
-        return result
+        return items
     except Exception as e:
         print(e)
         return None
     return None
 
 def get_memo_list_in_garbage(user_uuid: str):
-    try:
-        result = memo_overviews_table.query(
-            IndexName = 'user_uuid-index',
-            KeyConditionExpression = Key('user_uuid').eq(user_uuid),
-            FilterExpression=Key('availability').eq(MemoStates.GARBAGE.value),
-        )['Items']
-        if len(result) == 0:
-            return []
-        return result
-    except Exception as e:
-        print(e)
-        return None
-    return None
+    return get_memo_list(user_uuid, MemoStates.GARBAGE.value)
 
-def get_memo_list(user_uuid):
+def get_available_memo_list(user_uuid: str):
+    return get_memo_list(user_uuid, MemoStates.AVAILABLE.value)
+
+def get_memo_list(user_uuid, state):
     try:
-        result = memo_overviews_table.query(
-            IndexName = 'user_uuid-index',
-            KeyConditionExpression = Key('user_uuid').eq(user_uuid),
-            FilterExpression=Key('availability').eq(MemoStates.AVAILABLE.value),
-        )['Items']
-        if len(result) == 0:
+        exclusive_start_key = None
+        items = []
+        while True:
+            if exclusive_start_key is None:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    FilterExpression=Key('availability').eq(state),
+                )
+            else:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    FilterExpression=Key('availability').eq(state),
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend(response['Items'])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
+                break
+        if len(items) == 0:
             return []
-        return result
+        return items
     except Exception as e:
         print(e)
         return None
@@ -323,4 +352,20 @@ def delete_memo_multi(memo_id_list: list) -> bool:
         print(e)
         return False
     return False
+
+def change_all_memos_to_private(user_uuid: str) -> bool:
+    memo_list = get_memo_list_include_garbage(user_uuid)
+    memo_id_list = []
+    for v in memo_list:
+        memo_id_list.append(v['uuid'])
+    for memo_id in memo_id_list:
+        share_settings = get_share_setting_by_memo_id(memo_id)
+        # シェア設定があればno shareに更新
+        if share_settings:
+            result = update_share_settings(memo_id, ShareType.NO_SHARE.value, share_settings['share_scope'], share_settings['share_users'])
+            if not result:
+                print('Failed to share settings: ' + memo_id)
+                return False
+    return True
+
 

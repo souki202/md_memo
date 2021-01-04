@@ -100,6 +100,32 @@ Resources:
       Name: !FindInMap [EnvMap, !Ref Env, APIName]
       StageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
   
+  PostTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: test.post_test
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /post_test
+            Method: post
+
+  GetTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: test.get_test
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_test
+            Method: post
+
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -124,6 +150,19 @@ Resources:
           Properties:
             RestApiId: !Ref RestApi
             Path: /signup
+            Method: post
+  
+  WithdrawalFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: user.withdrawal_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /withdrawal
             Method: post
   
   RegistCompleteFunction:

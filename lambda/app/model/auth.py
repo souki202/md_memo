@@ -1,35 +1,22 @@
-
+import json
 import boto3
 import os
-import time
+import uuid
 import datetime
+import time
 import secrets
 from argon2 import PasswordHasher
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
+from common_headers import *
 
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
-
+reset_password_table = db_client.Table('md_memo_reset_password' + os.environ['DbSuffix'])
+EXPIRATION_RESET_PASS = 60 * 5 # 5分
 EXPIRATION_TIME_PERIOD = 3600 * 24 * 30
 
-def create_simple_cookie(event) -> SimpleCookie:
-    cookie = SimpleCookie()
-
-    if 'multiValueHeaders' not in event:
-        return cookie
-    if 'cookie' not in event['multiValueHeaders']:
-        return cookie
-
-    try:
-        raw_cookie = event['multiValueHeaders']['cookie'][0]
-        cookie.load(raw_cookie)
-        return cookie
-    except Exception as e:
-        print(e)
-        return cookie
-    return cookie
 
 def check_and_update_session(event):
     cookie = create_simple_cookie(event)
@@ -55,6 +42,30 @@ def check_session(event):
         print('不正なトークン: ' + token)
         False
     return True
+
+def create_simple_cookie(event) -> SimpleCookie:
+    cookie = SimpleCookie()
+
+    if 'multiValueHeaders' not in event:
+        return cookie
+    if 'cookie' not in event['multiValueHeaders']:
+        return cookie
+
+    try:
+        raw_cookie = event['multiValueHeaders']['cookie'][0]
+        cookie.load(raw_cookie)
+        return cookie
+    except Exception as e:
+        print(e)
+        return cookie
+    return cookie
+
+def get_session_token(event) -> str:
+    cookie = create_simple_cookie(event)
+    if not cookie.get('session_token', None):
+        return False
+    return cookie.get('session_token').value
+
 
 def get_is_correct_session(session_token):
     if not session_token:
@@ -169,6 +180,44 @@ def update_session(token):
             ReturnValues="UPDATED_NEW"
         )
         return res
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+'''
+パスワードリセット用のデータを登録する
+
+@return {dict, str} 成功時はその結果とreset_token
+'''
+def add_reset_password(new_password: str, user_id: str):
+    try:
+        ttl = int(time.time()) + EXPIRATION_RESET_PASS
+        reset_token = secrets.token_urlsafe(64)
+        ph = PasswordHasher()
+        pass_hash = ph.hash(new_password)
+        result = reset_password_table.put_item(
+            Item = {
+                'reset_token': reset_token,
+                'user_id': user_id,
+                'password': pass_hash,
+                'expiration_time': ttl,
+            }
+        )
+        return result, reset_token
+    except Exception as e:
+        print(e)
+        return False, None
+    return False, None
+
+def get_reset_password(token: str) -> dict:
+    try:
+        result = reset_password_table.query(
+            KeyConditionExpression=Key('reset_token').eq(token)
+        )['Items']
+        if len(result) == 0:
+            return None
+        return result[0]
     except Exception as e:
         print(e)
         return False

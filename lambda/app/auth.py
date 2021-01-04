@@ -9,8 +9,10 @@ from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
 from common_headers import *
-from my_session import *
+from model.auth import *
 from my_mail import *
+from model.user import *
+from model.auth import *
 from user import *
 
 db_client = boto3.resource("dynamodb")
@@ -19,43 +21,6 @@ sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
 reset_password_table = db_client.Table('md_memo_reset_password' + os.environ['DbSuffix'])
 EXPIRATION_RESET_PASS = 60 * 5 # 5分
 
-'''
-パスワードリセット用のデータを登録する
-
-@return {dict, str} 成功時はその結果とreset_token
-'''
-def add_reset_password(new_password: str, user_id: str):
-    try:
-        ttl = int(time.time()) + EXPIRATION_RESET_PASS
-        reset_token = secrets.token_urlsafe(64)
-        ph = PasswordHasher()
-        pass_hash = ph.hash(new_password)
-        result = reset_password_table.put_item(
-            Item = {
-                'reset_token': reset_token,
-                'user_id': user_id,
-                'password': pass_hash,
-                'expiration_time': ttl,
-            }
-        )
-        return result, reset_token
-    except Exception as e:
-        print(e)
-        return False, None
-    return False, None
-
-def get_reset_password(token: str) -> dict:
-    try:
-        result = reset_password_table.query(
-            KeyConditionExpression=Key('reset_token').eq(token)
-        )['Items']
-        if len(result) == 0:
-            return None
-        return result[0]
-    except Exception as e:
-        print(e)
-        return False
-    return False
 
 def login(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -81,6 +46,7 @@ def login(event, context):
             "headers": create_common_header(),
             "body": json.dumps({'message': "Failure search existing user",}),
         }
+    
     # ユーザがいなかった
     if existing_user is None:
         print('Missing user: ' + email)
