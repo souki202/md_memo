@@ -8,7 +8,6 @@ import secrets
 from enum import Enum
 from boto3.dynamodb.conditions import Key
 from common_headers import *
-from my_session import *
 from my_common import *
 from dynamo_utility import *
 
@@ -20,6 +19,10 @@ class MemoStates(Enum):
     GARBAGE = 2
     DELETED = 3
 
+class ShareType(Enum):
+    NO_SHARE = 1
+    READONLY = 2
+    EDITABLE = 4
 
 MEMO_OVERVIEWS_TABLE_NAME = 'md_memo_overviews' + os.environ['DbSuffix']
 MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
@@ -350,5 +353,19 @@ def delete_memo_multi(memo_id_list: list) -> bool:
         return False
     return False
 
-def change_all_memos_to_private(user_uuid):
+def change_all_memos_to_private(user_uuid: str) -> bool:
     memo_list = get_memo_list_include_garbage(user_uuid)
+    memo_id_list = []
+    for v in memo_list:
+        memo_id_list.append(v['uuid'])
+    for memo_id in memo_id_list:
+        share_settings = get_share_setting_by_memo_id(memo_id)
+        # シェア設定があればno shareに更新
+        if share_settings:
+            result = update_share_settings(memo_id, ShareType.NO_SHARE.value, share_settings['share_scope'], share_settings['share_users'])
+            if not result:
+                print('Failed to share settings: ' + memo_id)
+                return False
+    return True
+
+

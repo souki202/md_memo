@@ -10,7 +10,6 @@ from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
 from common_headers import *
 from my_common import *
-from my_session import *
 from my_mail import *
 from dynamo_utility import *
 

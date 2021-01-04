@@ -10,7 +10,7 @@ from decimal import Decimal
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 from common_headers import *
-from my_session import *
+from model.auth import *
 from my_common import *
 from model.user import *
 from model.memo import *
@@ -24,10 +24,6 @@ class ShareScope(Enum):
     PUBLIC = 1
     SPECIFIC_USERS = 2
 
-class ShareType(Enum):
-    NO_SHARE = 1
-    READONLY = 2
-    EDITABLE = 4
 
 MULTIPLE_SELECT_MEMO_LIMIT = 25
 

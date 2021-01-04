@@ -9,10 +9,11 @@ from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
 from common_headers import *
-from my_session import *
+from model.auth import *
 from my_mail import *
 from dynamo_utility import *
 from model.user import *
+from model.memo import *
 
 def get_user_data_event(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -143,6 +144,22 @@ def withdrawal_event(event, context):
 
     if not user_data:
         print('failed to get user data')
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': "Failed to leave service.",}),
+        }
+    
+    if not change_all_memos_to_private(user_uuid):
+        print('failed to change share settings')
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': "Failed to leave service.",}),
+        }
+    
+    if not delete_session(get_session_token(event)):
+        print('failed to logout')
         return {
             "statusCode": 500,
             "headers": create_common_header(),
