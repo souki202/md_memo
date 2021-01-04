@@ -158,8 +158,11 @@
                         </div>
                         <!-- シェアアイコン -->
                         <div class="tool-tip-icon-container share-icon" v-if="!isSharedView">
-                            <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showShareDialog"></i>
+                            <i class="fas fa-link fa-2x tool-tip-icon" @click="showShareDialog"></i>
                         </div>
+                        <!-- <div class="tool-tip-icon-container share-icon" v-if="!isSharedView">
+                            <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showShareDialog"></i>
+                        </div> -->
                         <!-- 表示状態のスイッチ -->
                         <div class="tool-tip-icon-container switch-view-icon">
                             <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
