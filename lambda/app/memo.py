@@ -315,4 +315,4 @@ def switch_pinned_event(event, context):
     if not update_pinned_memo(memo_id, new_pinned_type):
         print('failed to update pinned memo')
         return create_common_return_array(500, {'message': "Failed to pinned memo.",})
-    return create_common_return_array(200, {'message': "updated.",})
+    return create_common_return_array(200, {'message': "updated.", 'pinned_type': new_pinned_type})

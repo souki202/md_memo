@@ -10,7 +10,7 @@
     <div id="header"></div>
 
     <main id="main">
-        <div id="memoEditor" v-cloak>
+        <div id="memoEditor"  :class="[{'dark-theme': theme == 'dark'}, {'light-theme': theme == 'light'}]" v-cloak>
             <!-- シェア機能設定ダイアログ -->
             <div class="share-dialog-container absolute-fill" :class="[{'is-show-dialog': isShowShareDialog}]">
                 <div class="share-dialog-bg" @click="closeDialog"></div>
@@ -168,8 +168,8 @@
                             <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
                         </div>
                         <!-- ピン留め -->
-                        <div class="tool-tip-icon-container switch-view-icon">
-                            <i class="fas fa-thumbtack fa-2x tool-tip-icon" @click="switchPinned"></i>
+                        <div class="tool-tip-icon-container pinned-icon">
+                            <i class="fas fa-thumbtack fa-2x tool-tip-icon" :class="[{'pinned-active': memo.pinnedType == 2}]" @click="switchPinned"></i>
                         </div>
                     </div>
                 </div>

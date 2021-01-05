@@ -29,5 +29,7 @@
     --memo-helper-icon-hover-color: #58a6ff;
     --memo-helper-border-color: #bbb;
 
+    --memo-pinned-active-color: rgb(255, 255, 142);
+
     --settings-group-title-border-color: #aaa;
 }
