@@ -46,6 +46,13 @@
                             <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'all'"></memo-card>
                         </div>
                     </div>
+                    <!-- 続きを読み込むボタン -->
+                    <div class="load-more-button-container" v-if="this.nextPageMemoId">
+                        <button class="btn" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]" @click="addMemoList">続きを読み込む</button>
+                    </div>
+                    <div class="end-of-memo-list" v-if="!this.nextPageMemoId">
+                        <p>これ以上メモはありません</p>
+                    </div>
                 </div>
                 <div class="col-6">
                     <div class="memo-list-container">

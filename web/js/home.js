@@ -44,6 +44,7 @@ new Vue({
             errorMessage: '',
             memos: [],
             pinnedMemos: [],
+            nextPageMemoId: '',
             memoAllCheck: false,
 
             operationType: '',
@@ -74,11 +75,29 @@ new Vue({
                     item.checked = false;
                     this.memos.push(item);
                 }
+                this.nextPageMemoId = res.data.next_page_memo_id;
             }).catch((err) => {
                 console.log(err);
-                this.errorMessage = 'Failed to get the memo list.';
+                this.errorMessage = 'メモ一覧の取得に失敗しました';
             }).then(() => {
             })
+        },
+
+        addMemoList() {
+            if (this.nextPageMemoId) {
+                const params = {next_page_memo_id: this.nextPageMemoId};
+                axios.get(getApiUrl() + '/get_memo_list', {params: params}).then((res) => {
+                    for (let item of res.data.items) {
+                        item.checked = false;
+                        this.memos.push(item);
+                    }
+                    this.nextPageMemoId = res.data.next_page_memo_id;
+                }).catch((err) => {
+                    console.log(err);
+                    this.errorMessage = 'メモ一覧の取得に失敗しました';
+                }).then(() => {
+                })
+            }
         },
 
         getPinnedMemoList() {

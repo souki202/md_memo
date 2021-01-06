@@ -108,3 +108,7 @@ main {
     color: var(--memo-list-date-color);
     align-self: flex-end;
 }
+
+.load-more-button-container {
+    text-align: center;
+}
