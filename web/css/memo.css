@@ -214,7 +214,6 @@ body {
     margin-bottom: 0;
 }
 
-
 .tool-tip-icons .tool-tip-icon-container:last-child {
     margin-bottom: 4px;
 }
@@ -222,6 +221,10 @@ body {
 .tool-tip-icon {
     cursor: pointer;
     color: var(--memo-tooltip-icon-color);
+}
+
+.pinned-active {
+    color: var(--memo-pinned-active-color);
 }
 
 /**

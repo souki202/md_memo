@@ -268,6 +268,19 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /get_memo_list
             Method: get
+
+  GetPinnedMemoListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.get_pinned_memo_list_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_pinned_memo_list
+            Method: get
   
   GetMemoDataFunction:
     Type: AWS::Serverless::Function
@@ -332,6 +345,19 @@ Resources:
           Properties:
             RestApiId: !Ref RestApi
             Path: /update_share_settings
+            Method: post
+
+  SwitchPinnedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: memo.switch_pinned_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /switch_pinned
             Method: post
 # Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

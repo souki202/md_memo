@@ -9,9 +9,14 @@ import CodeMirrorHelper from '/js/memoHelper.js';
 axios.defaults.withCredentials = true;
 
 class ShareTypes {
-    static DoNotShare = 1
-    static Readonly = 2
-    static Editable = 4
+    static DoNotShare = 1;
+    static Readonly = 2;
+    static Editable = 4;
+}
+
+class PinnedTypes {
+    static NoPinned = 1;
+    static Pinned = 2;
 }
 
 class ViewModes {
@@ -183,6 +188,31 @@ new Vue({
             })
         },
 
+        setMemoData(memo) {
+            let newMemoData = {}
+            newMemoData.id = memo.uuid;
+            newMemoData.title = memo.title;
+            newMemoData.description = memo.description;
+            newMemoData.type = memo.memo_type;
+            newMemoData.body = memo.body;
+            newMemoData.share = {};
+            if (memo.share) {
+                newMemoData.share.id = memo.share.share_id;
+                newMemoData.share.type = memo.share.share_type;
+                newMemoData.share.scope = memo.share.share_scope;
+                newMemoData.share.users = memo.share.share_users;
+            }
+            if (!memo.pinned_type) {
+                newMemoData.pinnedType
+            }
+            else {
+                newMemoData.pinnedType = memo.pinned_type
+            }
+            this.$set(this, 'memo', newMemoData);
+            this.codemirror.setValue(this.memo.body);
+            this.updatePreviewCallback();
+        },
+
         /**
          * メモを読み込む
          */
@@ -192,21 +222,9 @@ new Vue({
                     params: {memo_id: this.memo.id},
                 }).then(res => {
                     console.log(res.data)
-                    const memo = res.data.memo;
-                    this.memo.id = memo.uuid;
-                    this.memo.title = memo.title;
-                    this.memo.description = memo.description;
-                    this.memo.tyoe = memo.memo_type;
-                    this.memo.body = memo.body;
-                    if (memo.share) {
-                        this.memo.share.id = memo.share.share_id;
-                        this.memo.share.type = memo.share.share_type;
-                        this.memo.share.scope = memo.share.share_scope;
-                        this.memo.share.users = memo.share.share_users;
-                    }
-                    this.codemirror.setValue(this.memo.body);
-                    this.updatePreviewCallback();
+                    this.setMemoData(res.data.memo);
                 }).catch(err => {
+                    console.log(err);
                     this.errorMessage = 'Failed to load memo data.';
                 }).then(() => {
                 });
@@ -219,25 +237,15 @@ new Vue({
                     params: {share_id: shareId},
                 }).then(res => {
                     console.log(res.data)
-                    const memo = res.data.memo;
-                    this.memo.id = memo.uuid;
-                    this.memo.title = memo.title;
-                    this.memo.description = memo.description;
-                    this.memo.type = memo.memo_type;
-                    this.memo.body = memo.body;
-                    this.memo.share.id = memo.share.share_id;
-                    this.memo.share.type = memo.share.share_type;
-                    this.memo.share.scope = memo.share.share_scope;
-                    this.memo.share.users = memo.share.share_users;
-                    this.codemirror.setValue(this.memo.body);
+                    
+                    this.setMemoData(res.data.memo);
 
                     // リードオンリーの場合はプレビュー表示が初期状態
                     if (this.memo.share.type == ShareTypes.Readonly) {
                         this.viewModes.setMode(ViewModes.ModeList.Preview);
                     }
-                    this.updatePreviewCallback();
                 }).catch(err => {
-                    console.log(res.data)
+                    console.log(err);
                     this.errorMessage = 'Failed to load memo data.';
                 }).then(() => {
                 });
@@ -255,7 +263,8 @@ new Vue({
         },
 
         /**
-         * updatePreviewが呼び出す
+         * 通常はupdatePreviewが呼び出す. 即時実行されるため, そのときに呼んでも良い
+         * TODO: rename refactoring
          */
         updatePreviewCallback() {
             document.getElementById('memoBodyPreview').innerHTML = marked(this.memo.body)
@@ -319,7 +328,7 @@ new Vue({
                 this.memo.share.id = res.data.share_id;
                 console.log(res);
             }).catch(err => {
-                this.errorMessage = 'Failed to save share settings.';
+                this.errorMessage = 'シェア設定の変更に失敗しました';
                 console.log(err);
             }).then(() => {
 
@@ -331,8 +340,26 @@ new Vue({
             this.viewModes.switchMode();
         },
 
+        switchPinned() {
+            axios.post(getApiUrl() + '/switch_pinned', {
+                params: {
+                    id: this.memo.id,
+                }
+            }).then(res => {
+                console.log(res.data)
+                this.$set(this.memo, 'pinnedType', res.data.pinned_type)
+                console.log(this.memo.pinnedType == 2);
+            }).catch(err => {
+                this.errorMessage = 'ピン留め設定の変更に失敗しました';
+                console.log(err);
+            }).then(() => {
+
+            });
+            return false;
+        },
+
         invokeCodemirrorOperation(op, ...args) {
             this.codemirrorHelper.invoke(op, args);
-        }
+        },
     },
 })

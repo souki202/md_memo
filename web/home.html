@@ -9,7 +9,7 @@
 <body>
     <div id="header"></div>
     <main id="main">
-        <div class="memo-list-container" id="homeMemoList">
+        <div id="homeMemoList">
             <!-- messages -->
             <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
                 <p>{{ errorMessage }}</p>
@@ -36,41 +36,27 @@
                 </div>
             </div>
             <!-- メモ一覧 -->
-            <div>
-                <table class="table table-hover memo-list-table" :class="[{'table-dark': theme == 'dark'}]">
-                    <thead>
-                        <tr>
-                            <th class="memo-checkbox">
-                                <div class="form-group memo-check-button-container">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="memoAllCheck" @change="switchAllCheck" v-model="memoAllCheck">
-                                        <label class="custom-control-label" for="memoAllCheck"></label>
-                                    </div>
-                                </div>
-                            </th>
-                            <th>Title</th>
-                            <!-- <th>Description</th> -->
-                            <th class="memo-date">Update</th>
-                            <th class="memo-date">Create</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="memo of memos">
-                            <td>
-                                <div class="form-group memo-check-button-container">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" :id="'memoCheck'+memo.uuid" v-model="memo.checked">
-                                        <label class="custom-control-label" :for="'memoCheck' + memo.uuid"></label>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="memo-list-title"><a :href="'/memo.html?memo_id=' + memo.uuid" class="memo-list-link">{{ memo.title }}</a></td>
-                            <!-- <td>{{ memo.description }}</td> -->
-                            <td>{{ memo.updated_at }}</td>
-                            <td>{{ memo.created_at }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="memo-list-group-container">
+                <div id="allMemoList" class="col-6">
+                    <div class="all-memo-list-container memo-list-container">
+                        <div class="list-header">
+                            <p>全てのメモ</p>
+                        </div>
+                        <div class="memo-list">
+                            <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'all'"></memo-card>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="memo-list-container">
+                        <div class="list-header">
+                            <p>ピン留めされたメモ</p>
+                        </div>
+                        <div class="memo-list">
+                            <memo-card v-for="memo of pinnedMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'pinned'"></memo-card>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
