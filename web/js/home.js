@@ -10,8 +10,8 @@ Vue.component('memo-card', {
         <!-- メモ選択のチェックボックス -->
         <div class="form-group memo-check-button-container">
             <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" :id="'memoCheck'+memo.uuid" v-model="memo.checked">
-                <label class="custom-control-label" :for="'memoCheck' + memo.uuid"></label>
+                <input type="checkbox" class="custom-control-input" :id="'memoCheck'+listType+memo.uuid" v-model="memo.checked">
+                <label class="custom-control-label" :for="'memoCheck' + listType + memo.uuid"></label>
             </div>
         </div>
 
@@ -29,11 +29,12 @@ Vue.component('memo-card', {
 
     data: () => {
         return {
-            // memo: {}
+            memo: {},
+            listType: '',
         }
     },
 
-    props: ['memo'],
+    props: ['memo', 'listType'],
 })
 
 new Vue({
@@ -101,6 +102,13 @@ new Vue({
             let result = [];
             this.memos.forEach(e => {
                 if (e.checked) result.push(e.uuid);
+            });
+            this.pinnedMemos.forEach(e => {
+                if (e.checked) result.push(e.uuid);
+            });
+            // 重複消去
+            result.filter(function (x, i, self) {
+                return self.indexOf(x) === i;
             });
             return result;
         },

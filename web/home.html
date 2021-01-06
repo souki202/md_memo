@@ -43,7 +43,7 @@
                             <p>全てのメモ</p>
                         </div>
                         <div class="memo-list">
-                            <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo"></memo-card>
+                            <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'all'"></memo-card>
                         </div>
                     </div>
                 </div>
@@ -53,7 +53,7 @@
                             <p>ピン留めされたメモ</p>
                         </div>
                         <div class="memo-list">
-                            <memo-card v-for="memo of pinnedMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo"></memo-card>
+                            <memo-card v-for="memo of pinnedMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'pinned'"></memo-card>
                         </div>
                     </div>
                 </div>
