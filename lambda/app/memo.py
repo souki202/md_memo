@@ -62,6 +62,33 @@ def get_memo_list_event(event, context):
         "body": json.dumps({'items': memos,}, default=decimal_default_proc),
     }
 
+def get_pinned_memo_list_event(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return {
+            "statusCode": 401,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': "session timeout",}),
+        }
+    memos = get_pinned_memo_list(user_uuid)
+    if memos is None:
+        print('Failed get memo list.')
+        print('user_uuid: ' + user_uuid)
+        return {
+            "statusCode": 500,
+            "headers": create_common_header(),
+            "body": json.dumps({'message': 'Failed to get the memo list.',}),
+        }
+    for memo in memos:
+        del memo['user_uuid']
+    return {
+        "statusCode": 200,
+        "headers": create_common_header(),
+        "body": json.dumps({'items': memos,}, default=decimal_default_proc),
+    }
+
 def get_memo_data_event(event, content):
     if os.environ['EnvName'] != 'Prod':
         print(json.dumps(event))

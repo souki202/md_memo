@@ -18,6 +18,8 @@
     
     --link-hover-text-color: #aaa;
 
+    --memo-list-date-color: #999;
+
     --memo-title-bg-color: #161b22;
     --memo-title-border: #888;
     --memo-editor-overlay-text-color: #aaa;
@@ -29,7 +31,7 @@
     --memo-helper-icon-hover-color: #58a6ff;
     --memo-helper-border-color: #aaa;
     
-    --memo-pinned-active-color: rgb(255, 255, 142);
+    --memo-pinned-active-color: rgb(255 219 43);
 
     --settings-group-title-border-color: #888;
 }

@@ -190,6 +190,38 @@ def get_memo_list(user_uuid, state):
         return None
     return None
 
+def get_pinned_memo_list(user_uuid):
+    state = MemoStates.AVAILABLE.value
+    try:
+        exclusive_start_key = None
+        items = []
+        while True:
+            if exclusive_start_key is None:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
+                )
+            else:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend(response['Items'])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
+                break
+        if len(items) == 0:
+            return []
+        return items
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
 def get_memo_overview(memo_id: str) -> dict:
     if not memo_id:
         return None

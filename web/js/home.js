@@ -4,12 +4,45 @@ import '/js/js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
 
+Vue.component('memo-card', {
+    template: `
+    <div class="memo-card all-memo-item">
+        <!-- メモ選択のチェックボックス -->
+        <div class="form-group memo-check-button-container">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" :id="'memoCheck'+memo.uuid" v-model="memo.checked">
+                <label class="custom-control-label" :for="'memoCheck' + memo.uuid"></label>
+            </div>
+        </div>
+
+        <!-- その他情報 -->
+        <div class="memo-title-container">
+            <div class="memo-title">
+                <a :href="'/memo.html?memo_id=' + memo.uuid" class="memo-list-link">{{ memo.title }}</a>
+            </div>
+        </div>
+        <div class="memo-updated-at">
+            {{ memo.updated_at }}
+        </div>
+    </div>
+    `,
+
+    data: () => {
+        return {
+            // memo: {}
+        }
+    },
+
+    props: ['memo'],
+})
+
 new Vue({
     el: '#homeMemoList',
     data: () => {
         return {
             errorMessage: '',
             memos: [],
+            pinnedMemos: [],
             memoAllCheck: false,
 
             operationType: '',
@@ -18,6 +51,7 @@ new Vue({
     },
     mounted() {
         this.getMemoList();
+        this.getPinnedMemoList();
 
         // tableのカラーを設定
         this.theme = getTheme();
@@ -38,6 +72,20 @@ new Vue({
                 for (let item of res.data.items) {
                     item.checked = false;
                     this.memos.push(item);
+                }
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'Failed to get the memo list.';
+            }).then(() => {
+            })
+        },
+
+        getPinnedMemoList() {
+            axios.get(getApiUrl() + '/get_pinned_memo_list').then((res) => {
+                console.log(res);
+                for (let item of res.data.items) {
+                    item.checked = false;
+                    this.pinnedMemos.push(item);
                 }
             }).catch((err) => {
                 console.log(err);

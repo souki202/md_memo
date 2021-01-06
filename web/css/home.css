@@ -51,48 +51,60 @@ main {
 
 /* メモリスト */
 
-.memo-list-table {
-    background-color: var(--assort-bg-color);
-    margin: 0;
+.memo-list-group-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
 }
 
-.memo-list-table, .memo-list-table > * {
+.memo-list-group-container > * {
+    width: 50%;
+}
+
+#allMemoList {
+    width: 50%;
+    padding: 0 1rem;
+}
+
+.memo-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 2rem;
+    width: 100%;
+    margin: 0.5rem 0;
+    border-radius: 4px;
+}
+
+.memo-check-button-container {
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 2rem;
+    margin: 0 1rem;
+}
+
+.memo-title-container {
+    flex-grow: 1;
+}
+
+.memo-list {
     width: 100%;
 }
 
-.memo-list-table th {
-    background-color: var(--table-header-bg);
-}
-
-.memo-list-table td {
-    vertical-align: middle;
-}
-
-.memo-list-table .memo-date {
-    width: 14rem
-}
-
-.memo-list-title {
-    font-size: 22px;
-}
-
-.memo-list-title a {
-    color: inherit;
-}
-
-.memo-list-link:link, .memo-list-link:hover, .memo-list-link:active, .memo-list-link:visited {
-    color: inherit;
+.memo-list-link, .memo-list-link:active, .memo-list-link:visited, .memo-list-link:link {
+    color: var(--base-text-color);
     text-decoration: none;
 }
 
 .memo-list-link:hover {
     color: var(--link-hover-text-color);
+    text-decoration: none;
 }
 
-.memo-checkbox {
-    width: 2rem;
-}
-
-.memo-check-button-container {
-    margin-bottom: 0;
+.memo-updated-at {
+    font-size: 0.8rem;
+    margin-right: 0.8rem;
+    color: var(--memo-list-date-color);
+    align-self: flex-end;
 }
