@@ -24,9 +24,6 @@ class ShareScope(Enum):
     PUBLIC = 1
     SPECIFIC_USERS = 2
 
-
-MULTIPLE_SELECT_MEMO_LIMIT = 25
-
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
@@ -45,7 +42,17 @@ def get_memo_list_event(event, context):
             "headers": create_common_header(),
             "body": json.dumps({'message': "session timeout",}),
         }
-    memos = get_available_memo_list(user_uuid)
+    
+    exclusive_start_key = None
+    if 'queryStringParameters' in event and event['queryStringParameters']:
+        next_memo_uuid = event['queryStringParameters'].get('next_page_memo_id', '')
+        exclusive_start_key = {'user_uuid': user_uuid, 'uuid': next_memo_uuid}
+
+    memos, exclusive_start_key = get_available_memo_list_page(user_uuid, exclusive_start_key)
+    next_page_memo_id = ''
+    if exclusive_start_key is not None:
+        next_page_memo_id = exclusive_start_key['uuid']
+    
     if memos is None:
         print('Failed get memo list.')
         print('user_uuid: ' + user_uuid)
@@ -59,7 +66,7 @@ def get_memo_list_event(event, context):
     return {
         "statusCode": 200,
         "headers": create_common_header(),
-        "body": json.dumps({'items': memos,}, default=decimal_default_proc),
+        "body": json.dumps({'items': memos, 'next_page_memo_id': next_page_memo_id}, default=decimal_default_proc),
     }
 
 def get_pinned_memo_list_event(event, context):

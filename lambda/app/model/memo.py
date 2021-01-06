@@ -14,6 +14,8 @@ from dynamo_utility import *
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 
+MEMO_PAGE_LIMIT = 100
+
 class MemoStates(Enum):
     AVAILABLE = 1
     GARBAGE = 2
@@ -154,34 +156,27 @@ def get_memo_list_include_garbage(user_uuid):
     return None
 
 def get_memo_list_in_garbage(user_uuid: str):
-    return get_memo_list(user_uuid, MemoStates.GARBAGE.value)
+    return get_memo_list_all(user_uuid, MemoStates.GARBAGE.value)
 
 def get_available_memo_list(user_uuid: str):
-    return get_memo_list(user_uuid, MemoStates.AVAILABLE.value)
+    return get_memo_list_all(user_uuid, MemoStates.AVAILABLE.value)
 
-def get_memo_list(user_uuid, state):
+def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, MemoStates.AVAILABLE.value, exclusive_start_key)
+
+def get_memo_list_in_garbage_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, MemoStates.GARBAGE.value, exclusive_start_key)
+
+def get_memo_list_all(user_uuid, state):
     try:
         exclusive_start_key = None
         items = []
         while True:
-            if exclusive_start_key is None:
-                response = memo_overviews_table.query(
-                    IndexName='user_uuid-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression=Key('availability').eq(state),
-                )
-            else:
-                response = memo_overviews_table.query(
-                    IndexName='user_uuid-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression=Key('availability').eq(state),
-                    ExclusiveStartKey=exclusive_start_key
-                )
-            items.extend(response['Items'])
-            if ("LastEvaluatedKey" in response) == True:
-                ExclusiveStartKey = response["LastEvaluatedKey"]
-            else:
+            i, exclusive_start_key = get_memo_list_page(user_uuid, state, exclusive_start_key)
+            items.extend(i)
+            if not exclusive_start_key:
                 break
+        
         if len(items) == 0:
             return []
         return items
@@ -189,6 +184,40 @@ def get_memo_list(user_uuid, state):
         print(e)
         return None
     return None
+
+'''
+メモ一覧を取得する
+
+@return {list, str} メモ一覧, 次の取得に使用するキー
+'''
+def get_memo_list_page(user_uuid, state, exclusive_start_key):
+    try:
+        items = []
+        if exclusive_start_key is None:
+            response = memo_overviews_table.query(
+                IndexName='user_uuid-index',
+                KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                FilterExpression=Key('availability').eq(state),
+                Limit=MEMO_PAGE_LIMIT
+            )
+        else:
+            response = memo_overviews_table.query(
+                IndexName='user_uuid-index',
+                KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                FilterExpression=Key('availability').eq(state),
+                ExclusiveStartKey=exclusive_start_key,
+                Limit=MEMO_PAGE_LIMIT
+            )
+        items = response['Items']
+        exclusive_start_key = response.get('LastEvaluatedKey')
+
+        if len(items) == 0:
+            return [], None
+        return items, exclusive_start_key
+    except Exception as e:
+        print(e)
+        return None, None
+    return None, None
 
 def get_pinned_memo_list(user_uuid):
     state = MemoStates.AVAILABLE.value
