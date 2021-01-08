@@ -22,9 +22,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
       - uses: actions/setup-node@v1
-      - run: cd ./lambda
       - name: SamDeploy
         uses: r0zar/sam-deploy-action@v1.4
+        run: cd ./lambda
         env:
           TEMPLATE: 'template.yaml'
           AWS_STACK_NAME: md-memo-stg
@@ -33,7 +33,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEPLOY_BUCKET: md-memo-lambda-deploy
           PARAMETER_OVERRIDES: Env=stg
-      - run: cd ../
       - name: Sync s3
         uses: jakejarvis/s3-sync-action@master
         with:
