@@ -17,22 +17,6 @@ from model.memo import *
 # from oauth2client import client, crypt
 from firebase_admin import credentials
 
-def get_google_client():
-    return {
-        'client_id': '376887486571-aeu7qvvt6013p0agsralcs6kekvon295.apps.googleusercontent.com',
-        'secret': 'oEEPOw21nQn2XBU0-mfjpz5_'
-    }
-
-def firebase_key():
-    if os.environ['EnvName'] == 'Prod':
-        return ''
-    elif os.environ['EnvName'] == 'Stg':
-        return ''
-    elif os.environ['EnvName'] == 'Dev':
-        return 'AAAA71eSPY8:APA91bHlJi2hzI6zeCOPld6fIgO-E-tWVa9b0UqadBoS6Foo1qyE-WLZ-3IYHsOzIkMLkjpfnyDjehJrWQvkHQQoCkzrp7ISyEPy_VJxjYERyfFLiqGqRAtW-dkiXD05HfF4-FdZpBE_'
-    elif os.environ['EnvName'] == 'Local':
-        return 'AAAA71eSPY8:APA91bHlJi2hzI6zeCOPld6fIgO-E-tWVa9b0UqadBoS6Foo1qyE-WLZ-3IYHsOzIkMLkjpfnyDjehJrWQvkHQQoCkzrp7ISyEPy_VJxjYERyfFLiqGqRAtW-dkiXD05HfF4-FdZpBE_'
-
 def create_firebase_credentials():
     filepath = ''
     if os.environ['EnvName'] == 'Prod':
