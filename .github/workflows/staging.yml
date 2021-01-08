@@ -24,7 +24,8 @@ jobs:
       - uses: actions/setup-node@v1
       - name: SamDeploy
         uses: r0zar/sam-deploy-action@v1.4
-        run: cd ./lambda
+        with:
+          working-directory: ./lambda
         env:
           TEMPLATE: 'template.yaml'
           AWS_STACK_NAME: md-memo-stg
