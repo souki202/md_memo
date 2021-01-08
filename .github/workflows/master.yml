@@ -32,7 +32,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEPLOY_BUCKET: md-memo-lambda-deploy
           PARAMETER_OVERRIDES:
-            Env: prod
+            - Env=prod
       - name: Sync s3
         uses: jakejarvis/s3-sync-action@master
         with:
