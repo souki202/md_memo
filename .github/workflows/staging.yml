@@ -7,8 +7,6 @@ on:
   # Triggers the workflow on push or pull request events but only for the staging branch
   push:
     branches: [ staging ]
-  pull_request:
-    branches: [ staging ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,25 +19,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    
-    - name: Build
-      uses: actions/setup-node@v1
-      with:
-        node-version: '12'
-    - run: yarn
-    - run: yarn build
-    
-    - name: Configure AWS credentials from account
-      uses: aws-actions/configure-aws-credentials@v1
+    - name: S3 Sync
+    # You may pin to the exact commit or the version.
+    # uses: jakejarvis/s3-sync-action@be0c4ab89158cac4278689ebedd8407dd5f35a83
+      uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: ap-northeast-1
-    
-    - name: Copy Files to s3
-      run: |
-        aws s3 sync ./web s3://md-memo-stg
-
-#
+        aws-region: ap-northeast-1s3
+        run: |
+          aws s3 sync ./web s3://md-memo-st
