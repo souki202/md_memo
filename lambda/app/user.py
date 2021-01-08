@@ -14,6 +14,36 @@ from my_mail import *
 from dynamo_utility import *
 from model.user import *
 from model.memo import *
+# from oauth2client import client, crypt
+from firebase_admin import credentials
+
+def get_google_client():
+    return {
+        'client_id': '376887486571-aeu7qvvt6013p0agsralcs6kekvon295.apps.googleusercontent.com',
+        'secret': 'oEEPOw21nQn2XBU0-mfjpz5_'
+    }
+
+def firebase_key():
+    if os.environ['EnvName'] == 'Prod':
+        return ''
+    elif os.environ['EnvName'] == 'Stg':
+        return ''
+    elif os.environ['EnvName'] == 'Dev':
+        return 'AAAA71eSPY8:APA91bHlJi2hzI6zeCOPld6fIgO-E-tWVa9b0UqadBoS6Foo1qyE-WLZ-3IYHsOzIkMLkjpfnyDjehJrWQvkHQQoCkzrp7ISyEPy_VJxjYERyfFLiqGqRAtW-dkiXD05HfF4-FdZpBE_'
+    elif os.environ['EnvName'] == 'Local':
+        return 'AAAA71eSPY8:APA91bHlJi2hzI6zeCOPld6fIgO-E-tWVa9b0UqadBoS6Foo1qyE-WLZ-3IYHsOzIkMLkjpfnyDjehJrWQvkHQQoCkzrp7ISyEPy_VJxjYERyfFLiqGqRAtW-dkiXD05HfF4-FdZpBE_'
+
+def create_firebase_credentials():
+    filepath = ''
+    if os.environ['EnvName'] == 'Prod':
+        filepath = ''
+    elif os.environ['EnvName'] == 'Stg':
+        filepath = ''
+    elif os.environ['EnvName'] == 'Dev':
+        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
+    elif os.environ['EnvName'] == 'Local':
+        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
+    return credentials.Certificate(filepath)
 
 def get_user_data_event(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -128,6 +158,40 @@ def update_user_data_event(event, context):
         "headers": create_common_header(),
         "body": json.dumps({'message': 'success',}),
     }
+
+# def google_login(event, context):
+#     if os.environ['EnvName'] != 'Prod':
+#         print(json.dumps(event))
+    
+#     params = json.loads(event['body'] or '{ }')
+#     if not params:
+#         return {
+#             "statusCode": 406,
+#             "headers": create_common_header(),
+#             "body": json.dumps({'message': 'Insufficient input'}),
+#         }
+    
+#     id_token: str = params['params'].get('id_token', '')
+
+#     cred = create_firebase_credentials()
+#     firebase_admin.initialize_app(cred)
+
+#     try:
+#         idinfo = client.verify_id_token(id_token, get_google_client()['secret'])
+#         print(idinfo)
+#         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+#             raise crypt.AppIdentityError("Wrong issuer.")
+#         if idinfo['hd'] != get_domain():
+#             raise crypt.AppIdentityError("Wrong hosted domain.")
+#     except crypt.AppIdentityError as e:
+#         print('invalid google token')
+#         print(e)
+#         return create_common_return_array(401, {'message': "Invalid token."})
+
+#     userid = idinfo['sub']
+#     return create_common_return_array(200, {'message': "loggined."})
+
+
 
 def withdrawal_event(event, context):
     if os.environ['EnvName'] != 'Prod':

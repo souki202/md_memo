@@ -10,6 +10,3 @@ services:
       - ./nginx/server.crt:/etc/nginx/certs/server.crt
       - ./nginx/server.key:/etc/nginx/certs/server.key
       - ./web:/var/www/html
-
-volumes:
-  dynamodb_data:

@@ -80,11 +80,11 @@ Resources:
   RestApi:
     Type: AWS::Serverless::Api
     Properties:
-      Auth:
-        ResourcePolicy:
-          IpRangeWhitelist:
-            - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
-            - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
+      # Auth:
+      #   ResourcePolicy:
+      #     IpRangeWhitelist:
+      #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
+      #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
       EndpointConfiguration: REGIONAL
       Cors:
         AllowCredentials: true
@@ -151,6 +151,19 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /signup
             Method: post
+  
+  # GoogleLoginFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: user.google_login
+  #     Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+  #     Events:
+  #       DefaultEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref RestApi
+  #           Path: /google_login
+  #           Method: post
   
   WithdrawalFunction:
     Type: AWS::Serverless::Function
