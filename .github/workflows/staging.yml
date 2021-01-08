@@ -35,6 +35,6 @@ jobs:
           # aws bucket name
           aws_bucket: 'md-memo-stg'
           # directory to upload
-          source_dir: 'web'
+          source_dir: 'web/'
           # destination directory for upload
           destination_dir: '/'
