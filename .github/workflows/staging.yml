@@ -24,8 +24,7 @@ jobs:
     # uses: jakejarvis/s3-sync-action@be0c4ab89158cac4278689ebedd8407dd5f35a83
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: ap-northeast-1s3
-        run: |
-          aws s3 sync ./web s3://md-memo-st
+        AWS_ACCESS_KEY_ID_S3: ${{ secrets.AWS_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY_S3: ${{ secrets.AWS_SECRET_KEY }}
+        AWS_BUCKET_S3: 'md-memo-stg'
+        AWS_DEFAULT_REGION_S3: ap-northeast-1
