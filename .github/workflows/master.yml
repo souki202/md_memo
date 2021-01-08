@@ -21,17 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-      - uses: actions/setup-node@v1
-      - uses: r0zar/sam-deploy-action@v1.4
-        working-directory: ./lambda
-        env:
-          TEMPLATE: 'lambda/template.yaml'
-          AWS_STACK_NAME: md-memo-prod
-          AWS_REGION: 'ap-northeast-1'
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEPLOY_BUCKET: md-memo-lambda-deploy
-          PARAMETER_OVERRIDES: Env=prod
       - name: Sync s3
         uses: jakejarvis/s3-sync-action@master
         working-directory: ./
