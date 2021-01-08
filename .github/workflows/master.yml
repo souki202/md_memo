@@ -19,13 +19,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-     - name: Checkout
-       uses: actions/checkout@master
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '10.x'
-    - run: for d in */ ; do cd $d && npm install --no-package-lock --loglevel=error && cd .. ; done
-    - uses: r0zar/sam-deploy-action@v1.4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+      - uses: r0zar/sam-deploy-action@v1.4
       env:
         TEMPLATE: 'lambda/template.yaml'
         AWS_STACK_NAME: md-memo-prod
@@ -35,13 +33,13 @@ jobs:
         AWS_DEPLOY_BUCKET: md-memo-lambda-deploy
         PARAMETER_OVERRIDES:
           - Env: prod
-     - name: Sync s3
-       uses: jakejarvis/s3-sync-action@master
-       with:
-         args: --acl public-read --follow-symlinks --delete
-       env:
-         AWS_S3_BUCKET: ${{ secrets.AWS_PROD_BUCKET_NAME }}
-         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-         AWS_REGION: 'ap-northeast-1'   # S3のリージョンを指定します
-         SOURCE_DIR: 'web'      # S3のデプロイ対象のディレクトリを指定します  
+      - name: Sync s3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_PROD_BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: 'ap-northeast-1'   # S3のリージョンを指定します
+          SOURCE_DIR: 'web'      # S3のデプロイ対象のディレクトリを指定します  
