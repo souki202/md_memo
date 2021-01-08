@@ -24,7 +24,6 @@ jobs:
     steps:
       - name: hogehoge
         run: |
-          ls '/home/runner/work/md_memo/'
           ls '/home/runner/work/md_memo/md_memo/'
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Upload S3
