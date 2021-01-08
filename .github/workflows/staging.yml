@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-node@v1
       - name: SamDeploy
         uses: r0zar/sam-deploy-action@v1.4
+        with:
+          entryPoint: ./lambda
         run: cd ./lambda
         env:
           TEMPLATE: 'template.yaml'
