@@ -22,9 +22,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
       - uses: actions/setup-node@v1
-      - uses: r0zar/sam-deploy-action@v1.4
-        run:
-          working-directory: ./lambda
+      - name: SamDeploy
+        uses: r0zar/sam-deploy-action@v1.4
+        working-directory: ./lambda
         env:
           TEMPLATE: 'lambda/template.yaml'
           AWS_STACK_NAME: md-memo-stg
@@ -35,8 +35,7 @@ jobs:
           PARAMETER_OVERRIDES: Env=stg
       - name: Sync s3
         uses: jakejarvis/s3-sync-action@master
-        run:
-          working-directory: ./
+        working-directory: ./
         with:
           args: --acl public-read --follow-symlinks --delete
         env:
