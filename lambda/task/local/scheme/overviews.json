@@ -9,7 +9,7 @@
             "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_sessions_dev",
+    "TableName": "md_memo_overviews_dev",
     "KeySchema": [
         {
             "AttributeName": "uuid",
@@ -21,7 +21,7 @@
             "IndexName": "user_uuid-index",
             "KeySchema": [
                 {
-                    "AttributeName": "uuid",
+                    "AttributeName": "user_uuid",
                     "KeyType": "HASH"
                 }
             ],

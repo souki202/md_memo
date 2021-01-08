@@ -1,27 +1,27 @@
 {
     "AttributeDefinitions": [
         {
-            "AttributeName": "user_id",
+            "AttributeName": "session_token",
             "AttributeType": "S"
         },
         {
-            "AttributeName": "uuid",
+            "AttributeName": "user_uuid",
             "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_deleted_users_dev",
+    "TableName": "md_memo_sessions_dev",
     "KeySchema": [
         {
-            "AttributeName": "user_id",
+            "AttributeName": "session_token",
             "KeyType": "HASH"
         }
     ],
     "GlobalSecondaryIndexes": [
         {
-            "IndexName": "uuid-index",
+            "IndexName": "user_uuid-index",
             "KeySchema": [
                 {
-                    "AttributeName": "uuid",
+                    "AttributeName": "user_uuid",
                     "KeyType": "HASH"
                 }
             ],

@@ -18,7 +18,7 @@
 
 テーブル作成
 
-`aws dynamodb create-table --cli-input-json "lambda\task\scheme\task.json"`
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\table.json"`
 
 ### lambdaのテスト
 

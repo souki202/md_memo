@@ -13,7 +13,7 @@
             "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_users_dev",
+    "TableName": "md_memo_users_stg",
     "KeySchema": [
         {
             "AttributeName": "user_id",

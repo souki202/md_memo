@@ -7,13 +7,9 @@
         {
             "AttributeName": "uuid",
             "AttributeType": "S"
-        },
-        {
-            "AttributeName": "temporary_token",
-            "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_users_dev",
+    "TableName": "md_memo_deleted_users_stg",
     "KeySchema": [
         {
             "AttributeName": "user_id",
@@ -31,22 +27,6 @@
             ],
             "Projection": {
                 "ProjectionType": "ALL"
-            }
-        },
-        {
-            "IndexName": "temporary_token-index",
-            "KeySchema": [
-                {
-                    "AttributeName": "temporary_token",
-                    "KeyType": "HASH"
-                }
-            ],
-            "Projection": {
-                "ProjectionType": "INCLUDE",
-                "NonKeyAttributes": [
-                    "uuid",
-                    "is_temporary"
-                ]
             }
         }
     ],
