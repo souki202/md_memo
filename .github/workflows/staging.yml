@@ -18,19 +18,17 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      - uses: actions/checkout@master
-      - uses: actions/setup-node@master
-        with:
-          node-version: 10.x
-      - run: yarn install
-      - run: yarn build
-      - uses: actions/aws/cli@master
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-        with:
-          args: s3 sync web/ s3://${{ secrets.AWS_PROD_BUCKET_NAME }} --delete
+   runs-on: ubuntu-latest
+   steps:
+   - name: Checkout
+     uses: actions/checkout@master
+   - name: Sync s3
+     uses: jakejarvis/s3-sync-action@master
+     with:
+       args: --acl public-read --follow-symlinks --delete
+     env:
+       AWS_S3_BUCKET: 'md-memo-stg'
+       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+       AWS_REGION: 'ap-northeast-1'   # S3のリージョンを指定します
+       SOURCE_DIR: 'web'      # S3のデプロイ対象のディレクトリを指定します  
