@@ -19,12 +19,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: S3 Sync
-    # You may pin to the exact commit or the version.
-    # uses: jakejarvis/s3-sync-action@be0c4ab89158cac4278689ebedd8407dd5f35a83
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      with:
-        AWS_ACCESS_KEY_ID_S3: ${{ secrets.AWS_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY_S3: ${{ secrets.AWS_SECRET_KEY }}
-        AWS_S3_BUCKET: 'md-memo-stg'
-        AWS_DEFAULT_REGION_S3: ap-northeast-1
+     - name: Checkout
+       uses: actions/checkout@master
+     - name: Sync s3
+       uses: jakejarvis/s3-sync-action@master
+       with:
+         args: --acl public-read --follow-symlinks --delete
+       env:
+         AWS_S3_BUCKET: 'md-memo-stg'
+         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+         AWS_REGION: 'ap-northeast-1'   # S3のリージョンを指定します
+         SOURCE_DIR: 'web'      # S3のデプロイ対象のディレクトリを指定します  
