@@ -23,7 +23,9 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: hogehoge
-        run: ls
+        run: |
+          ls '/home/runner/work/md_memo/'
+          ls '/home/runner/work/md_memo/md_memo/'
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Upload S3
         # You may pin to the exact commit or the version.
