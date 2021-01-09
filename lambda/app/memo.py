@@ -31,6 +31,7 @@ memo_overviews_table = db_client.Table('md_memo_overviews' + os.environ['DbSuffi
 memo_bodies_table = db_client.Table('md_memo_bodies' + os.environ['DbSuffix'])
 memo_shares_table = db_client.Table('md_memo_shares' + os.environ['DbSuffix'])
 
+MULTIPLE_SELECT_MEMO_LIMIT = 10
 
 def get_memo_list_event(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -298,7 +299,7 @@ def delete_memo(event, context):
         return create_common_return_array(406, {'message': "Failed to delete memo.",})
     
     if len(memo_id_list) > MULTIPLE_SELECT_MEMO_LIMIT:
-        return create_common_return_array(406, {'message': "The maximum number of selections is 25.",})
+        return create_common_return_array(406, {'message': "The maximum number of selections is " + MULTIPLE_SELECT_MEMO_LIMIT + ".",})
 
     # 重複消去
     memo_id_list = list(set(memo_id_list))

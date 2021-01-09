@@ -143,8 +143,8 @@ new Vue({
                 return;
             }
 
-            if (checkedMemoList.length > 25) {
-                window.alert('25件より多くの選択はできません');
+            if (checkedMemoList.length > 10) {
+                window.alert('10件より多くの選択はできません');
                 return; 
             }
 
