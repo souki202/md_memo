@@ -5,6 +5,18 @@
     <script src="/js/loadCommonParts.js"></script>
     <link rel="stylesheet" href="/css/login.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="376887486571-aeu7qvvt6013p0agsralcs6kekvon295.apps.googleusercontent.com">
+
+    <!-- firebase app -->
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
+    
+    <!-- firebase auth -->
+    <script defer src="https://www.gstatic.com/firebasejs/8.2.2/firebase-auth.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.6.1/firebase-ui-auth.css" />
+
     <title>MD-MEMO Login</title>
 </head>
 <body>
@@ -38,6 +50,13 @@
                     <p><a href="#" @click="resetPassword">パスワードリセット(Emailのみ入力)</a></p>
                 </div>
             </form>
+            <!-- socal login -->
+            <div id="firebaseApp">
+                <div class="errors alert alert-danger" v-if="errorMessage != ''">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div id="firebaseuiAuthContainer"></div>
+            </div>
         </div>
     </main>
     <div id="footer"></div>
@@ -45,7 +64,8 @@
         window.addEventListener('DOMContentLoaded', (e) => {
             appendScript('/js/login.js', true);
             appendScript('/js/authCheckInPublicPage.js', true);
-        })
+            appendScript('/js/firebaseAuth.js', true);
+        });
     </script>
 </body>
 </html>

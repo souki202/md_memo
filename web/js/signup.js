@@ -68,21 +68,3 @@ new Vue({
         }
     },
 })
-
-// window.onSignIn = function(googleUser) {
-//     var idToken = googleUser.getAuthResponse().id_token;
-
-//     axios.post(getApiUrl() + '/google_login', {
-//         params: {
-//             id_token: idToken,
-//         }
-//     }).then((res) => {
-//         console.log(res);
-//         // this.successMessage = '本登録用のメールを送信しました';
-//     }).catch((err) => {
-//         console.log(err)
-        
-//     }).then(() => {
-//         // always executed
-//     })
-// }

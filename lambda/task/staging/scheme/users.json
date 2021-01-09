@@ -11,6 +11,10 @@
         {
             "AttributeName": "temporary_token",
             "AttributeType": "S"
+        },
+        {
+            "AttributeName": "firebase_user_id",
+            "AttributeType": "S"
         }
     ],
     "TableName": "md_memo_users_stg",
@@ -47,6 +51,18 @@
                     "uuid",
                     "is_temporary"
                 ]
+            }
+        },
+        {
+            "IndexName": "firebase_user_id-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "firebase_user_id",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "KEYS_ONLY"
             }
         }
     ],

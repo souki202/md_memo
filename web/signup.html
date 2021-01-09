@@ -44,15 +44,6 @@
                 </div>
                 <button type="submit" class="btn btn-login" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]">Sign up</button>
 
-                <!-- socal login -->
-                <div class="social-login-buttons-container">
-                    <div class="google-login-container">
-                        <div class="g-signin2" data-onsuccess="onSignIn"></div>
-                    </div>
-                </div>
-
-                <div id="firebaseuiAuthContainer"></div>
-
                 <!-- messages -->
                 <div class="errors alert alert-danger" v-if="errorMessage != ''">
                     <p>{{ errorMessage }}</p>
@@ -61,6 +52,14 @@
                     <p>{{ successMessage }}</p>
                 </div>
             </form>
+            <!-- socal login -->
+            <div id="firebaseApp">
+                <div class="errors alert alert-danger" v-if="errorMessage != ''">
+                    <p>{{ errorMessage }}</p>
+                </div>
+                <div id="firebaseuiAuthContainer"></div>
+            </div>
+
         </div>
     </main>
     <div id="footer"></div>

@@ -3,7 +3,9 @@
 ## 各種URL
 
 <https://dev-md-memo.tori-blog.net/>
+
 <https://stg-md-memo.tori-blog.net/>
+
 <https://md-memo.tori-blog.net/>
 
 ## ローカル環境
@@ -27,23 +29,27 @@
 ### apiの開始
 
 `sam build --config-env staging`
+
 `sam local start-api -t template.yaml`
 
 ## デプロイ
 
 ### dev
 
-`sam build --config-env develop`
+`sam build --config-env develop --use-container`
+
 `sam deploy --config-env develop`
 
 ### staging
 
-`sam build --config-env staging`
+`sam build --config-env staging --use-container`
+
 `sam deploy --config-env staging`
 
 ### production
 
-`sam build --config-env production`
+`sam build --config-env production --use-container`
+
 `sam deploy --config-env production`
 
 ## その他

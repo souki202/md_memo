@@ -72,6 +72,8 @@ Globals:
         DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
         EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
     MemorySize: 512
+    Layers:
+      - !Ref MyLayer
     Runtime: python3.8
     Timeout: 5
 
@@ -100,6 +102,16 @@ Resources:
       Name: !FindInMap [EnvMap, !Ref Env, APIName]
       StageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
   
+  MyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Layer description
+      ContentUri: 'my_layer/'
+      CompatibleRuntimes:
+        - python3.8
+    Metadata:
+      BuildMethod: python3.8
+
   PostTestFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -152,18 +164,18 @@ Resources:
             Path: /signup
             Method: post
   
-  # GoogleLoginFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     Handler: user.google_login
-  #     Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-  #     Events:
-  #       DefaultEvent:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref RestApi
-  #           Path: /google_login
-  #           Method: post
+  SnsLoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth.sns_login
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /sns_login
+            Method: post
   
   WithdrawalFunction:
     Type: AWS::Serverless::Function

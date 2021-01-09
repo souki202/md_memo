@@ -15,20 +15,6 @@ from my_mail import *
 from dynamo_utility import *
 from model.user import *
 from model.memo import *
-# from oauth2client import client, crypt
-from firebase_admin import credentials
-
-def create_firebase_credentials():
-    filepath = ''
-    if os.environ['EnvName'] == 'Prod':
-        filepath = ''
-    elif os.environ['EnvName'] == 'Stg':
-        filepath = ''
-    elif os.environ['EnvName'] == 'Dev':
-        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
-    elif os.environ['EnvName'] == 'Local':
-        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
-    return credentials.Certificate(filepath)
 
 def get_user_data_event(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -61,7 +47,7 @@ def update_user_data_event(event, context):
     confirm_new_password: str = params['params'].get('confirmNewPassword', '')
 
     # 入力不足
-    if new_user_id == '' or password == '':
+    if new_user_id == '':
         return create_common_return_array(406, {'message': 'Insufficient input'})
     
     # パスワード更新時の, 確認用パスワードが間違っている
@@ -74,8 +60,9 @@ def update_user_data_event(event, context):
     if not user_data:
         return create_common_return_array(500, {'message': 'Failed to get user data.'})
 
-    # ユーザ認証
-    if not check_password(password, user_data['password']):
+    # ユーザ認証 (パスワードがない, SNS認証の場合はチェックしない)
+    now_password = user_data.get('password')
+    if password and not check_password(password, now_password):
         print('Wrong password: ' + user_data['uuid'])
         return create_common_return_array(401, {'message': 'Wrong Email or Password'})
     
@@ -94,40 +81,6 @@ def update_user_data_event(event, context):
             return create_common_return_array(500, {'message': 'Failed to update password'})
     
     return create_common_return_array(200, {'message': 'success'})
-
-# def google_login(event, context):
-#     if os.environ['EnvName'] != 'Prod':
-#         print(json.dumps(event))
-    
-#     params = json.loads(event['body'] or '{ }')
-#     if not params:
-#         return {
-#             "statusCode": 406,
-#             "headers": create_common_header(),
-#             "body": json.dumps({'message': 'Insufficient input'}),
-#         }
-    
-#     id_token: str = params['params'].get('id_token', '')
-
-#     cred = create_firebase_credentials()
-#     firebase_admin.initialize_app(cred)
-
-#     try:
-#         idinfo = client.verify_id_token(id_token, get_google_client()['secret'])
-#         print(idinfo)
-#         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-#             raise crypt.AppIdentityError("Wrong issuer.")
-#         if idinfo['hd'] != get_domain():
-#             raise crypt.AppIdentityError("Wrong hosted domain.")
-#     except crypt.AppIdentityError as e:
-#         print('invalid google token')
-#         print(e)
-#         return create_common_return_array(401, {'message': "Invalid token."})
-
-#     userid = idinfo['sub']
-#     return create_common_return_array(200, {'message': "loggined."})
-
-
 
 def withdrawal_event(event, context):
     if os.environ['EnvName'] != 'Prod':
