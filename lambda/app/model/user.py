@@ -105,17 +105,27 @@ def get_user_data_for_view(user_uuid: str) -> dict:
     user_data = get_user_data_by_uuid(user_uuid)
     if not user_data:
         return None
+
+    if not user_data.get('password'):
+        user_data['has_password'] = False
+    else:
+        user_data['has_password'] = True
+    
     del user_data['uuid']
     del user_data['password']
+    if user_data.get('firebase_user_id'):
+        del user_data['firebase_user_id']
     if 'temporary_token' in user_data:
         del user_data['temporary_token']
+    
+
     return user_data
 
 def update_user_id(user_data: dict, new_user_id: str):
     old_user_id = user_data['user_id']
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     user_data['user_id'] = new_user_id
-    user_data['update_at'] = now
+    user_data['updated_at'] = now
     try:
         result = db_client.transact_write_items(
             TransactItems = [
@@ -138,6 +148,21 @@ def update_user_id(user_data: dict, new_user_id: str):
         print(result)
         return not not result
     except Exception as e:
+        print(e)
+        return False
+    return False
+
+def get_user_id_by_firebase_user_id(firebase_user_id: str) -> dict:
+    try:
+        result = users_table.query(
+            IndexName='firebase_user_id-index',
+            KeyConditionExpression=Key('firebase_user_id').eq(firebase_user_id)
+        )['Items']
+        if len(result) == 0:
+            return None
+        return result[0]['user_id']
+    except Exception as e:
+        print('Failed to get user_id from sns_user_id')
         print(e)
         return False
     return False
@@ -239,18 +264,47 @@ def add_user(id, passHash):
     temp_token = secrets.token_urlsafe(64)
     try:
         res = users_table.put_item(
-           Item = {
-               'user_id': id,
-               'uuid': user_uuid,
-               'password': passHash,
-               'created_at': now,
-               'updated_at': now,
-               'is_temporary': True,
-               'temporary_token': temp_token,
-           }
+            Item = {
+                'user_id': id,
+                'uuid': user_uuid,
+                'password': passHash,
+                'firebase_user_id': '',
+                'line_user_id': '',
+                'plan': 1,
+                'created_at': now,
+                'updated_at': now,
+                'is_temporary': True,
+                'temporary_token': temp_token,
+            }
         )
         return res, user_uuid, temp_token
     except Exception as e:
+        print(e)
+        return False, None, None
+    return False, None, None
+
+def add_firebase_user(email, sns_user_id):
+    now = get_now_string()
+    user_uuid = str(uuid.uuid4())
+    temp_token = secrets.token_urlsafe(64)
+    try:
+        res = users_table.put_item(
+            Item = {
+                'user_id': email,
+                'uuid': user_uuid,
+                'password': '',
+                'firebase_user_id': sns_user_id,
+                'line_user_id': '',
+                'plan': 1,
+                'created_at': now,
+                'updated_at': now,
+                'is_temporary': False,
+                'temporary_token': temp_token, # GSIにあるので値は入れておく
+            }
+        )
+        return res, user_uuid, temp_token
+    except Exception as e:
+        print('failed to add sns user')
         print(e)
         return False, None, None
     return False, None, None

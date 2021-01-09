@@ -47,7 +47,7 @@ def update_user_data_event(event, context):
     confirm_new_password: str = params['params'].get('confirmNewPassword', '')
 
     # 入力不足
-    if new_user_id == '' or password == '':
+    if new_user_id == '':
         return create_common_return_array(406, {'message': 'Insufficient input'})
     
     # パスワード更新時の, 確認用パスワードが間違っている
@@ -60,8 +60,9 @@ def update_user_data_event(event, context):
     if not user_data:
         return create_common_return_array(500, {'message': 'Failed to get user data.'})
 
-    # ユーザ認証
-    if not check_password(password, user_data['password']):
+    # ユーザ認証 (パスワードがない, SNS認証の場合はチェックしない)
+    now_password = user_data.get('password')
+    if password and not check_password(password, now_password):
         print('Wrong password: ' + user_data['uuid'])
         return create_common_return_array(401, {'message': 'Wrong Email or Password'})
     

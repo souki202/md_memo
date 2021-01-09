@@ -26,19 +26,19 @@
                 <form action="" @submit.prevent="updateUserData">
                     <div class="form-group">
                         <label class="col-form-label" for="email">Email</label>
-                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" if="email" type="email" placholder="Email" v-model="form.basic.email" required>
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" if="email" type="email" placeholder="Email" v-model="form.basic.email" required>
                     </div>
                     <div class="form-group">
                         <label class="col-form-label" for="password">現在のパスワード</label>
-                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="password" type="password" placholder="Password" v-model="form.basic.password" required>
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="password" type="password" placeholder="Now Password" v-model="form.basic.password" :required="this.userData.has_password">
                     </div>
                     <div class="form-group">
                         <label class="col-form-label" for="newPassword">新しいパスワード</label>
-                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="newPassword" type="password" placholder="Password" v-model="form.basic.newPassword">
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="newPassword" type="password" placeholder="Password" v-model="form.basic.newPassword">
                     </div>
                     <div class="form-group">
                         <label class="col-form-label" for="confirmNewPassword">新しいパスワード(確認用)</label>
-                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="confirmNewPassword" type="password" placholder="Password" v-model="form.basic.confirmNewPassword">
+                        <input class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" id="confirmNewPassword" type="password" placeholder="Confirm password" v-model="form.basic.confirmNewPassword">
                     </div>
                     <button type="submit" class="btn" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]">保存</button>
                 </form>

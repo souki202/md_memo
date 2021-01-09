@@ -275,6 +275,10 @@ def get_reset_password(token: str) -> dict:
 @return {bool} 一致すればtrue
 '''
 def check_password(input_password, hashed_password):
+    # SNS認証の場合はパスワードが設定されていない場合がある
+    if not hashed_password or not input_password:
+        return False
+         
     # パスワードチェック
     ph = PasswordHasher()
     try:

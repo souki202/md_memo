@@ -14,6 +14,20 @@ from my_mail import *
 from model.user import *
 from model.auth import *
 from user import *
+import firebase_admin
+from firebase_admin import credentials, auth
+
+def create_firebase_credentials():
+    filepath = ''
+    if os.environ['EnvName'] == 'Prod':
+        filepath = ''
+    elif os.environ['EnvName'] == 'Stg':
+        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
+    elif os.environ['EnvName'] == 'Dev':
+        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
+    elif os.environ['EnvName'] == 'Local':
+        filepath =  'credentials/md-memo-dev-firebase-adminsdk-qwftc-e039f06975.json'
+    return credentials.Certificate(filepath)
 
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
@@ -59,7 +73,7 @@ def login(event, context):
         return create_common_return_array(401, {'message': 'Temporary user.',})
 
     # パスワードチェック
-    if not check_password(password, existing_user['password']):
+    if not check_password(password, existing_user.get('password')):
         print('Wrong password: ' + email)
         return create_common_return_array(401, {'message': 'Wrong email or password.',})
     
@@ -123,6 +137,63 @@ def signup(event, context):
         "headers": create_common_header(),
         "body": json.dumps({}),
     }
+
+def sns_login(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+    
+    params = json.loads(event['body'] or '{ }')
+    if not params:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+    
+    id_token: str = params['params'].get('id_token', '')
+
+    # 初期化済みかを判定する
+    if not firebase_admin._apps:
+        # 初期済みでない場合は初期化処理を行う
+        cred = create_firebase_credentials()
+        firebase_admin.initialize_app(cred)
+    
+    sns_user_id = ''
+    sns_email   = ''
+    try:
+        id_info     = auth.verify_id_token(id_token)
+        sns_user_id = id_info['sub']
+        sns_email   = id_info['email']
+    except Exception as e:
+        print('invalid token')
+        print(e)
+        return create_common_return_array(401, {'message': "Invalid token."})
+
+    # SNS登録済なら値が取得できる
+    user_id   = get_user_id_by_firebase_user_id(sns_user_id)
+    user_uuid = ''
+    if user_id == False: # Noneは単にユーザがいない場合, Falseはエラー
+        print('Error on get_user_id_by_firebase_user_id')
+        return create_common_return_array(500, {'message': "Server error"})
+    
+    if user_id is None:
+        # 新規登録
+        # 登録できるemailかチェック
+        if not get_can_be_registered_user(sns_email):
+            print('Alreadly registerd: ' + sns_email)
+            return create_common_return_array(403, {'message': "Already registered", 'registerd': True})
+        # ユーザ作成
+        create_result, user_uuid, temp_token = add_firebase_user(sns_email, sns_user_id)
+        if not create_result:
+            return create_common_return_array(500, {'message': "Failure add user."})
+    else:
+        user_data = get_user(user_id)
+        if not user_data:
+            return create_common_return_array(500, {'message': "Failure get user data."})
+        user_uuid = user_data['uuid']
+
+    # ログインする
+    create_result, session_token = create_session(user_uuid)
+    if create_result == False:
+        return create_common_return_array(500, {'message': 'Failure create session.',})
+
+    return create_common_return_array(200, {"token": session_token})
 
 def check_token(event, context):
     if os.environ['EnvName'] != 'Prod':

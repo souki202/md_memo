@@ -1,0 +1,2 @@
+firebase-admin
+argon2-cffi ~= 20.1

@@ -22,6 +22,16 @@ def get_page_url():
     elif os.environ['EnvName'] == 'Local':
         return 'http://dev-md-memo.tori-blog.net'
 
+def get_domain():
+    if os.environ['EnvName'] == 'Prod':
+        return 'tori-blog.net'
+    elif os.environ['EnvName'] == 'Stg':
+        return 'tori-blog.net'
+    elif os.environ['EnvName'] == 'Dev':
+        return 'tori-blog.net'
+    elif os.environ['EnvName'] == 'Local':
+        return 'tori-blog.net'
+
 def get_now_string():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 def dict2dynamoformat(orig_dict):
     """辞書配列をDynamoDB用に変換する"""
     ret_dict = {}
@@ -9,6 +11,8 @@ def to_dynamo_format(v):
     """dict2dynamoformatの変換部分でSet系の型は未対応"""
     if type(v) is str:
         return {'S': v}
+    if type(v) is Decimal:
+        return {'N': str(float(v))}
     if type(v) is int:
         return {'N': str(v)}
     if type(v) is bool:

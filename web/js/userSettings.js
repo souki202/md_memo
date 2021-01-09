@@ -17,6 +17,9 @@ new Vue({
                     confirmNewPassword: '',
                 }
             },
+            userData: {
+                has_password: true,
+            },
             theme: 'light',
         }
     },
@@ -30,8 +33,10 @@ new Vue({
                 withCredentials: true
             }).then((res) => {
                 console.log(res);
+                this.userData = res.data.user;
                 const userId = res.data.user.user_id;
                 this.form.basic.email = userId;
+                console.log(this.userData.has_password)
                 this.userViewName = userId.substring(0, userId.indexOf('@'));
             }).catch((err) => {
                 console.log(err);
@@ -44,8 +49,12 @@ new Vue({
             this.successMessage = '';
             this.errorMessage = '';
 
-            if (this.form.basic.email == '' || this.form.basic.password == '') {
+            if (this.userData.has_password && this.form.basic.password == '') {
                 this.errorMessage = 'Emailと現在のパスワードは必須です'
+                return;
+            }
+            if (this.form.basic.email == '') {
+                this.errorMessage = 'Emailは必須です'
                 return;
             }
             if (this.form.basic.newPassword != this.form.basic.confirmNewPassword) {
