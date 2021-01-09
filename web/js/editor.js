@@ -180,7 +180,12 @@ new Vue({
          * メモを保存する
          */
         save() {
-            if (this.isSaving) {
+            if (this.isSaving || !window.userData) {
+                return;
+            }
+            this.errorMessage = '';
+            if (this.memo.body.length > this.getMaxBodyLen()) {
+                this.errorMessage = 'メモの上限文字数は' + this.getMaxBodyLen() + '文字です'
                 return;
             }
             this.isSaving = true;
@@ -193,6 +198,22 @@ new Vue({
             }).then(() => {
                 this.isSaving = false;
             })
+        },
+
+        getMaxBodyLen() {
+            const userData = window.userData;
+            if (!userData) {
+                return 10000;
+            }
+            else if (userData.plan == 1) {
+                return 10000;
+            }
+            else if (userData.plan >= 1000) {
+                return 100000;
+            }
+            else {
+                return 10000;
+            }
         },
 
         setMemoData(memo) {

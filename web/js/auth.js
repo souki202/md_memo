@@ -5,12 +5,17 @@ const instance = axios.create({
     withCredentials: true
 })
 
+/**
+ * userDataはwindowに代入しているためグローバル
+ */
+
 new Vue({
     el: '#header',
     data: () => {
         return {
             isLogin: false,
             userViewName: '',
+            userData: null,
         }
     },
     mounted() {
@@ -41,6 +46,8 @@ new Vue({
         getUserData() {
             instance.get(getApiUrl() + '/get_user_data').then((res) => {
                 console.log(res);
+                this.userData = res.data.user;
+                window.userData = res.data.user;
                 const userId = res.data.user.user_id;
                 this.userViewName = userId.substring(0, userId.indexOf('@'));
             }).catch((err) => {
