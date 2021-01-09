@@ -143,6 +143,7 @@ new Vue({
             keyMap: 'default',
             historyEventDelay: 300,
             autofocus: true,
+            dragDrop: false,
             extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"},
         });
         // body変更時の挙動設定
@@ -153,6 +154,11 @@ new Vue({
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
             this.autoSaveTimeout = setTimeout(this.save, this.autoSaveDelay);
         })
+        // this.codemirror.on('drop', (data, e) => {
+        //     console.log(e);
+        //     let files = e.dataTransfer.files;
+        //     // this.uploadFile(editor, e)
+        // })
         this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
 
         // memo idを取得
@@ -384,6 +390,11 @@ new Vue({
 
             });
             return false;
+        },
+
+        uploadFile(e) {
+            let files = e.dataTransfer.files;
+            console.log(files);
         },
 
         invokeCodemirrorOperation(op, ...args) {

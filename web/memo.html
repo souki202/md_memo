@@ -10,7 +10,7 @@
     <div id="header"></div>
 
     <main id="main">
-        <div id="memoEditor"  :class="[{'dark-theme': theme == 'dark'}, {'light-theme': theme == 'light'}]" v-cloak>
+        <div id="memoEditor" :class="[{'dark-theme': theme == 'dark'}, {'light-theme': theme == 'light'}]" @dragover.prevent @drop.prevent="uploadFile" v-cloak>
             <!-- シェア機能設定ダイアログ -->
             <div class="share-dialog-container absolute-fill" :class="[{'is-show-dialog': isShowShareDialog}]">
                 <div class="share-dialog-bg" @click="closeDialog"></div>
