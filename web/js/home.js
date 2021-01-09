@@ -22,7 +22,7 @@ Vue.component('memo-card', {
             </div>
         </div>
         <div class="memo-updated-at">
-            {{ memo.updated_at }}
+            {{ memo.created_at }}
         </div>
     </div>
     `,
