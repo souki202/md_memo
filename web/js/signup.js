@@ -34,6 +34,11 @@ new Vue({
                 return false;
             }
 
+            if (password.length < 8) {
+                this.errorMessage = 'パスワードは8文字以上入力してください';
+                return false;
+            }
+
             if (password != password2) {
                 // this.errorMessage = 'Password input does not match.';
                 this.errorMessage = '確認用のパスワードが一致しません';
