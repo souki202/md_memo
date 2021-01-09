@@ -1,0 +1,40 @@
+#header {
+    margin-bottom: 4rem;
+}
+
+main {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1 {
+    border-bottom: 1px solid var(--simple-under-line-color);
+    margin-bottom: 2rem;
+}
+
+h2 {
+    border-bottom: 1px solid var(--simple-under-line-color);
+    margin-bottom: 1rem;
+}
+
+section {
+    margin-top: 3rem;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.75rem;
+}
+
+li {
+    font-size: 16px;
+    margin: 0.5rem 0;
+}
+
+.end-marker {
+    text-align: right;
+}
+
+#footer {
+    margin-top: 4rem;
+}

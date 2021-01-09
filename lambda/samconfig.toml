@@ -3,7 +3,7 @@ version = 0.1
 [production.deploy]
 [production.deploy.parameters]
 stack_name = "md-memo-prod"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1azphhnlpwj0y"
+s3_bucket = "md-memo-lambda-deploy"
 s3_prefix = "md-memo-prod"
 region = "ap-northeast-1"
 confirm_changeset = true
@@ -14,7 +14,7 @@ parameter_overrides = "Env=\"prod\""
 [staging.deploy]
 [staging.deploy.parameters]
 stack_name = "md-memo-stg"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1azphhnlpwj0y"
+s3_bucket = "md-memo-lambda-deploy"
 s3_prefix = "md-memo-stg"
 region = "ap-northeast-1"
 confirm_changeset = true

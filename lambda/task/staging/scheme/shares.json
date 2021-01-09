@@ -1,27 +1,27 @@
 {
     "AttributeDefinitions": [
         {
-            "AttributeName": "user_id",
+            "AttributeName": "share_id",
             "AttributeType": "S"
         },
         {
-            "AttributeName": "uuid",
+            "AttributeName": "memo_id",
             "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_deleted_users_dev",
+    "TableName": "md_memo_shares_stg",
     "KeySchema": [
         {
-            "AttributeName": "user_id",
+            "AttributeName": "share_id",
             "KeyType": "HASH"
         }
     ],
     "GlobalSecondaryIndexes": [
         {
-            "IndexName": "uuid-index",
+            "IndexName": "memo_id-index",
             "KeySchema": [
                 {
-                    "AttributeName": "uuid",
+                    "AttributeName": "memo_id",
                     "KeyType": "HASH"
                 }
             ],

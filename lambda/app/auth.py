@@ -30,64 +30,46 @@ def login(event, context):
     email = params['params']['email'] or ''
     password = params['params']['password'] or ''
     if (not email or not password):
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Missing Email or Password.",}),
-        }
+        return create_common_return_array(401, {'message': 'Missing Email or Password.',})
+
+    # ログイン履歴の確認と追加
+    ip_address = event['requestContext']['identity']['sourceIp']
+    if not check_login_history(email, ip_address):
+        return create_common_return_array(401, {'message': 'Reached the maximum number of logins.', 'limit_try_login': True})
+    
+    if not add_login_history(email, ip_address):
+        return create_common_return_array(500, {'message': 'Failure add login history.',})
+
 
     # 既存のユーザがいるか調べる
     existing_user = get_user(email)
 
     # ユーザの取得でエラーが発生した
     if existing_user == False:
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Failure search existing user",}),
-        }
+        return create_common_return_array(401, {'message': 'Failure search existing user.',})
     
     # ユーザがいなかった
     if existing_user is None:
         print('Missing user: ' + email)
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Wrong email or password.",}),
-        }
+        return create_common_return_array(401, {'message': 'Wrong email or password.',})
     
     # 仮登録状態なら終了
     if existing_user.get('is_temporary', False):
         print("Temporary user. login failed")
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Temporary user.",}),
-        }
+        return create_common_return_array(401, {'message': 'Temporary user.',})
 
     # パスワードチェック
     if not check_password(password, existing_user['password']):
         print('Wrong password: ' + email)
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Wrong email or password.",}),
-        }
+        return create_common_return_array(401, {'message': 'Wrong email or password.',})
     
     # セッション作成
     user_uuid = existing_user['uuid']
     create_result, session_token = create_session(user_uuid)
     if create_result == False:
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Failure create session.",}),
-        }
-    return {
-        "statusCode": 200,
-        "headers": create_common_header(),
-        "body": json.dumps({"token": session_token,}),
-    }
+        return create_common_return_array(500, {'message': 'Failure create session.',})
+    
+    return create_common_return_array(200, {"token": session_token})
 
 def signup(event, context):
     if os.environ['EnvName'] != 'Prod':

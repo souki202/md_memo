@@ -7,9 +7,13 @@
         {
             "AttributeName": "user_uuid",
             "AttributeType": "S"
+        },
+        {
+            "AttributeName": "created_at",
+            "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_sessions_dev",
+    "TableName": "md_memo_overviews_dev",
     "KeySchema": [
         {
             "AttributeName": "uuid",
@@ -18,11 +22,15 @@
     ],
     "GlobalSecondaryIndexes": [
         {
-            "IndexName": "user_uuid-index",
+            "IndexName": "user_uuid-created_at-index",
             "KeySchema": [
                 {
-                    "AttributeName": "uuid",
+                    "AttributeName": "user_uuid",
                     "KeyType": "HASH"
+                },
+                {
+                    "KeyType": "RANGE",
+                    "AttributeName": "created_at"
                 }
             ],
             "Projection": {

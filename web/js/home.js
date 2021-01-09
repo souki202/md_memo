@@ -22,7 +22,7 @@ Vue.component('memo-card', {
             </div>
         </div>
         <div class="memo-updated-at">
-            {{ memo.updated_at }}
+            {{ memo.created_at }}
         </div>
     </div>
     `,
@@ -143,8 +143,8 @@ new Vue({
                 return;
             }
 
-            if (checkedMemoList.length > 25) {
-                window.alert('25件より多くの選択はできません');
+            if (checkedMemoList.length > 10) {
+                window.alert('10件より多くの選択はできません');
                 return; 
             }
 

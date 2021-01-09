@@ -1,4 +1,5 @@
 import os
+import time
 import datetime
 
 def get_api_url():
@@ -33,3 +34,6 @@ def get_domain():
 
 def get_now_string():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+def get_calced_from_now_string(diff_sec: int):
+    return datetime.datetime.fromtimestamp(int(time.time()) - diff_sec).strftime('%Y-%m-%d %H:%M:%S')

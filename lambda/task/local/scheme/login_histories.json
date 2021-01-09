@@ -5,23 +5,31 @@
             "AttributeType": "S"
         },
         {
-            "AttributeName": "uuid",
+            "AttributeName": "ip_address",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "created_at",
             "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_deleted_users_dev",
+    "TableName": "md_memo_login_histories_dev",
     "KeySchema": [
         {
             "AttributeName": "user_id",
             "KeyType": "HASH"
+        },
+        {
+            "AttributeName": "created_at",
+            "KeyType": "RANGE"
         }
     ],
     "GlobalSecondaryIndexes": [
         {
-            "IndexName": "uuid-index",
+            "IndexName": "ip_address-index",
             "KeySchema": [
                 {
-                    "AttributeName": "uuid",
+                    "AttributeName": "ip_address",
                     "KeyType": "HASH"
                 }
             ],
@@ -30,5 +38,6 @@
             }
         }
     ],
+
     "BillingMode": "PAY_PER_REQUEST"
 }

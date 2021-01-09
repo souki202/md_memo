@@ -62,9 +62,15 @@ new Vue({
                 console.log('success');
                 location.href = '/home.html';
             }).catch((err) => {
-                console.log(err)
+                console.log(err.response)
                 if (err.response.status == 401) {
-                    this.errorMessage = "Wrong email or password"
+                    console.log(err.response.data)
+                    if (err.response.data.limit_try_login) {
+                        this.errorMessage = "しばらく時間をおいてからログインをしてください"
+                    }
+                    else {
+                        this.errorMessage = "Emailまたはパスワードが異なります."
+                    }
                 }
                 else {
                     this.errorMessage = "Unknown error"

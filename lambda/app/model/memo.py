@@ -126,17 +126,19 @@ def get_memo_list_include_garbage(user_uuid):
         while True:
             if exclusive_start_key is None:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-index',
+                    IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                     FilterExpression='availability <> :availability',
+                    ScanIndexForward = False,
                     ExpressionAttributeValues={
                         ':availability': MemoStates.DELETED.value
                     })
             else:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-index',
+                    IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                     FilterExpression='availability <> :availability',
+                    ScanIndexForward = False,
                     ExpressionAttributeValues={
                         ':availability': MemoStates.DELETED.value
                     },
@@ -195,17 +197,19 @@ def get_memo_list_page(user_uuid, state, exclusive_start_key):
         items = []
         if exclusive_start_key is None:
             response = memo_overviews_table.query(
-                IndexName='user_uuid-index',
+                IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                 FilterExpression=Key('availability').eq(state),
+                ScanIndexForward = False,
                 Limit=MEMO_PAGE_LIMIT
             )
         else:
             response = memo_overviews_table.query(
-                IndexName='user_uuid-index',
+                IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                 FilterExpression=Key('availability').eq(state),
                 ExclusiveStartKey=exclusive_start_key,
+                ScanIndexForward = False,
                 Limit=MEMO_PAGE_LIMIT
             )
         items = response['Items']
@@ -227,15 +231,17 @@ def get_pinned_memo_list(user_uuid):
         while True:
             if exclusive_start_key is None:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-index',
+                    IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                     FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
+                    ScanIndexForward = False
                 )
             else:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-index',
+                    IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                     FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
+                    ScanIndexForward = False,
                     ExclusiveStartKey=exclusive_start_key
                 )
             items.extend(response['Items'])
