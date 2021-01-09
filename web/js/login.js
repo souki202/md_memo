@@ -59,6 +59,7 @@ new Vue({
                 else {
                     Cookies.set('session_token', token, { domain: document.domain });
                 }
+                Cookies.set('did_use', '1', { domain: document.domain, expires: new Date('1 Jan 2037 00:00:00 GMT') });
                 console.log('success');
                 location.href = '/home.html';
             }).catch((err) => {
