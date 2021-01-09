@@ -106,6 +106,8 @@ new Vue({
             theme: 'light',
 
             memoMessages: [],
+
+            isSaving: false, // 保存処理中かどうか
         }
     },
     computed: {
@@ -178,6 +180,10 @@ new Vue({
          * メモを保存する
          */
         save() {
+            if (this.isSaving) {
+                return;
+            }
+            this.isSaving = true;
             axios.post(getApiUrl() + '/save_memo', {params: this.memo}).then(res => {
                 console.log('auto save complete: ' + res.data.id);
                 this.memo.id = res.data.id
@@ -185,6 +191,7 @@ new Vue({
             }).catch(err => {
                 this.errorMessage = 'Failed to update memo.'
             }).then(() => {
+                this.isSaving = false;
             })
         },
 
