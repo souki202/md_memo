@@ -22,7 +22,7 @@
 
 ### lambdaのテスト
 
-`sam local invoke "DeleteMemoFunction" -e events/event.json --config-env develop -n env/env.json`
+`sam local invoke "DeleteMemoFunction" -e events/post.json --config-env develop -n env/env.json`
 
 ### apiの開始
 

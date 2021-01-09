@@ -1,0 +1,43 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "user_id",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "ip_address",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "created_at",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_login_histories_dev",
+    "KeySchema": [
+        {
+            "AttributeName": "user_id",
+            "KeyType": "HASH"
+        },
+        {
+            "AttributeName": "created_at",
+            "KeyType": "RANGE"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "ip_address-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "ip_address",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        }
+    ],
+
+    "BillingMode": "PAY_PER_REQUEST"
+}
