@@ -8,15 +8,20 @@ import secrets
 from argon2 import PasswordHasher
 from http.cookies import SimpleCookie
 from boto3.dynamodb.conditions import Key
+from my_common import *
 from common_headers import *
 
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
 sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
 reset_password_table = db_client.Table('md_memo_reset_password' + os.environ['DbSuffix'])
-EXPIRATION_RESET_PASS = 60 * 5 # 5分
-EXPIRATION_TIME_PERIOD = 3600 * 24 * 30
+login_histories_table = db_client.Table('md_memo_login_histories' + os.environ['DbSuffix'])
 
+EXPIRATION_RESET_PASS = 60 * 5 # 5分
+EXPIRATION_TIME_PERIOD = 3600 * 24 * 30 # 30日
+EXPIRATION_LOGIN_HISTORY = 3600 * 24 * 90 # 90日
+
+MAX_LOGIN_TRY_COUNT = 7
 
 def check_and_update_session(event):
     cookie = create_simple_cookie(event)
@@ -90,13 +95,12 @@ def create_session(user_uuid):
     if not user_uuid:
         return None, None
     token = secrets.token_urlsafe(64)
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
         res = sessions_table.put_item(
             Item = {
                 'session_token': token,
                 'user_uuid': user_uuid,
-                'created_at': now,
+                'created_at': get_now_string(),
                 'expiration_time': int(time.time()) + EXPIRATION_TIME_PERIOD
             }
         )
@@ -135,6 +139,48 @@ def delete_session(token):
     except Exception as e:
         print(e)
         return False
+
+def add_login_history(user_id, ip_address):
+    if not user_id or not ip_address:
+        return False
+    
+    try:
+        res = login_histories_table.put_item(
+            Item = {
+                'user_id': user_id,
+                'ip_address': ip_address,
+                'created_at': get_now_string(),
+                'expiration_time': int(time.time()) + EXPIRATION_TIME_PERIOD
+            }
+        )
+        return not not res
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def check_login_history(user_id, ip_address):
+    now = get_now_string()
+    from_time = get_calced_from_now_string(EXPIRATION_LOGIN_HISTORY)
+
+    try:
+        result = login_histories_table.query(
+            IndexName='ip_address-index',
+            KeyConditionExpression=Key('ip_address').eq(ip_address),
+            FilterExpression='created_at > :created_at',
+            ExpressionAttributeValues={
+                ':created_at': from_time
+            }
+        )
+        # レコード数が多ければログイン試行が多いので拒否
+        if len(result['Items']) > MAX_LOGIN_TRY_COUNT:
+            return False
+        print(len(result['Items']))
+        return True
+    except Exception as e:
+        print(e)
+        return False
+    return False
 
 def get_user_uuid_by_token(session_token) -> str:
     if not session_token:
