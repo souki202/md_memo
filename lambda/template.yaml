@@ -404,6 +404,19 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /upload_file
             Method: post
+  
+  GetFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: files.get_file_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_file
+            Method: get
 
   UploadLargeFileFunction:
     Type: AWS::Serverless::Function

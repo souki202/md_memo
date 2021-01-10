@@ -392,6 +392,18 @@ new Vue({
             return false;
         },
 
+        createUploadTmpKey(){
+            const LENGTH = 8 //生成したい文字列の長さ
+            const SOURCE = "abcdefghijklmnopqrstuvwxyz0123456789" //元になる文字
+            let result = ''
+          
+            for(let i=0; i<LENGTH; i++){
+              result += SOURCE[Math.floor(Math.random() * SOURCE.length)];
+            }
+            
+            return result
+        },
+
         uploadFile(e) {
             let files = [...e.dataTransfer.files];
             if (files.length == 0) {
@@ -399,12 +411,21 @@ new Vue({
             }
 
             files.forEach(file => {
+                let tmpKey = file.name.replace(/[\[\]\!]/g, '_');
+
+                // アップロード中の文字列を追加
+                this.invokeCodemirrorOperation('uploadFile', tmpKey)
+                // setTimeout(() => {
+                //     this.invokeCodemirrorOperation('uploadComplete', tmpKey, "filekeydayo");
+                // }, 500);
                 let form = new FormData();
                 form.append('file', file);
                 axios.post(
                     getApiUrl() + '/upload_file?fileName=' + encodeURI(file.name), form
                 ).then(res => {
                     console.log(res);
+                    const key = res.data.key;
+                    this.invokeCodemirrorOperation('uploadComplete', tmpKey, file_key);
                 }).catch(err => {
                     console.log(err);
                 }).then(() => {
@@ -414,7 +435,7 @@ new Vue({
         },
 
         invokeCodemirrorOperation(op, ...args) {
-            this.codemirrorHelper.invoke(op, args);
+            return this.codemirrorHelper.invoke(op, ...args);
         },
     },
 })

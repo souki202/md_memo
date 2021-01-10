@@ -1,52 +1,64 @@
+import getApiUrl from '/js/getApiUrl.js'
 export default class {
     constructor(codemirror) {
         this.codemirror = codemirror;
     }
 
     invoke(op, ...args) {
+        let result = null;
         switch (op) {
             case 'bold':
-                this.bold(args);
+                result = this.bold(args);
                 break;
             case 'italic':
-                this.italic(args);
+                result = this.italic(args);
                 break;
             case 'deleteText':
-                this.deleteText(args);
+                result = this.deleteText(args);
                 break;
             case 'header':
-                this.header(args);
+                result = this.header(args);
                 break;
             case 'singleLineCode':
-                this.singleLineCode();
+                result = this.singleLineCode();
                 break;
             case 'multiLineCode':
-                this.multiLineCode();
+                result = this.multiLineCode();
                 break;
             case 'unorderdList':
-                this.unorderdList();
+                result = this.unorderdList();
                 break;
             case 'orderdList':
-                this.orderdList();
+                result = this.orderdList();
                 break;
             case 'addIndent':
-                this.addIndent();
+                result = this.addIndent();
                 break;
             case 'addQuote':
-                this.addQuote();
+                result = this.addQuote();
                 break;
             case 'hr':
-                this.hr();
+                result = this.hr();
                 break;
             case 'link':
-                this.link();
+                result = this.link();
+                break;
+            case 'uploadFile':
+                result = this.uploadFile(...args);
+                break;
+            case 'uploadComplete':
+                result = this.uploadComplete(...args);
+                break;
+            case 'uploadFailed':
+                result = this.uploadFailed(...args);
                 break;
             case 'debug':
-                this.debug(args);
+                result = this.debug(...args);
                 break;
         }
 
         this.finalize();
+        return result;
     }
 
     bold() {
@@ -110,6 +122,23 @@ export default class {
         this.codemirror.replaceSelections(replaced, 'around');
     }
 
+    createFileUploadingText(tmpKey) {
+        return '![Uploading ' + tmpKey + '...]()';
+    }
+
+    uploadFile(tmpKey) {
+        this.replaceSelectionText(this.createFileUploadingText(tmpKey));
+    }
+
+    uploadComplete(tmpKey, file_key) {
+        console.log('![' + tmpKey + '](https://' + getApiUrl() +  '/get_file/?file_key=' + file_key + ')');
+        this.replaceSearchText(this.createFileUploadingText(tmpKey), '![' + tmpKey + '](' + getApiUrl() +  '/get_file/?file_key=' + file_key + ')');
+    }
+
+    uploadFailed(tmpKey) {
+        this.replaceSearchText(this.createFileUploadingText(tmpKey), '![Failed to upload ' + tmpKey + '...]()');
+    }
+
     /**
      * 選択中のテキストの前後に文字を挿入する
      * @param {string} addCh 挿入する文字
@@ -156,6 +185,27 @@ export default class {
                 this.codemirror.replaceRange(addCh, head, head);
             }
         });
+    }
+
+    /**
+     * 選択中のテキストを置換する
+     * @param {*} addCh 
+     */
+    replaceSelectionText(addCh) {
+        this.codemirror.replaceSelection(addCh, 'around');
+    }
+
+    /**
+     * 検索に一致するテキストを置換する
+     * 
+     * @param {str} serachText 
+     * @param {str} newText 
+     */
+    replaceSearchText(serachText, newText) {
+        let cursor = this.codemirror.getSearchCursor(serachText);
+        while (cursor.findNext()) {
+            cursor.replace(newText)
+        }
     }
 
     debug() {

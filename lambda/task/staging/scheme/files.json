@@ -1,0 +1,42 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "file_key",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "user_uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "created_at",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_files_stg",
+    "KeySchema": [
+        {
+            "AttributeName": "file_key",
+            "KeyType": "HASH"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "user_uuid-created_at-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "user_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "created_at",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}
