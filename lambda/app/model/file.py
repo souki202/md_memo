@@ -37,11 +37,15 @@ def add_file(file_key, user_uuid, file_size):
 
 
 def get_file_list_by_memo_id(memo_id):
+    if not memo_id:
+        return False
     try:
         result = relation_table.query(
             IndexName='memo_id-index',
             KeyConditionExpression=Key('memo_id').eq(memo_id)
         )['Items']
+        if len(result) == 0:
+            return []
         return result
     except Exception as e:
         print(e)
@@ -66,8 +70,6 @@ def delete_file_and_memo_relation_multi(memo_id, file_keys):
     try:
         with relation_table.batch_writer() as batch:
             for file_key in file_keys:
-                print(file_key)
-                print(memo_id)
                 batch.delete_item(
                     Key = {
                         'file_key': file_key,
@@ -98,6 +100,9 @@ def add_file_and_memo_relation_multi(memo_id, file_keys):
 
 def update_file_and_memo_relation(memo_id, files) -> bool:
     now_files = get_file_list_by_memo_id(memo_id)
+    if now_files == False:
+        print('failed to get memo id: ' + memo_id)
+        return False
     now_files = [f['file_key'] for f in now_files]
     # メモから取り除かれたファイルを検索
     removed_files = [f for f in now_files if f not in files]
@@ -117,3 +122,23 @@ def update_file_and_memo_relation(memo_id, files) -> bool:
         print(e)
         return False
     return False
+
+def delete_file_and_memo_relation_by_memos(memo_ids):
+    for memo_id in memo_ids:
+        # 削除対象のファイルをまとめる
+        now_files = get_file_list_by_memo_id(memo_id)
+        if now_files == False:
+            print('delete_file_and_memo_relation_by_memos failed to get file and memo relation: ' + memo_id)
+            continue
+        now_files = [f['file_key'] for f in now_files]
+
+        # 削除実行
+        try:
+            result = delete_file_and_memo_relation_multi(memo_id, now_files)
+            if not result:
+                raise 'Failed to delete relation'
+        except Exception as e:
+            print(e)
+            return False
+        return False
+

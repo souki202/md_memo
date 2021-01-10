@@ -184,7 +184,7 @@ def save_memo_event(event, context):
             print('Unauthorized memo save.')
             print({'user': user_uuid, 'memo_id': memo_id})
             return create_common_return_array(401, {'message': 'Unauthorized.',})
-    
+
     # メモを更新または作成
     saved_uuid: str = save_memo(memo_id, title, description, body, memo_type, user_uuid)
     if saved_uuid is None:
@@ -192,8 +192,8 @@ def save_memo_event(event, context):
         print(params)
         return create_common_return_array(500, {'message': 'Failed to save.',})
 
-    update_relation_result: bool = my_file.update_file_and_memo_relation(memo_id, files)
-    if update_relation_result is None:
+    update_relation_result: bool = my_file.update_file_and_memo_relation(saved_uuid, files)
+    if update_relation_result == False:
         print('Failed to updare relation.')
         print(params)
         return create_common_return_array(500, {'message': 'Failed to save.',})
@@ -287,6 +287,9 @@ def get_memo_data_by_share_id(event, context):
         "body": json.dumps({'memo': memo_data,}, default=decimal_default_proc),
     }
 
+'''
+完全に見れない状態にするdelete
+'''
 def delete_memo(event, context):
     if os.environ['EnvName'] != 'Prod':
         print(json.dumps(event))
@@ -317,6 +320,14 @@ def delete_memo(event, context):
     if not delete_memo_multi(memo_id_list):
         return create_common_return_array(500, {'message': "Failed to delete memo.",})
     
+    # メモのシェア設定の削除
+    if not delete_share_setting_multi_by_memo_id(memo_id_list):
+        return create_common_return_array(500, {'message': "Failed to delete share settings.",})
+
+    # ファイルのrelationの削除
+    if not my_file.delete_file_and_memo_relation_by_memos(memo_id_list):
+        return create_common_return_array(500, {'message': "Failed to delete memo and file relation.",})
+
     return create_common_return_array(200, {'memo': 'success',})
 
 def switch_pinned_event(event, context):
