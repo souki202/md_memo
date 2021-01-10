@@ -15,6 +15,7 @@ from my_common import *
 from model.user import *
 from model.memo import *
 from model.plan import *
+import model.file as my_file
 
 def decimal_default_proc(obj):
     if isinstance(obj, Decimal):
@@ -145,12 +146,16 @@ def save_memo_event(event, context):
         return create_common_return_array(401, {'message': 'session timeout.',})
 
     # 各種値を変数に
-    params           = json.loads(event['body'] or '{ }')
-    title: str       = params['params'].get('title', '')
-    memo_id: str     = params['params'].get('id', '')
-    description: str = params['params'].get('description', '')
-    memo_type: int   = int(params['params'].get('type', 1))
-    body: str        = params['params'].get('body', '')
+    params = json.loads(event['body'] or '{ }')
+    if 'params' not in params:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+
+    title: str       = params['params'].get('memo', {}).get('title', '')
+    memo_id: str     = params['params'].get('memo', {}).get('id', '')
+    description: str = params['params'].get('memo', {}).get('description', '')
+    memo_type: int   = int(params['params'].get('memo', {}).get('type', 1))
+    body: str        = params['params'].get('memo', {}).get('body', '')
+    files: list      = params['params'].get('files', [])
 
     user_data: dict = get_user_data_by_uuid(user_uuid)
 
@@ -184,6 +189,12 @@ def save_memo_event(event, context):
     saved_uuid: str = save_memo(memo_id, title, description, body, memo_type, user_uuid)
     if saved_uuid is None:
         print('Failed to save.')
+        print(params)
+        return create_common_return_array(500, {'message': 'Failed to save.',})
+
+    update_relation_result: bool = my_file.update_file_and_memo_relation(memo_id, files)
+    if update_relation_result is None:
+        print('Failed to updare relation.')
         print(params)
         return create_common_return_array(500, {'message': 'Failed to save.',})
 

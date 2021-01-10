@@ -107,7 +107,7 @@ new Vue({
 
             memoMessages: [],
 
-            isSaving: false, // 保存処理中かどうか
+            canSave: true,
         }
     },
     computed: {
@@ -152,7 +152,7 @@ new Vue({
             this.updatePreview();
 
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
-            this.autoSaveTimeout = setTimeout(this.save, this.autoSaveDelay);
+            this.autoSaveTimeout = setTimeout(this._save, this.autoSaveDelay);
         })
         // this.codemirror.on('drop', (data, e) => {
         //     console.log(e);
@@ -185,25 +185,38 @@ new Vue({
         /**
          * メモを保存する
          */
-        save() {
-            if (this.isSaving || !window.userData) {
+        _save() {
+            if (!this.canSave || !window.userData) {
                 return;
             }
+
             this.errorMessage = '';
             if (this.memo.body.length > this.getMaxBodyLen()) {
                 this.errorMessage = 'メモの上限文字数は' + this.getMaxBodyLen() + '文字です'
                 return;
             }
-            this.isSaving = true;
-            axios.post(getApiUrl() + '/save_memo', {params: this.memo}).then(res => {
+
+            // 保存処理
+            this.canSave = false;
+            axios.post(getApiUrl() + '/save_memo', {
+                params: {
+                    memo: this.memo,
+                    files: this.getFileKeys(),
+                }
+            }).then(res => {
                 console.log('auto save complete: ' + res.data.id);
                 this.memo.id = res.data.id
                 this.drawMessage('saved');
             }).catch(err => {
                 this.errorMessage = 'Failed to update memo.'
             }).then(() => {
-                this.isSaving = false;
+                this.canSave = true;
             })
+        },
+
+        save() {
+            if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
+            this._save();
         },
 
         getMaxBodyLen() {
@@ -220,6 +233,18 @@ new Vue({
             else {
                 return 10000;
             }
+        },
+
+        getFileKeys() {
+            const r = /https:\/\/api\.dev-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+            let m = null;
+            var a = [];
+            while ((m = r.exec(this.memo.body)) != null) {
+                a.push(m[1]);
+            }
+            
+            console.log(a);
+            return a;
         },
 
         setMemoData(memo) {
@@ -425,9 +450,13 @@ new Vue({
                 ).then(res => {
                     console.log(res);
                     const key = res.data.key;
-                    this.invokeCodemirrorOperation('uploadComplete', tmpKey, file_key);
+                    // アップ完了の文字日間
+                    this.invokeCodemirrorOperation('uploadComplete', tmpKey, key);
+                    // 反映のため, 即保存
+                    this.save();
                 }).catch(err => {
                     console.log(err);
+                    this.invokeCodemirrorOperation('uploadFailed', tmpKey);
                 }).then(() => {
     
                 })
