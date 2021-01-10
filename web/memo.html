@@ -10,7 +10,7 @@
     <div id="header"></div>
 
     <main id="main">
-        <div id="memoEditor"  :class="[{'dark-theme': theme == 'dark'}, {'light-theme': theme == 'light'}]" v-cloak>
+        <div id="memoEditor" :class="[{'dark-theme': theme == 'dark'}, {'light-theme': theme == 'light'}]" @dragover.prevent @drop.prevent="uploadFile" v-cloak>
             <!-- シェア機能設定ダイアログ -->
             <div class="share-dialog-container absolute-fill" :class="[{'is-show-dialog': isShowShareDialog}]">
                 <div class="share-dialog-bg" @click="closeDialog"></div>
@@ -208,6 +208,7 @@
             appendScript('/codemirror/addon/edit/continuelist.js');
             appendScript('/codemirror/addon/edit/closebrackets.js');
             appendScript('/codemirror/addon/scroll/simplescrollbars.js');
+            appendScript('/codemirror/addon/search/searchcursor.js');
             appendCss('/codemirror/lib/codemirror.css');
             appendCss('/codemirror/addon/scroll/simplescrollbars.css');
             appendCss('/codemirror/theme/darcula.css');

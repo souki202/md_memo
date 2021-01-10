@@ -28,6 +28,7 @@ Mappings:
       WhiteIpAddressTo: '255.255.255.255'
       APIName: 'MD Memo API'
       DbSuffix: '_prod'
+      FileStrageBucketSuffix: '-prod'
     stg:
       ApiCustomDomain: 'api.stg-md-memo.tori-blog.net'
       StaticPageDomain: "'stg-md-memo.tori-blog.net'"
@@ -39,6 +40,7 @@ Mappings:
       WhiteIpAddressTo: '14.10.121.32'
       APIName: 'MD Memo API staging'
       DbSuffix: '_stg'
+      FileStrageBucketSuffix: '-stg'
     dev:
       ApiCustomDomain: 'api.dev-md-memo.tori-blog.net'
       StaticPageDomain: "'dev-md-memo.tori-blog.net'"
@@ -50,6 +52,7 @@ Mappings:
       WhiteIpAddressTo: '14.10.121.32'
       APIName: 'MD Memo develop'
       DbSuffix: '_dev'
+      FileStrageBucketSuffix: '-dev'
     local:
       ApiCustomDomain: 'localapi.dev-md-memo.tori-blog.net'
       StaticPageDomain: "'dev-md-memo.tori-blog.net'"
@@ -61,6 +64,7 @@ Mappings:
       WhiteIpAddressTo: '255.255.255.255'
       APIName: 'MD Memo develop'
       DbSuffix: '_dev'
+      FileStrageBucketSuffix: '-dev'
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -70,6 +74,7 @@ Globals:
       Variables:
         AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
         DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
+        FileStrageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStrageBucketSuffix]
         EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
     MemorySize: 512
     Layers:
@@ -87,6 +92,8 @@ Resources:
       #     IpRangeWhitelist:
       #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
       #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
+      BinaryMediaTypes:
+        - "multipart/form-data"
       EndpointConfiguration: REGIONAL
       Cors:
         AllowCredentials: true
@@ -383,6 +390,45 @@ Resources:
           Properties:
             RestApiId: !Ref RestApi
             Path: /switch_pinned
+            Method: post
+
+  UploadFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: files.upload_file_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /upload_file
+            Method: post
+  
+  GetFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: files.get_file_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_file
+            Method: get
+
+  UploadLargeFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: files.upload_large_file_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /upload_large_file
             Method: post
 # Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

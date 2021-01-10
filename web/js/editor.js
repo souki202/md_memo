@@ -107,7 +107,7 @@ new Vue({
 
             memoMessages: [],
 
-            isSaving: false, // 保存処理中かどうか
+            canSave: true,
         }
     },
     computed: {
@@ -143,6 +143,7 @@ new Vue({
             keyMap: 'default',
             historyEventDelay: 300,
             autofocus: true,
+            dragDrop: false,
             extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"},
         });
         // body変更時の挙動設定
@@ -151,8 +152,13 @@ new Vue({
             this.updatePreview();
 
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
-            this.autoSaveTimeout = setTimeout(this.save, this.autoSaveDelay);
+            this.autoSaveTimeout = setTimeout(this._save, this.autoSaveDelay);
         })
+        // this.codemirror.on('drop', (data, e) => {
+        //     console.log(e);
+        //     let files = e.dataTransfer.files;
+        //     // this.uploadFile(editor, e)
+        // })
         this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
 
         // memo idを取得
@@ -179,25 +185,38 @@ new Vue({
         /**
          * メモを保存する
          */
-        save() {
-            if (this.isSaving || !window.userData) {
+        _save() {
+            if (!this.canSave || !window.userData) {
                 return;
             }
+
             this.errorMessage = '';
             if (this.memo.body.length > this.getMaxBodyLen()) {
                 this.errorMessage = 'メモの上限文字数は' + this.getMaxBodyLen() + '文字です'
                 return;
             }
-            this.isSaving = true;
-            axios.post(getApiUrl() + '/save_memo', {params: this.memo}).then(res => {
+
+            // 保存処理
+            this.canSave = false;
+            axios.post(getApiUrl() + '/save_memo', {
+                params: {
+                    memo: this.memo,
+                    files: this.getFileKeys(),
+                }
+            }).then(res => {
                 console.log('auto save complete: ' + res.data.id);
                 this.memo.id = res.data.id
                 this.drawMessage('saved');
             }).catch(err => {
                 this.errorMessage = 'Failed to update memo.'
             }).then(() => {
-                this.isSaving = false;
+                this.canSave = true;
             })
+        },
+
+        save() {
+            if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
+            this._save();
         },
 
         getMaxBodyLen() {
@@ -214,6 +233,18 @@ new Vue({
             else {
                 return 10000;
             }
+        },
+
+        getFileKeys() {
+            const r = /https:\/\/api\.dev-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+            let m = null;
+            var a = [];
+            while ((m = r.exec(this.memo.body)) != null) {
+                a.push(m[1]);
+            }
+            
+            console.log(a);
+            return a;
         },
 
         setMemoData(memo) {
@@ -386,8 +417,54 @@ new Vue({
             return false;
         },
 
+        createUploadTmpKey(){
+            const LENGTH = 8 //生成したい文字列の長さ
+            const SOURCE = "abcdefghijklmnopqrstuvwxyz0123456789" //元になる文字
+            let result = ''
+          
+            for(let i=0; i<LENGTH; i++){
+              result += SOURCE[Math.floor(Math.random() * SOURCE.length)];
+            }
+            
+            return result
+        },
+
+        uploadFile(e) {
+            let files = [...e.dataTransfer.files];
+            if (files.length == 0) {
+                return;
+            }
+
+            files.forEach(file => {
+                let tmpKey = file.name.replace(/[\[\]\!]/g, '_');
+
+                // アップロード中の文字列を追加
+                this.invokeCodemirrorOperation('uploadFile', tmpKey)
+                // setTimeout(() => {
+                //     this.invokeCodemirrorOperation('uploadComplete', tmpKey, "filekeydayo");
+                // }, 500);
+                let form = new FormData();
+                form.append('file', file);
+                axios.post(
+                    getApiUrl() + '/upload_file?fileName=' + encodeURI(file.name), form
+                ).then(res => {
+                    console.log(res);
+                    const key = res.data.key;
+                    // アップ完了の文字日間
+                    this.invokeCodemirrorOperation('uploadComplete', tmpKey, key);
+                    // 反映のため, 即保存
+                    this.save();
+                }).catch(err => {
+                    console.log(err);
+                    this.invokeCodemirrorOperation('uploadFailed', tmpKey);
+                }).then(() => {
+    
+                })
+            });
+        },
+
         invokeCodemirrorOperation(op, ...args) {
-            this.codemirrorHelper.invoke(op, args);
+            return this.codemirrorHelper.invoke(op, ...args);
         },
     },
 })

@@ -345,7 +345,7 @@ def update_share_settings(memo_id: str, share_type: int, share_scope: int, share
 
 def get_share_setting_by_memo_id(memo_id: str) -> dict:
     if not memo_id:
-        return None
+        return False
     try:
         result = memo_shares_table.query(
             IndexName = 'memo_id-index',
@@ -356,8 +356,8 @@ def get_share_setting_by_memo_id(memo_id: str) -> dict:
         return result[0]
     except Exception as e:
         print(e)
-        return None
-    return None
+        return False
+    return False
 
 def get_share_setting_by_share_id(share_id: str) -> dict:
     if not share_id:
@@ -373,6 +373,41 @@ def get_share_setting_by_share_id(share_id: str) -> dict:
         print(e)
         return None
     return None
+
+def get_share_settings_by_memo_ids(memo_ids: list) -> dict:
+    if not memo_ids:
+        return False
+    try:
+        share_settings = []
+        for memo_id in memo_ids:
+            s = get_share_setting_by_memo_id(memo_id)
+            if s == False:
+                print('failed to get share_settings: ' + memo_id)
+            if s:
+                share_settings.append(s)
+        return share_settings
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def delete_share_setting_multi_by_memo_id(memo_ids) -> bool:
+    try:
+        share_settings = get_share_settings_by_memo_ids(memo_ids)
+        if share_settings == False:
+            print('failed to get share settings: ' + str(memo_ids))
+        with memo_shares_table.batch_writer() as batch:
+            for share_setting in share_settings:
+                batch.delete_item(
+                    Key = {
+                        'share_id': share_setting['share_id']
+                    }
+                )
+        return True
+    except Exception as e:
+        print(e)
+        return False
+    return False
 
 def check_is_in_share_target(user_id: str, share_targets: str) -> bool:
     if not share_targets or not user_id:
