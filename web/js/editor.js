@@ -393,8 +393,24 @@ new Vue({
         },
 
         uploadFile(e) {
-            let files = e.dataTransfer.files;
-            console.log(files);
+            let files = [...e.dataTransfer.files];
+            if (files.length == 0) {
+                return;
+            }
+
+            files.forEach(file => {
+                let form = new FormData();
+                form.append('file', file);
+                axios.post(
+                    getApiUrl() + '/upload_file?fileName=' + encodeURI(file.name), form
+                ).then(res => {
+                    console.log(res);
+                }).catch(err => {
+                    console.log(err);
+                }).then(() => {
+    
+                })
+            });
         },
 
         invokeCodemirrorOperation(op, ...args) {
