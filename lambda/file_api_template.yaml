@@ -1,0 +1,135 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  Sample SAM Template for sam-app
+
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+      - prod
+      - stg
+      - dev
+      - local
+    Default: local
+  LayerName:
+    Type: String
+    Default: md-memo-dev-MyLayer
+
+Mappings:
+  EnvMap:
+    prod:
+      FileApiCustomDomain: 'fileapi.md-memo.tori-blog.net'
+      UseLayerValueName: 'md-memo-prod-MyLayer'
+      StaticPageDomain: 'md-memo.tori-blog.net'
+      StaticPageBucket: 'md-memo-staticpage-prod'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/8758016f-7700-4566-b6bb-53ffdbf6c503'
+      ApiStageName: 'Prod'
+      AllowOrigin: "'https://md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '0.0.0.0'
+      WhiteIpAddressTo: '255.255.255.255'
+      FileAPIName: 'MD Memo File API Production'
+      DbSuffix: '_prod'
+      FileStrageBucketSuffix: '-prod'
+    stg:
+      FileApiCustomDomain: 'fileapi.stg-md-memo.tori-blog.net'
+      UseLayerValueName: 'md-memo-stg-MyLayer'
+      StaticPageDomain: "'stg-md-memo.tori-blog.net'"
+      StaticPageBucket: 'md-memo-staticpage-stg'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/0b1dc21b-3546-491d-8802-4d22af2e66a2'
+      ApiStageName: 'Stg'
+      AllowOrigin: "'https://stg-md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '14.10.121.32'
+      WhiteIpAddressTo: '14.10.121.32'
+      FileAPIName: 'MD Memo File API staging'
+      DbSuffix: '_stg'
+      FileStrageBucketSuffix: '-stg'
+    dev:
+      FileApiCustomDomain: 'fileapi.dev-md-memo.tori-blog.net'
+      UseLayerValueName: 'md-memo-dev-MyLayer'
+      StaticPageDomain: "'dev-md-memo.tori-blog.net'"
+      StaticPageBucket: 'md-memo-staticpage-dev'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04'
+      ApiStageName: 'Dev'
+      AllowOrigin: "'https://dev-md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '14.10.121.32'
+      WhiteIpAddressTo: '14.10.121.32'
+      FileAPIName: 'MD Memo File API develop'
+      DbSuffix: '_dev'
+      FileStrageBucketSuffix: '-dev'
+    local:
+      FileApiCustomDomain: 'localfileapi.dev-md-memo.tori-blog.net'
+      UseLayerValueName: 'md-memo-dev-MyLayer'
+      StaticPageDomain: "'dev-md-memo.tori-blog.net'"
+      StaticPageBucket: 'md-memo-staticpage-dev'
+      CertificateArn: 'arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04'
+      ApiStageName: 'Local'
+      AllowOrigin: "'https://dev-md-memo.tori-blog.net'"
+      WhiteIpAddressFrom: '0.0.0.0'
+      WhiteIpAddressTo: '255.255.255.255'
+      FileAPIName: 'MD Memo File API develop'
+      DbSuffix: '_dev'
+      FileStrageBucketSuffix: '-dev'
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    CodeUri: app/
+    Environment:
+      Variables:
+        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
+        DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
+        FileStrageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStrageBucketSuffix]
+        EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
+    MemorySize: 1024
+    Layers:
+      - 
+        Fn::ImportValue: !Ref LayerName
+    Runtime: python3.8
+    Timeout: 5
+
+
+Resources:
+  RestFileApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      BinaryMediaTypes:
+        - "*/*"
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowCredentials: true
+        AllowHeaders: "'Origin, Authorization, Accept, Content-Type'"
+        AllowMethods: "'GET, PUT, POST, OPTIONS'"
+        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
+      Domain:
+        DomainName: !FindInMap [EnvMap, !Ref Env, FileApiCustomDomain]
+        CertificateArn: !FindInMap [EnvMap, !Ref Env, CertificateArn]
+        Route53:
+          HostedZoneId: Z2JCR6TK8NIB6U
+        SecurityPolicy: TLS_1_2
+      Name: !FindInMap [EnvMap, !Ref Env, FileAPIName]
+      StageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
+  
+  GetFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: files.get_file_event
+      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Events:
+        DefaultEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestFileApi
+            Path: /get_file
+            Method: get
+
+# Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  # HelloWorldApi:
+  #   Description: "API Gateway endpoint URL for Stg stage for Hello World function"
+  #   Value: !Sub "https://${ApiCustomDomain}/Stage/hello/"
+

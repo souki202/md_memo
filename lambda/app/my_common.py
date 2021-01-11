@@ -1,6 +1,9 @@
 import os
 import time
 import datetime
+import base64
+import io
+from cgi import FieldStorage
 
 def get_api_url():
     if os.environ['EnvName'] == 'Prod':
@@ -37,3 +40,16 @@ def get_now_string():
 
 def get_calced_from_now_string(diff_sec: int):
     return datetime.datetime.fromtimestamp(int(time.time()) - diff_sec).strftime('%Y-%m-%d %H:%M:%S')
+
+def parse_multipart_form(headers, body):
+    fp = io.BytesIO(base64.b64decode(body))
+    environ = {'REQUEST_METHOD': 'POST'}
+    headers = {
+        'content-type': headers['Content-Type'],
+        'content-length': headers['Content-Length']
+    }
+
+    fs = cgi.FieldStorage(fp=fp, environ=environ, headers=headers)
+
+    for f in fs.list:
+        print(f.name, f.filename, f.type, f.value)

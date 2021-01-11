@@ -47,6 +47,7 @@ window.addEventListener('DOMContentLoaded', (e) => {
     appendScript('/js/axios.min.js');
     appendScript('/js/js.cookie.min.js', true);
     appendScript('/js/getApiUrl.js', true);
+    appendScript('/js/getFileApiUrl.js', true);
     appendScript('/js/colorTheme.js', true);
     appendScript('/js/urlParameter.js', true);
     if (getIsDevelop()) {

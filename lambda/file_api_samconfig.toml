@@ -1,0 +1,42 @@
+version = 0.1
+[production]
+[production.deploy]
+[production.deploy.parameters]
+stack_name = "md-memo-fileapi-prod"
+s3_bucket = "md-memo-lambda-deploy"
+s3_prefix = "md-memo-fileapi-prod"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Env=\"prod\" LayerName=\"md-memo-prod-MyLayer\""
+
+[staging]
+[staging.deploy]
+[staging.deploy.parameters]
+stack_name = "md-memo-fileapi-stg"
+s3_bucket = "md-memo-lambda-deploy"
+s3_prefix = "md-memo-fileapi-stg"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Env=\"stg\" LayerName=\"md-memo-stg-MyLayer\""
+
+[develop]
+[develop.deploy]
+[develop.deploy.parameters]
+stack_name = "md-memo-fileapi-dev"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1azphhnlpwj0y"
+s3_prefix = "md-memo-fileapi-dev"
+region = "ap-northeast-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Env=\"dev\" LayerName=\"md-memo-dev-MyLayer\""
+
+[local]
+[local.deploy]
+[local.deploy.parameters]
+stack_name = "md-memo-fileapi-local"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1azphhnlpwj0y"
+s3_prefix = "md-memo-fileapi-dev"
+region = "ap-northeast-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Env=\"local\" LayerName=\"md-memo-dev-MyLayer\""

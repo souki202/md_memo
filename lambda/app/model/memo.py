@@ -10,6 +10,7 @@ from boto3.dynamodb.conditions import Key
 from common_headers import *
 from my_common import *
 from dynamo_utility import *
+from model.share import *
 
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
@@ -20,11 +21,6 @@ class MemoStates(Enum):
     AVAILABLE = 1
     GARBAGE = 2
     DELETED = 3
-
-class ShareType(Enum):
-    NO_SHARE = 1
-    READONLY = 2
-    EDITABLE = 4
 
 class PinnedType(Enum):
     NO_PINNED = 1

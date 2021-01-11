@@ -1,0 +1,38 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "file_key",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "memo_id",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_file_and_memo_relation_stg",
+    "KeySchema": [
+        {
+            "AttributeName": "file_key",
+            "KeyType": "HASH"
+        },
+        {
+            "AttributeName": "memo_id",
+            "KeyType": "RANGE"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "memo_id-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "memo_id",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}

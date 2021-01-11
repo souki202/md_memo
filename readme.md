@@ -26,6 +26,8 @@
 
 `sam local invoke "DeleteMemoFunction" -e events/post.json --config-env develop -n env/env.json`
 
+`sam local invoke "GetFileFunction" -e events/post.json --config-env develop -n env/env.json -t file_api_template.yaml --config-file file_api_samconfig.toml`
+
 ### apiの開始
 
 `sam build --config-env staging`
@@ -36,9 +38,9 @@
 
 ### dev
 
-`sam build --config-env develop --use-container`
+`sam build --config-env develop --use-container -t file_api_template.yaml --config-file file_api_samconfig.toml`
 
-`sam deploy --config-env develop`
+`sam deploy --config-env develop -t file_api_template.yaml --config-file file_api_samconfig.toml`
 
 ### staging
 
