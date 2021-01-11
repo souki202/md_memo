@@ -16,15 +16,12 @@ from model.user import *
 from model.memo import *
 from model.plan import *
 import model.file as my_file
+from model.share import *
 
 def decimal_default_proc(obj):
     if isinstance(obj, Decimal):
         return float(obj)
     raise TypeError
-
-class ShareScope(Enum):
-    PUBLIC = 1
-    SPECIFIC_USERS = 2
 
 db_client = boto3.resource("dynamodb")
 users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])

@@ -12,6 +12,7 @@ from common_headers import *
 from my_common import *
 from my_mail import *
 from dynamo_utility import *
+from service.user import *
 
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')

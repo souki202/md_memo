@@ -1,4 +1,5 @@
 import getApiUrl from '/js/getApiUrl.js'
+import getFileApiUrl from '/js/getFileApiUrl.js'
 export default class {
     constructor(codemirror) {
         this.codemirror = codemirror;
@@ -132,7 +133,7 @@ export default class {
 
     uploadComplete(tmpKey, file_key) {
         console.log('![' + tmpKey + '](https://' + getApiUrl() +  '/get_file/?file_key=' + file_key + ')');
-        this.replaceSearchText(this.createFileUploadingText(tmpKey), '![' + tmpKey + '](' + getApiUrl() +  '/get_file/?file_key=' + file_key + ')');
+        this.replaceSearchText(this.createFileUploadingText(tmpKey), '![' + tmpKey + '](' + getFileApiUrl() +  '/get_file/?file_key=' + file_key + ')');
     }
 
     uploadFailed(tmpKey) {

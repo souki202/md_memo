@@ -10,6 +10,8 @@ from boto3.dynamodb.conditions import Key
 from common_headers import *
 from my_common import *
 from dynamo_utility import *
+from model.share import *
+from service.user import *
 
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
@@ -20,11 +22,6 @@ class MemoStates(Enum):
     AVAILABLE = 1
     GARBAGE = 2
     DELETED = 3
-
-class ShareType(Enum):
-    NO_SHARE = 1
-    READONLY = 2
-    EDITABLE = 4
 
 class PinnedType(Enum):
     NO_PINNED = 1
@@ -409,11 +406,6 @@ def delete_share_setting_multi_by_memo_id(memo_ids) -> bool:
         return False
     return False
 
-def check_is_in_share_target(user_id: str, share_targets: str) -> bool:
-    if not share_targets or not user_id:
-        return False
-    target_users = share_targets.replace(' ', '').split(',')
-    return user_id in target_users
 
 '''
 @param list user_data get_user_data_by_uuid等から取得したもの. 主にログイン中のユーザ

@@ -236,7 +236,7 @@ new Vue({
         },
 
         getFileKeys() {
-            const r = /https:\/\/api\.dev-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+            const r = /https:\/\/fileapi\.dev-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
             let m = null;
             var a = [];
             while ((m = r.exec(this.memo.body)) != null) {
@@ -254,7 +254,12 @@ new Vue({
             newMemoData.description = memo.description;
             newMemoData.type = memo.memo_type;
             newMemoData.body = memo.body;
-            newMemoData.share = {};
+            newMemoData.share = {
+                type: 1,
+                scope: 1,
+                id: '',
+                users: '',
+            };
             if (memo.share) {
                 newMemoData.share.id = memo.share.share_id;
                 newMemoData.share.type = memo.share.share_type;
@@ -429,6 +434,30 @@ new Vue({
             return result
         },
 
+        uploadFileBySignedUrl(file, url, key, tmpKey) {
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+
+            reader.onload = () => {
+                axios({
+                    method: 'PUT',
+                    url: url,
+                    headers: {
+                        'Content-Type': file.type
+                    },
+                    data: reader.result
+                }).then(res => {
+                    console.log(res);                
+                }).catch(err => {
+                    console.log(err);
+                    this.errorMessage = 'アップロードに失敗しました'
+                    this.invokeCodemirrorOperation('uploadFailed', tmpKey);
+                }).then(() => {
+    
+                })
+            };
+        },
+
         uploadFile(e) {
             let files = [...e.dataTransfer.files];
             if (files.length == 0) {
@@ -437,28 +466,38 @@ new Vue({
 
             files.forEach(file => {
                 let tmpKey = file.name.replace(/[\[\]\!]/g, '_');
-
                 // アップロード中の文字列を追加
                 this.invokeCodemirrorOperation('uploadFile', tmpKey)
-                // setTimeout(() => {
-                //     this.invokeCodemirrorOperation('uploadComplete', tmpKey, "filekeydayo");
-                // }, 500);
-                let form = new FormData();
-                form.append('file', file);
-                axios.post(
-                    getApiUrl() + '/upload_file?fileName=' + encodeURI(file.name), form
-                ).then(res => {
+
+                if (file.size > 1024*1024*8) {
+                    this.errorMessage = '8MBまでアップロード可能です'
+                    return false;
+                }
+
+                // 署名付きURLを取得し, 成功したらそこにアップロード
+                axios.post(getApiUrl() + '/create_upload_url', {
+                    params: {
+                        fileName: file.name,
+                        fileSize: file.size
+                    }
+                }).then(res => {
                     console.log(res);
                     const key = res.data.key;
-                    // アップ完了の文字日間
+                    const url = res.data.url;
+                    console.log('upload url: ' + key)
+                    // アップ完了の文字置換
                     this.invokeCodemirrorOperation('uploadComplete', tmpKey, key);
                     // 反映のため, 即保存
                     this.save();
+
+                    // 画像本体アップ
+                    this.uploadFileBySignedUrl(file, url, key, tmpKey);
                 }).catch(err => {
                     console.log(err);
+                    this.errorMessage = 'アップロード用URLの取得に失敗しました'
                     this.invokeCodemirrorOperation('uploadFailed', tmpKey);
                 }).then(() => {
-    
+
                 })
             });
         },

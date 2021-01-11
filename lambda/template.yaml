@@ -26,8 +26,9 @@ Mappings:
       AllowOrigin: "'https://md-memo.tori-blog.net'"
       WhiteIpAddressFrom: '0.0.0.0'
       WhiteIpAddressTo: '255.255.255.255'
-      APIName: 'MD Memo API'
+      APIName: 'MD Memo API Production'
       DbSuffix: '_prod'
+      LambdaMemorySize: 1024
       FileStrageBucketSuffix: '-prod'
     stg:
       ApiCustomDomain: 'api.stg-md-memo.tori-blog.net'
@@ -40,6 +41,7 @@ Mappings:
       WhiteIpAddressTo: '14.10.121.32'
       APIName: 'MD Memo API staging'
       DbSuffix: '_stg'
+      LambdaMemorySize: 512
       FileStrageBucketSuffix: '-stg'
     dev:
       ApiCustomDomain: 'api.dev-md-memo.tori-blog.net'
@@ -50,8 +52,9 @@ Mappings:
       AllowOrigin: "'https://dev-md-memo.tori-blog.net'"
       WhiteIpAddressFrom: '14.10.121.32'
       WhiteIpAddressTo: '14.10.121.32'
-      APIName: 'MD Memo develop'
+      APIName: 'MD Memo API develop'
       DbSuffix: '_dev'
+      LambdaMemorySize: 512
       FileStrageBucketSuffix: '-dev'
     local:
       ApiCustomDomain: 'localapi.dev-md-memo.tori-blog.net'
@@ -62,8 +65,9 @@ Mappings:
       AllowOrigin: "'https://dev-md-memo.tori-blog.net'"
       WhiteIpAddressFrom: '0.0.0.0'
       WhiteIpAddressTo: '255.255.255.255'
-      APIName: 'MD Memo develop'
+      APIName: 'MD Memo API develop'
       DbSuffix: '_dev'
+      LambdaMemorySize: 512
       FileStrageBucketSuffix: '-dev'
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -76,7 +80,7 @@ Globals:
         DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
         FileStrageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStrageBucketSuffix]
         EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
-    MemorySize: 512
+    MemorySize: !FindInMap [EnvMap, !Ref Env, LambdaMemorySize]
     Layers:
       - !Ref MyLayer
     Runtime: python3.8
@@ -92,8 +96,22 @@ Resources:
       #     IpRangeWhitelist:
       #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
       #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
+      # 実質的には, 画像以外は全てLargeFileUploadにするので使用しないはず
       BinaryMediaTypes:
         - "multipart/form-data"
+        - "image/*"
+        - "video/*"
+        - "audio/*"
+        - "model/*"
+        - "font/*"
+        - "application/octet-stream"
+        - "application/zip"
+        - "application/pdf"
+        - "application/ms*"
+        - "application/java*"
+        - "application/vnd.*"
+        - "application/rtf"
+        - "application/x-7z-compressed"
       EndpointConfiguration: REGIONAL
       Cors:
         AllowCredentials: true
@@ -108,7 +126,7 @@ Resources:
         SecurityPolicy: TLS_1_2
       Name: !FindInMap [EnvMap, !Ref Env, APIName]
       StageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
-  
+
   MyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -404,19 +422,19 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /upload_file
             Method: post
-  
-  GetFileFunction:
+
+  CreateUploadUrlFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: files.get_file_event
+      Handler: files.create_upload_url_event
       Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
       Events:
         DefaultEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RestApi
-            Path: /get_file
-            Method: get
+            Path: /create_upload_url
+            Method: post
 
   UploadLargeFileFunction:
     Type: AWS::Serverless::Function
@@ -430,6 +448,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /upload_large_file
             Method: post
+
+Outputs:
+  LayerArn:
+    Value: !Ref MyLayer
+    Export:
+      Name: !Sub '${AWS::StackName}-MyLayer'
 # Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
