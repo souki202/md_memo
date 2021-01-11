@@ -109,7 +109,9 @@ new Vue({
 
             memoMessages: [],
 
+            isSaving: false,
             canSave: true,
+            saveInterval: 10000,
         }
     },
     computed: {
@@ -199,6 +201,7 @@ new Vue({
             }
 
             // 保存処理
+            this.isSaving = true;
             this.canSave = false;
             axios.post(getApiUrl() + '/save_memo', {
                 params: {
@@ -210,10 +213,16 @@ new Vue({
                 this.memo.id = res.data.id
                 this.drawMessage('saved');
             }).catch(err => {
+                console.log(err);
                 this.errorMessage = 'Failed to update memo.'
             }).then(() => {
-                this.canSave = true;
+                this.isSaving = false;
             })
+
+            // 一定時間保存できないように
+            setTimeout(() => {
+                this.canSave = true
+            }, this.saveInterval);
         },
 
         save() {
