@@ -19,6 +19,10 @@ new Vue({
         }
     },
     mounted() {
+        const viewNameCache = Cookies.get('view_name_cache');
+        if (viewNameCache) {
+            this.userViewName = viewNameCache;
+        }
         this.checkLoggedIn();
     },
     methods: {
@@ -50,6 +54,8 @@ new Vue({
                 window.userData = res.data.user;
                 const userId = res.data.user.user_id;
                 this.userViewName = userId.substring(0, userId.indexOf('@'));
+                Cookies.set('view_name_cache', this.userViewName, { domain: document.domain, expires: new Date('1 Jan 2037 00:00:00 GMT') });
+
             }).catch((err) => {
                 console.log(err);
                 this.userViewName = 'エラーが発生しました'
