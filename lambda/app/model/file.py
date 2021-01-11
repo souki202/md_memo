@@ -171,7 +171,6 @@ def delete_file_and_memo_relation_by_memos(memo_ids):
         except Exception as e:
             print(e)
             return False
-        return False
     return True
 
 def get_file_shareing_auth(file_key, file_user_uuid, user_uuid, user_id):
