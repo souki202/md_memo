@@ -76,9 +76,14 @@ def get_file_event(event, context):
         return create_common_return_array(500, {'message': "Failed to get file info"})
     
     user_uuid: str = get_user_uuid_by_event(event)
+    user_id = ''
+    if user_uuid:
+        user_data = get_user_data_by_uuid(user_uuid)
+        if user_data:
+            user_id = user_data['user_id']
 
-    if not my_file.get_file_shareing_auth(file_info['file_key'], file_info['user_uuid'], user_uuid):
-        print('no authentication: ' + file_key + ' user_uuid:' + user_uuid)
+    if not my_file.get_file_shareing_auth(file_info['file_key'], file_info['user_uuid'], user_uuid, user_id):
+        print('no authentication: ' + str(file_key) + ' user_uuid:' + user_uuid)
         return create_common_return_array(404, {'message': "Not Found"})
 
     # 権限があったのでファイルを取得

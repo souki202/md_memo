@@ -11,6 +11,7 @@ from my_common import *
 from dynamo_utility import *
 from model.share import *
 import model.memo as my_memo
+from service.user import *
 
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
@@ -173,7 +174,7 @@ def delete_file_and_memo_relation_by_memos(memo_ids):
         return False
     return True
 
-def get_file_shareing_auth(file_key, file_user_uuid, user_uuid):
+def get_file_shareing_auth(file_key, file_user_uuid, user_uuid, user_id):
     # 所持者自身
     if file_user_uuid == user_uuid:
         return True
@@ -192,7 +193,7 @@ def get_file_shareing_auth(file_key, file_user_uuid, user_uuid):
             continue
 
         # シェアしない設定になっていれば次
-        if share_setting['share_scope'] == ShareType.NO_SHARE.value:
+        if share_setting['share_type'] == ShareType.NO_SHARE.value:
             continue
 
         scope = share_setting['share_scope']
@@ -200,7 +201,7 @@ def get_file_shareing_auth(file_key, file_user_uuid, user_uuid):
         if scope == ShareScope.PUBLIC.value:
             return True
         if scope == ShareScope.SPECIFIC_USERS.value:
-            if check_is_in_share_target(user_uuid, share_setting['share_users']):
+            if check_is_in_share_target(user_id, share_setting['share_users']):
                 return True
     return False
 
