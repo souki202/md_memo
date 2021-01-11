@@ -1,5 +1,7 @@
 import getApiUrl from '/js/getApiUrl.js'
+import getFileApiUrl from '/js/getFileApiUrl.js'
 import getTheme from '/js/colorTheme.js';
+import getEnv from '/js/getEnv.js';
 import urlParameter from '/js/urlParameter.js';
 import '/codemirror/lib/codemirror.js';
 import '/js/js.cookie.min.js';
@@ -236,7 +238,22 @@ new Vue({
         },
 
         getFileKeys() {
-            const r = /https:\/\/fileapi\.dev-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+            let apiUrl = getFileApiUrl();
+            let r = /a/
+            switch (getEnv()) {
+                case 'dev':
+                    r = /https:\/\/fileapi\.dev-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+                    break;
+                case 'stg':
+                    r = /https:\/\/fileapi\.stg-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+                    break;
+                case 'prod':
+                    r = /https:\/\/fileapi\.prod-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+                    break;
+                default:
+                    r = /https:\/\/fileapi\.prod-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+                    break;
+            }
             let m = null;
             var a = [];
             while ((m = r.exec(this.memo.body)) != null) {

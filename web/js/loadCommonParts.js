@@ -48,6 +48,7 @@ window.addEventListener('DOMContentLoaded', (e) => {
     appendScript('/js/js.cookie.min.js', true);
     appendScript('/js/getApiUrl.js', true);
     appendScript('/js/getFileApiUrl.js', true);
+    appendScript('/js/getEnv.js', true);
     appendScript('/js/colorTheme.js', true);
     appendScript('/js/urlParameter.js', true);
     if (getIsDevelop()) {
