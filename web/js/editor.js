@@ -102,6 +102,7 @@ new Vue({
 
             showMessageTime: 3000,
             isShowShareDialog: false,
+            isShowSnsShareDialog: false,
 
             isSharedView: false,
 
@@ -394,6 +395,19 @@ new Vue({
 
         closeDialog() {
             this.isShowShareDialog = false;
+        },
+
+        showSnsShareDialog() {
+            this.isShowSnsShareDialog = true;
+        },
+
+        closeSnsShareDialog() {
+            this.isShowSnsShareDialog = false;
+        },
+
+        switchToShareDialog() {
+            this.isShowSnsShareDialog = false;
+            this.isShowShareDialog = true;
         },
 
         /**
