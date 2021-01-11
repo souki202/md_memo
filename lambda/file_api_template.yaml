@@ -32,7 +32,7 @@ Mappings:
       WhiteIpAddressTo: '255.255.255.255'
       FileAPIName: 'MD Memo File API Production'
       DbSuffix: '_prod'
-      FileStrageBucketSuffix: '-prod'
+      FileStorageBucketSuffix: '-prod'
     stg:
       FileApiCustomDomain: 'fileapi.stg-md-memo.tori-blog.net'
       UseLayerValueName: 'md-memo-stg-MyLayer'
@@ -45,7 +45,7 @@ Mappings:
       WhiteIpAddressTo: '14.10.121.32'
       FileAPIName: 'MD Memo File API staging'
       DbSuffix: '_stg'
-      FileStrageBucketSuffix: '-stg'
+      FileStorageBucketSuffix: '-stg'
     dev:
       FileApiCustomDomain: 'fileapi.dev-md-memo.tori-blog.net'
       UseLayerValueName: 'md-memo-dev-MyLayer'
@@ -58,7 +58,7 @@ Mappings:
       WhiteIpAddressTo: '14.10.121.32'
       FileAPIName: 'MD Memo File API develop'
       DbSuffix: '_dev'
-      FileStrageBucketSuffix: '-dev'
+      FileStorageBucketSuffix: '-dev'
     local:
       FileApiCustomDomain: 'localfileapi.dev-md-memo.tori-blog.net'
       UseLayerValueName: 'md-memo-dev-MyLayer'
@@ -71,7 +71,7 @@ Mappings:
       WhiteIpAddressTo: '255.255.255.255'
       FileAPIName: 'MD Memo File API develop'
       DbSuffix: '_dev'
-      FileStrageBucketSuffix: '-dev'
+      FileStorageBucketSuffix: '-dev'
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -81,7 +81,7 @@ Globals:
       Variables:
         AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
         DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
-        FileStrageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStrageBucketSuffix]
+        FileStorageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStorageBucketSuffix]
         EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
     MemorySize: 1024
     Layers:
