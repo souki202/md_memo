@@ -61,6 +61,33 @@
                 </div>
             </div>
 
+            <div class="share-dialog-container absolute-fill" :class="[{'is-show-dialog': isShowSnsShareDialog}]">
+                <div class="share-dialog-bg" @click="closeDialog"></div>
+                <div class="share-dialog-body">
+                    <div class="share-header-container">
+                        <h3>SNSでシェア</h3>
+                    </div>
+                    <div class="share-body-container">
+                        <div class="sns-share-body">
+                            <div v-if="memo.share.type == 1 || memo.share.scope != 1">
+                                <p>シェアの設定をパブリックに変更し, 設定を更新してください.</p>
+                                <button class="btn btn-login" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]" @click="switchToShareDialog">シェア設定</button>
+                            </div>
+                            <div v-if="memo.share.type != 1 || memo.share.scope == 1">
+                                <div class="errors alert alert-warning" v-if="memo.share.type == 4">
+                                    <p>共有設定が誰でも編集可能に設定されています</p>
+                                </div>
+                                <div class="sns-share-buttons-container">
+                                    <div class="twitter-share">
+                                        <a href="https://twitter.com/intent/tweet?button_hashtag=abxc&ref_src=twsrc%5Etfw" class="twitter-hashtag-button" data-show-count="false">Tweet #abxc</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- タイトル部分 -->
             <div class="form-group memo-title-container">
                 <input type="text" class="form-control memo-title" v-model="memo.title" placeholder="Title" @change="save" :readonly="isSharedView && memo.share.type != 4">
@@ -153,22 +180,23 @@
                 <div class="tool-tip">
                     <div class="tool-tip-icons">
                         <!-- 保存アイコン -->
-                        <div class="tool-tip-icon-container save-icon" v-if="!isSharedView || memo.share.type == 4">
+                        <div class="tool-tip-icon-container save-icon" v-if="!isSharedView || memo.share.type == 4" title="保存">
                             <i class="fas fa-save fa-2x tool-tip-icon" @click="save"></i>
                         </div>
                         <!-- シェアアイコン -->
-                        <div class="tool-tip-icon-container share-icon" v-if="!isSharedView">
+                        <div class="tool-tip-icon-container share-icon" v-if="!isSharedView" title="共有">
                             <i class="fas fa-link fa-2x tool-tip-icon" @click="showShareDialog"></i>
                         </div>
-                        <!-- <div class="tool-tip-icon-container share-icon" v-if="!isSharedView">
-                            <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showShareDialog"></i>
-                        </div> -->
+                        <!-- SNSシェア -->
+                        <div class="tool-tip-icon-container share-icon" v-if="!isSharedView" title="SNSでシェア">
+                            <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showSnsShareDialog"></i>
+                        </div>
                         <!-- 表示状態のスイッチ -->
-                        <div class="tool-tip-icon-container switch-view-icon">
+                        <div class="tool-tip-icon-container switch-view-icon" title="表示切り替え">
                             <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
                         </div>
                         <!-- ピン留め -->
-                        <div class="tool-tip-icon-container pinned-icon">
+                        <div class="tool-tip-icon-container pinned-icon" title="ピン留め">
                             <i class="fas fa-thumbtack fa-2x tool-tip-icon" :class="[{'pinned-active': memo.pinnedType == 2}]" @click="switchPinned"></i>
                         </div>
                     </div>
