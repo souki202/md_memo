@@ -2,6 +2,12 @@
     --base-bg-color: #111115;
     --base-text-color: #eee;
 
+    --sidebar-bg-color: #161b22;
+    --sidebar-text-color: #eee;
+    --sidebar-separator-color: #888;
+    --sidebar-content-icon-bg-color: #343a40;
+    --sidebar-logout-text-color: #f66;
+
     --header-bg-color: #161b22;
     --header-text-color: #eee;
 

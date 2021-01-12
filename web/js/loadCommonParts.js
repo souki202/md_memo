@@ -1,9 +1,8 @@
 function loadCommonParts(url, insertTarget) {
     if (!insertTarget) return;
     let xhr = new XMLHttpRequest();
-    const method = "GET";
 
-    xhr.open(method, url, true);
+    xhr.open("GET", url, true);
     xhr.onreadystatechange = function () {
         if(xhr.readyState === 4 && xhr.status === 200) {
             var restxt = xhr.responseText;
@@ -11,6 +10,37 @@ function loadCommonParts(url, insertTarget) {
         }
     };
     xhr.send();
+}
+
+function addBeforeParts(url, className, idName, insertTarget) {
+    if (!insertTarget) return;
+    let xhr = new XMLHttpRequest();
+
+    xhr.open("GET", url, true);
+    xhr.onreadystatechange = function () {
+        if(xhr.readyState === 4 && xhr.status === 200) {
+            const restxt = xhr.responseText;
+            let newElement = document.createElement('div');
+            newElement.classList.add(className);
+            if (idName) {
+                newElement.id = idName;
+            }
+            newElement.innerHTML = restxt;
+
+            insertTarget.before(newElement);
+        }
+    };
+    xhr.send();
+}
+
+function loadCommonDOM() {
+    const header = document.getElementById('header')
+    loadCommonParts('/commonParts/header.html', header)
+    const footer = document.getElementById('footer')
+    loadCommonParts('/commonParts/footer.html', footer)
+
+    // headerの手前にsidebarを入れる
+    addBeforeParts('/commonParts/sidebar.html', 'sidebar-container', null, header);
 }
 
 function appendScript(url, isModule = false) {
@@ -43,10 +73,13 @@ function getIsDevelop() {
 
 window.addEventListener('DOMContentLoaded', (e) => {
     appendCss('/css/bootstrap.min.css');
+    appendCss('/css/simplebar.css');
     appendCss('/css/common.css');
     appendScript('/js/axios.min.js');
     appendScript('/js/js.cookie.min.js', true);
+    appendScript('/js/simplebar.min.js');
     appendScript('/js/getApiUrl.js', true);
+    appendScript('/js/sidebar.js');
     appendScript('/js/getFileApiUrl.js', true);
     appendScript('/js/getEnv.js', true);
     appendScript('/js/colorTheme.js', true);
@@ -59,8 +92,5 @@ window.addEventListener('DOMContentLoaded', (e) => {
     }
     appendFontAwsome();
 
-    const header = document.getElementById('header')
-    loadCommonParts('/commonParts/header.html', header)
-    const footer = document.getElementById('footer')
-    loadCommonParts('/commonParts/footer.html', footer)
+    loadCommonDOM();
 })

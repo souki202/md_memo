@@ -27,15 +27,5 @@ new Vue({
                 // always executed
             })
         },
-        logout() {
-            axios.post(getApiUrl() + '/logout').then(res => {
-                console.log('success logout');
-            }).catch(err => {
-                console.log('failed to logout on server.');
-            }).then(() => {
-                Cookies.remove('session_token');
-                location.href = '/login.html';                
-            })
-        }
     }
 });

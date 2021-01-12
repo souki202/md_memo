@@ -1,0 +1,82 @@
+<div class="sidebar-container">
+    <input type="checkbox" name="switchSidebar" id="switchSidebar">
+    <div id="sidebar" data-simplebar>
+        <div class="sidebar-header-container sidebar-separator">
+            <h1>MD-Memo</h1>
+        </div>
+        
+        <div class="user-info-container sidebar-separator">
+            <div class="user-icon">
+                <svg version="1.1" id="_x31_0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" xml:space="preserve">
+                    <style type="text/css">
+                        .st0{fill:#374149;}
+                    </style>
+                    <g>
+                        <circle class="st0" cx="256" cy="111.709" r="111.709" style="fill: rgb(75, 75, 75);"></circle>
+                        <path class="st0" d="M295.586,260.656h-79.125c-73.637,0-133.867,60.227-133.867,133.863v116.965v0.36l0,0V512h346.813V394.519
+                            C429.406,320.883,369.176,260.656,295.586,260.656z" style="fill: rgb(75, 75, 75);"></path>
+                    </g>
+                </svg>                    
+            </div>
+            <div class="user-text-info">
+                <!-- <a href="/user.html" class="btn-link">
+                    {{ userViewName }}
+                </a> -->
+                <div class="user-name">
+                    {{ userViewName }}
+                </div>
+                <div class="user-group">
+                    {{ userGroupName }}
+                </div>
+            </div>
+        </div>
+
+        <div class="content-list">
+            <h2 class="content-header">Contents</h2>
+            <ul>
+                <li>
+                    <div class="content-icon"><i class="fas fa-home"></i></div>
+                    <div class="content-title">Home</div>
+                    <a class="no-decolarion-link" href="/home.html"></a>
+                </li>
+                <li>
+                    <div class="content-icon"><i class="fas fa-cogs"></i></div>
+                    <div class="content-title">設定</div>
+                    <a class="no-decolarion-link" href="/home.html"></a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="content-list site-info-list">
+            <div class="sidebar-separator"></div>
+            <ul>
+                <li>
+                    <div class="content-icon"><i class="fas fa-comment-alt"></i></div>
+                    <div class="content-title">フィードバック</div>
+                    <a class="no-decolarion-link" href="/feebback.html" target="blank"></a>
+                </li>
+                <li>
+                    <div class="content-icon"><i class="far fa-file-alt"></i></div>
+                    <div class="content-title">利用規約</div>
+                    <a class="no-decolarion-link" href="/terms_of_service.html" target="blank"></a>
+                </li>
+                <li>
+                    <div class="content-icon"><i class="fas fa-user-secret"></i></div>
+                    <div class="content-title">プライバシーポリシー</div>
+                    <a class="no-decolarion-link" href="/privacy_policy.html" target="blank"></a>
+                </li>
+                <li class="logout-link">
+                    <div class="content-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="content-title">ログアウト</div>
+                    <a class="no-decolarion-link" href="#" @click="logout"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="sidebar-switch-container">
+        <label for="switchSidebar" class="sidebar-switch-label">
+            <i class="fas fa-bars fa-2x sidebar-open-button"></i>
+            <i class="fas fa-times fa-2x sidebar-close-button"></i>
+        </label>
+    </div>
+</div>
