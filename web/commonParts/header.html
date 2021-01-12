@@ -2,11 +2,11 @@
     <div class="header-container">
         <div class="logo" v-if="!isLogin"></div>
         <div class="user-button-container" v-cloak v-if="isLogin">
-            <div class="user-button btn-light">
+            <!-- <div class="user-button btn-light">
                 <a href="/user.html" class="btn-link">
                     {{ userViewName }}
                 </a>
-            </div>
+            </div> -->
         </div>
         <div class="header-menu">
             <nav id="headerMenuNav">
@@ -14,7 +14,7 @@
                     <li class="login-button btn-dark" v-if="!isLogin"><a href="/login.html" class="btn-link">Log In</a></li>
                     <li class="signup-button btn-light" v-if="!isLogin"><a href="/signup.html" class="btn-link">Sign up</a></li>
                     <li class="home-button btn-dark" v-if="isLogin"><a href="/home.html" class="btn-link">Home</a></li>
-                    <li class="logout-button btn-light" v-if="isLogin"><a href="#" class="btn-link" @click="logout">Logout</a></li>
+                    <!-- <li class="logout-button btn-light" v-if="isLogin"><a href="#" class="btn-link" @click="logout">Logout</a></li> -->
                 </ul>
             </nav>
         </div>
