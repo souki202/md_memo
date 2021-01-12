@@ -150,7 +150,7 @@
                 </div>
                 
                 <!-- 各種メモの操作用ボタン -->
-                <div class="tool-tip">
+                <div class="tool-tip" v-if="!isSharedView || memo.share.type == 4">
                     <div class="tool-tip-icons">
                         <!-- 保存アイコン -->
                         <div class="tool-tip-icon-container save-icon" v-if="!isSharedView || memo.share.type == 4">
@@ -164,18 +164,19 @@
                             <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showShareDialog"></i>
                         </div> -->
                         <!-- 表示状態のスイッチ -->
-                        <div class="tool-tip-icon-container switch-view-icon">
+                        <div class="tool-tip-icon-container switch-view-icon" v-if="!isSharedView || memo.share.type == 4">
                             <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
                         </div>
                         <!-- ピン留め -->
-                        <div class="tool-tip-icon-container pinned-icon">
+                        <div class="tool-tip-icon-container pinned-icon" v-if="!isSharedView">
                             <i class="fas fa-thumbtack fa-2x tool-tip-icon" :class="[{'pinned-active': memo.pinnedType == 2}]" @click="switchPinned"></i>
                         </div>
                     </div>
                 </div>
-                <div class="errors alert alert-danger" v-if="errorMessage != ''">
-                    <p>{{ errorMessage }}</p>
-                </div>
+            </div>
+            
+            <div class="errors alert alert-danger" v-if="errorMessage != ''">
+                <p>{{ errorMessage }}</p>
             </div>
         </div>
     </main>

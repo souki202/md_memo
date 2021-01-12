@@ -194,6 +194,12 @@ new Vue({
                 return;
             }
 
+            // シェア画面で編集権限がないとき
+            if (this.isSharedView && this.memo.share.type != 4) {
+                console.log(memo);
+                return;
+            }
+
             this.errorMessage = '';
             if (this.memo.body.length > this.getMaxBodyLen()) {
                 this.errorMessage = 'メモの上限文字数は' + this.getMaxBodyLen() + '文字です'
