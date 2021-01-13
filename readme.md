@@ -26,7 +26,7 @@
 
 `sam local invoke "DeleteMemoFunction" -e events/post.json --config-env develop -n env/env.json`
 
-`sam local invoke "GetFileFunction" -e events/post.json --config-env develop -n env/env.json -t file_api_template.yaml --config-file file_api_samconfig.toml`
+`sam local invoke "GetFileFunction" -e events/post.json --config-env develop -n env/env.json -t file_api_template.yaml --config-file file_api_samconfig.toml -b .aws-sam-file-api/build`
 
 ### apiの開始
 
@@ -38,21 +38,38 @@
 
 ### dev
 
-`sam build --config-env develop --use-container -t file_api_template.yaml --config-file file_api_samconfig.toml`
+requiementsの追加があればwslに入って
 
-`sam deploy --config-env develop -t file_api_template.yaml --config-file file_api_samconfig.toml`
+```shell
+cd /mnt/d/Projects/md_memo/lambda/my_layer
+pip3 install -r requirements.txt -t ../my_layer_libs/python
+```
+
+`pip install --user --install-option="--install-purelib=D:\Projects\md_memo\lambda\my_layer" -r requirements.txt`
+
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-dev`
+
+`sam deploy --template-file template-output.yaml --stack-name md-memo-dev --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
 
 ### staging
 
-`sam build --config-env staging --use-container`
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-stg`
 
-`sam deploy --config-env staging`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-stg --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
 
 ### production
 
-`sam build --config-env production --use-container`
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-prod`
 
-`sam deploy --config-env production`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-prod --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
+
+#### prodデプロイ時チェック
+
+DynamoDBへの追加
+
+* テーブル追加
+* GSI追加, 変更
+  * 変更時は, 新しく作成してから消す
 
 ## その他
 

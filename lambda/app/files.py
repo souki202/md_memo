@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 import boto3
 import os
@@ -18,6 +20,8 @@ from model.memo import *
 from model.plan import *
 import service.s3 as my_s3
 import model.file as my_file
+
+MAX_UPLOAD_SIZE = 1024 * 1024 * 8 + 10000
 
 def upload_file_event(event, context):
     # 流石に長過ぎるのでコメントアウト
@@ -52,6 +56,9 @@ def create_upload_url_event(event, context):
 
     if not file_name or not file_size or file_size <= 0:
         return create_common_return_array(406, {'message': 'Insufficient input'})
+
+    if file_size >= MAX_UPLOAD_SIZE:
+        return create_common_return_array(403, {'message': 'The upper limit is 8MB'})
 
     key, url = my_s3.create_put_url_and_record(user_uuid, file_name, file_size)
     if not key or not url:

@@ -17,8 +17,8 @@ import model.file as my_file
 
 s3_resource = boto3.resource('s3')
 s3_client = boto3.client('s3', config=Config(signature_version='s3v4'))
-FILE_BUCKET_NAME = 'md-memo-storage' + os.environ['FileStrageBucketSuffix']
-strageBucket = s3_resource.Bucket(FILE_BUCKET_NAME)
+FILE_BUCKET_NAME = 'md-memo-storage' + os.environ['FileStorageBucketSuffix']
+storageBucket = s3_resource.Bucket(FILE_BUCKET_NAME)
 FILES_KEY = 'files'
 MEMOS_KEY = 'memos'
 
@@ -40,7 +40,7 @@ def put_image(user_uuid, file_name, base64body) -> str:
     key = user_uuid + '/' + FILES_KEY + '/' + new_file_name + ext
     
     try:
-        res = strageBucket.put_object(
+        res = storageBucket.put_object(
             Body = imageBody,
             Key = key
         )
