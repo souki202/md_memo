@@ -10,7 +10,7 @@ export default function () {
         break;
         case 'stg-md-memo.tori-blog.net':
             return 'stg'
-        case 'prod-md-memo.tori-blog.net':
+        case 'memo-ease.com':
             return 'prod';
         default:
             return 'prod';

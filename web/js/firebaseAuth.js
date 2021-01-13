@@ -1,4 +1,5 @@
 import getApiUrl from '/js/getApiUrl.js'
+import getEnv from '/js/getEnv.js'
 import '/js/js.cookie.min.js'
 
 function createSigninOptions() {
@@ -22,10 +23,32 @@ function createSigninOptions() {
                 // firebase.auth.TwitterAuthProvider.PROVIDER_ID,
                 firebase.auth.GithubAuthProvider.PROVIDER_ID
             ];
-        case 'md-memo.tori-blog.net':
+        case 'memo-ease.com':
             return [];
         default:
             return [];
+        break;
+    }
+}
+
+function getFireBaseConfig() {
+    switch (getEnv()) {
+        case 'dev':
+        case 'stg':
+            return {
+                apiKey: "AIzaSyD6MLkcX67e8PuP_ahhViaKxfpfKs_n1J0",
+                authDomain: "md-memo-dev.firebaseapp.com",
+                projectId: "md-memo-dev",
+                storageBucket: "md-memo-dev.appspot.com",
+                messagingSenderId: "1027966385551",
+                appId: "1:1027966385551:web:e14807689a8eea9e1c1ffa"
+            };
+        break;
+        case 'prod':
+        default:
+            return [
+
+            ];
         break;
     }
 }
@@ -41,14 +64,7 @@ new Vue({
     },
     mounted() {
         // Your web app's Firebase configuration
-        let firebaseConfig = {
-            apiKey: "AIzaSyD6MLkcX67e8PuP_ahhViaKxfpfKs_n1J0",
-            authDomain: "md-memo-dev.firebaseapp.com",
-            projectId: "md-memo-dev",
-            storageBucket: "md-memo-dev.appspot.com",
-            messagingSenderId: "1027966385551",
-            appId: "1:1027966385551:web:e14807689a8eea9e1c1ffa"
-        };
+        let firebaseConfig = getFireBaseConfig();
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 

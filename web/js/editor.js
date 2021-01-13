@@ -121,14 +121,7 @@ new Vue({
             }
 
             const domain = document.domain;
-            let baseUrl = '';
-            if (domain == 'dev-md-memo.tori-blog.net') {
-                baseUrl = 'https://dev-md-memo.tori-blog.net/';
-            }
-            else {
-                baseUrl = 'https://' + domain + '/';
-            }
-            return baseUrl + 'memo.html?share_id=' + this.memo.share.id;
+            return 'https://' + domain + '/' + 'memo.html?share_id=' + this.memo.share.id;
         },
     },
     mounted() {
@@ -263,10 +256,10 @@ new Vue({
                     r = /https:\/\/fileapi\.stg-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
                     break;
                 case 'prod':
-                    r = /https:\/\/fileapi\.prod-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+                    r = /https:\/\/fileapi\.memo-ease\.com\/get_file\/\?file_key=([\w_\-%]+)/g;
                     break;
                 default:
-                    r = /https:\/\/fileapi\.prod-md-memo\.tori-blog\.net\/get_file\/\?file_key=([\w_\-%]+)/g;
+                    r = /https:\/\/fileapi\.memo-ease\.com\/get_file\/\?file_key=([\w_\-%]+)/g;
                     break;
             }
             let m = null;
