@@ -83,7 +83,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       Description: Layer description
-      ContentUri: 'my_layer/'
+      ContentUri: 'my_layer_libs/'
       CompatibleRuntimes:
         - python3.8
     Metadata:

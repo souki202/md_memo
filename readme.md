@@ -38,23 +38,38 @@
 
 ### dev
 
-`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo`
+requiementsの追加があればwslに入って
+
+```shell
+cd /mnt/d/Projects/md_memo/lambda/my_layer
+pip3 install -r requirements.txt -t ../my_layer_libs/python
+```
+
+`pip install --user --install-option="--install-purelib=D:\Projects\md_memo\lambda\my_layer" -r requirements.txt`
+
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-dev`
 
 `sam deploy --template-file template-output.yaml --stack-name md-memo-dev --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
 
-`sam build --template-file template-output.yaml --parameter-overrides Env=dev`
-
 ### staging
 
-`sam build --config-env staging --use-container`
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-stg`
 
-`sam deploy --config-env staging`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-stg --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
 
 ### production
 
-`sam build --config-env production --use-container`
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-prod`
 
-`sam deploy --config-env production`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-prod --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
+
+#### prodデプロイ時チェック
+
+DynamoDBへの追加
+
+* テーブル追加
+* GSI追加, 変更
+  * 変更時は, 新しく作成してから消す
 
 ## その他
 
