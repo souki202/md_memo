@@ -81,7 +81,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       Description: Layer description
-      ContentUri: s3://aws-sam-nested-application-packages-md-memo/3980b51b6370104ae94c4be437635f4e
+      ContentUri: s3://aws-sam-nested-application-packages-md-memo-stg/3980b51b6370104ae94c4be437635f4e
       CompatibleRuntimes:
       - python3.8
     Metadata:
@@ -89,7 +89,7 @@ Resources:
   MyApi1:
     Type: AWS::Serverless::Application
     Properties:
-      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo/04e38303c751d80d1645c515445c79cc.template
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-stg/b765b628aeb1171144f38ce6afb5edaf.template
       Parameters:
         FileApiCustomDomain:
           Fn::FindInMap:
@@ -161,7 +161,7 @@ Resources:
   MyApi2:
     Type: AWS::Serverless::Application
     Properties:
-      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo/9ed423688c482ab32c1c1ace087e1484.template
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-stg/b8d674c131029cfcdf007be305dd9c9e.template
       Parameters:
         FileApiCustomDomain:
           Fn::FindInMap:
