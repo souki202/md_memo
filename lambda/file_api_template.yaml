@@ -34,6 +34,8 @@ Parameters:
     Type: String
   FileAPIName:
     Type: String
+  Route53HostZone:
+    Type: String
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -67,7 +69,7 @@ Resources:
         DomainName: !Ref FileApiCustomDomain
         CertificateArn: !Ref CertificateArn
         Route53:
-          HostedZoneId: Z2JCR6TK8NIB6U
+          HostedZoneId: !Ref Route53HostZone
         SecurityPolicy: TLS_1_2
       Name: !Ref FileAPIName
       StageName: !Ref ApiStageName

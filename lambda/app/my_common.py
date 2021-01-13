@@ -7,7 +7,7 @@ from cgi import FieldStorage
 
 def get_api_url():
     if os.environ['EnvName'] == 'Prod':
-        return 'https://api.md-memo.tori-blog.net'
+        return 'https://api.memo-ease.com'
     elif os.environ['EnvName'] == 'Stg':
         return 'https://api.stg-md-memo.tori-blog.net'
     elif os.environ['EnvName'] == 'Dev':
@@ -17,7 +17,7 @@ def get_api_url():
 
 def get_page_url():
     if os.environ['EnvName'] == 'Prod':
-        return 'https://md-memo.tori-blog.net'
+        return 'https://memo-ease.com'
     elif os.environ['EnvName'] == 'Stg':
         return 'https://stg-md-memo.tori-blog.net'
     elif os.environ['EnvName'] == 'Dev':
@@ -27,7 +27,7 @@ def get_page_url():
 
 def get_domain():
     if os.environ['EnvName'] == 'Prod':
-        return 'tori-blog.net'
+        return 'memo-ease.com'
     elif os.environ['EnvName'] == 'Stg':
         return 'tori-blog.net'
     elif os.environ['EnvName'] == 'Dev':
