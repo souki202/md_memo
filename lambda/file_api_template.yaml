@@ -36,6 +36,8 @@ Parameters:
     Type: String
   Route53HostZone:
     Type: String
+  RoleArn:
+    Type: String
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -78,7 +80,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: files.get_file_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api

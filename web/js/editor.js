@@ -3,6 +3,7 @@ import getFileApiUrl from '/js/getFileApiUrl.js'
 import getTheme from '/js/colorTheme.js';
 import getEnv from '/js/getEnv.js';
 import urlParameter from '/js/urlParameter.js';
+import autoComplete from '/js/autoComplete.js';
 import '/codemirror/lib/codemirror.js';
 import '/js/js.cookie.min.js';
 import '/js/uuidv4.min.js';
@@ -91,6 +92,9 @@ new Vue({
                     users: '',
                 },
             },
+            setTags: [],
+            allTags: [],
+            tagAutoComplete: null,
 
             viewModes: new ViewModes(ViewModes.ModeList.Normal),
             updatePreviewTimeout: null,
@@ -125,6 +129,8 @@ new Vue({
         },
     },
     mounted() {
+        this.tagAutoComplete = new autoComplete('tagInputArea', 'tagRecommendation');
+
         // まずテーマ取得
         this.theme = getTheme();
 
@@ -177,6 +183,9 @@ new Vue({
                 return hljs.highlightAuto(code, [lang]).value
             }
         });
+
+        // tagを取得
+        this.getAllTags();
     },
     methods: {
         /**
@@ -270,6 +279,20 @@ new Vue({
             
             console.log(a);
             return a;
+        },
+
+        getAllTags() {
+            axios.get(getApiUrl() + '/get_tags').then(res => {
+                console.log(res.data);
+                this.tagAutoComplete.setList([
+                    
+                ]);
+
+            }).catch(err => {
+                console.log(err);
+                this.errorMessage = 'Failed to get tags.';
+            }).then(() => {
+            });
         },
 
         setMemoData(memo) {

@@ -14,16 +14,19 @@ Parameters:
     - dev
     - local
     Default: local
+  RoleArn:
+    Type: String
+    Default: arn:aws:iam::913905735063:role/MdMemoLambdaRole
 Mappings:
   EnvMap:
     prod:
-      FileApiCustomDomain: fileapi.md-memo.tori-blog.net
-      ApiCustomDomain: api.md-memo.tori-blog.net
-      StaticPageDomain: md-memo.tori-blog.net
+      FileApiCustomDomain: fileapi.memo-ease.com
+      ApiCustomDomain: api.memo-ease.com
+      StaticPageDomain: memo-ease.com
       StaticPageBucket: md-memo-staticpage-prod
       CertificateArn: arn:aws:acm:ap-northeast-1:913905735063:certificate/8758016f-7700-4566-b6bb-53ffdbf6c503
       ApiStageName: Prod
-      AllowOrigin: '''https://md-memo.tori-blog.net'''
+      AllowOrigin: '''https://memo-ease.com'''
       WhiteIpAddressFrom: '0.0.0.0'
       WhiteIpAddressTo: 255.255.255.255
       APIName: MD Memo API Production
@@ -31,6 +34,7 @@ Mappings:
       DbSuffix: _prod
       LambdaMemorySize: 1024
       FileStorageBucketSuffix: -prod
+      Route53HostZone: Z08559892LNONYYLAEN9Q
     stg:
       FileApiCustomDomain: fileapi.stg-md-memo.tori-blog.net
       ApiCustomDomain: api.stg-md-memo.tori-blog.net
@@ -46,6 +50,7 @@ Mappings:
       DbSuffix: _stg
       LambdaMemorySize: 512
       FileStorageBucketSuffix: -stg
+      Route53HostZone: Z2JCR6TK8NIB6U
     dev:
       FileApiCustomDomain: fileapi.dev-md-memo.tori-blog.net
       ApiCustomDomain: api.dev-md-memo.tori-blog.net
@@ -61,6 +66,7 @@ Mappings:
       DbSuffix: _dev
       LambdaMemorySize: 512
       FileStorageBucketSuffix: -dev
+      Route53HostZone: Z2JCR6TK8NIB6U
     local:
       FileApiCustomDomain: localfileapi.dev-md-memo.tori-blog.net
       ApiCustomDomain: localapi.dev-md-memo.tori-blog.net
@@ -76,12 +82,13 @@ Mappings:
       DbSuffix: _dev
       LambdaMemorySize: 512
       FileStorageBucketSuffix: -dev
+      Route53HostZone: Z2JCR6TK8NIB6U
 Resources:
   MyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       Description: Layer description
-      ContentUri: s3://aws-sam-nested-application-packages-md-memo-stg/3980b51b6370104ae94c4be437635f4e
+      ContentUri: s3://aws-sam-nested-application-packages-md-memo-dev/3980b51b6370104ae94c4be437635f4e
       CompatibleRuntimes:
       - python3.8
     Metadata:
@@ -89,7 +96,7 @@ Resources:
   MyApi1:
     Type: AWS::Serverless::Application
     Properties:
-      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-stg/b765b628aeb1171144f38ce6afb5edaf.template
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-dev/8cfc24e3715df90580d2151f2b083a8d.template
       Parameters:
         FileApiCustomDomain:
           Fn::FindInMap:
@@ -158,10 +165,17 @@ Resources:
           - EnvMap
           - Ref: Env
           - APIName
+        Route53HostZone:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - Route53HostZone
+        RoleArn:
+          Ref: RoleArn
   MyApi2:
     Type: AWS::Serverless::Application
     Properties:
-      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-stg/b8d674c131029cfcdf007be305dd9c9e.template
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-dev/9aff385cb1e71aa5ef3b9f9dce05b5b8.template
       Parameters:
         FileApiCustomDomain:
           Fn::FindInMap:
@@ -230,3 +244,10 @@ Resources:
           - EnvMap
           - Ref: Env
           - FileAPIName
+        Route53HostZone:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - Route53HostZone
+        RoleArn:
+          Ref: RoleArn

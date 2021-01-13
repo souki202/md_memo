@@ -2,6 +2,9 @@
     --base-bg-color: #fff;
     --base-text-color: #222;
 
+    --assort-bg-color: #fafbfc;
+    --assort-text-color: #333;
+
     --sidebar-bg-color: #161b22;
     --sidebar-text-color: #eee;
     --sidebar-separator-color: #888;
@@ -13,9 +16,6 @@
 
     --footer-bg-color: #161b22;
     --footer-text-color: #eee;
-
-    --assort-bg-color: #fafbfc;
-    --assort-text-color: #333;
 
     --table-header-bg: #e8e9ea;
 

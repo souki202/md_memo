@@ -14,6 +14,9 @@ Parameters:
       - dev
       - local
     Default: local
+  RoleArn:
+    Type: String
+    Default: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
 
 Mappings:
   EnvMap:
@@ -113,6 +116,7 @@ Resources:
         MyLayer: !Ref MyLayer
         APIName: !FindInMap [EnvMap, !Ref Env, APIName]
         Route53HostZone: !FindInMap [EnvMap, !Ref Env, Route53HostZone]
+        RoleArn: !Ref RoleArn
   
   MyApi2:
     Type: AWS::Serverless::Application
@@ -134,3 +138,4 @@ Resources:
         MyLayer: !Ref MyLayer
         FileAPIName: !FindInMap [EnvMap, !Ref Env, FileAPIName]
         Route53HostZone: !FindInMap [EnvMap, !Ref Env, Route53HostZone]
+        RoleArn: !Ref RoleArn

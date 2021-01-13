@@ -134,6 +134,23 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="tags-container">
+                            <div class="tag-list">
+                                <div v-for="tag in setTags" class="related-tag">
+                                    <p>{{ tag.name }}</p>
+                                    <div class="close-button">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                </div>
+                                <div class="tag-input-area">
+                                    <input type="text" name="tagInputArea" id="tagInputArea">
+                                    <div class="add-button">
+                                        <i class="far fa-plus-square"></i>
+                                    </div>
+                                    <div class="tag-recommendation" id="tagRecommendation"></div>
+                                </div>
+                            </div>
+                        </div>
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
@@ -221,6 +238,7 @@
 
             appendScript('/js/marked.min.js');
             appendScript('/js/auth.js', true);
+            appendScript('/js/autoComplete.js', true);
             appendScript('/js/memoHelper.js', true);
             appendScript('/js/editor.js', true);
             appendCss('/css/memo.css');

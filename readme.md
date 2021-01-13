@@ -20,6 +20,8 @@
 
 テーブル作成
 
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\tags.json"`
+
 `aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\table.json"`
 
 ### lambdaのテスト
@@ -44,8 +46,6 @@ requiementsの追加があればwslに入って
 cd /mnt/d/Projects/md_memo/lambda/my_layer
 pip3 install -r requirements.txt -t ../my_layer_libs/python
 ```
-
-`pip install --user --install-option="--install-purelib=D:\Projects\md_memo\lambda\my_layer" -r requirements.txt`
 
 `sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-dev`
 
