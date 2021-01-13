@@ -55,13 +55,13 @@ pip3 install -r requirements.txt -t ../my_layer_libs/python
 
 `sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-stg`
 
-`sam deploy --template-file template-output.yaml --stack-name md-memo-stg --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-stg --parameter-overrides Env=stg --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
 
 ### production
 
 `sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-prod`
 
-`sam deploy --template-file template-output.yaml --stack-name md-memo-prod --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-prod --parameter-overrides Env=prod --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
 
 #### prodデプロイ時チェック
 
