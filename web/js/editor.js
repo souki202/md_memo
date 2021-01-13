@@ -123,7 +123,7 @@ new Vue({
             const domain = document.domain;
             let baseUrl = '';
             if (domain == 'dev-md-memo.tori-blog.net') {
-                baseUrl = 'http://dev-md-memo.tori-blog.net/';
+                baseUrl = 'https://dev-md-memo.tori-blog.net/';
             }
             else {
                 baseUrl = 'https://' + domain + '/';
