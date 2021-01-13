@@ -1,3 +1,4 @@
 lambda/.aws-sam
+lambda/.aws-sam-file-api
 lambda/events
 lambda/app/credentials

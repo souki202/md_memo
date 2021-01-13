@@ -1,0 +1,232 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'sam-app
+
+  Sample SAM Template for sam-app
+
+  '
+Parameters:
+  Env:
+    Type: String
+    AllowedValues:
+    - prod
+    - stg
+    - dev
+    - local
+    Default: local
+Mappings:
+  EnvMap:
+    prod:
+      FileApiCustomDomain: fileapi.md-memo.tori-blog.net
+      ApiCustomDomain: api.md-memo.tori-blog.net
+      StaticPageDomain: md-memo.tori-blog.net
+      StaticPageBucket: md-memo-staticpage-prod
+      CertificateArn: arn:aws:acm:ap-northeast-1:913905735063:certificate/8758016f-7700-4566-b6bb-53ffdbf6c503
+      ApiStageName: Prod
+      AllowOrigin: '''https://md-memo.tori-blog.net'''
+      WhiteIpAddressFrom: '0.0.0.0'
+      WhiteIpAddressTo: 255.255.255.255
+      APIName: MD Memo API Production
+      FileAPIName: MD Memo File API Production
+      DbSuffix: _prod
+      LambdaMemorySize: 1024
+      FileStorageBucketSuffix: -prod
+    stg:
+      FileApiCustomDomain: fileapi.stg-md-memo.tori-blog.net
+      ApiCustomDomain: api.stg-md-memo.tori-blog.net
+      StaticPageDomain: '''stg-md-memo.tori-blog.net'''
+      StaticPageBucket: md-memo-staticpage-stg
+      CertificateArn: arn:aws:acm:ap-northeast-1:913905735063:certificate/0b1dc21b-3546-491d-8802-4d22af2e66a2
+      ApiStageName: Stg
+      AllowOrigin: '''https://stg-md-memo.tori-blog.net'''
+      WhiteIpAddressFrom: 14.10.121.32
+      WhiteIpAddressTo: 14.10.121.32
+      APIName: MD Memo API staging
+      FileAPIName: MD Memo File API staging
+      DbSuffix: _stg
+      LambdaMemorySize: 512
+      FileStorageBucketSuffix: -stg
+    dev:
+      FileApiCustomDomain: fileapi.dev-md-memo.tori-blog.net
+      ApiCustomDomain: api.dev-md-memo.tori-blog.net
+      StaticPageDomain: '''dev-md-memo.tori-blog.net'''
+      StaticPageBucket: md-memo-staticpage-dev
+      CertificateArn: arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04
+      ApiStageName: Dev
+      AllowOrigin: '''https://dev-md-memo.tori-blog.net'''
+      WhiteIpAddressFrom: 14.10.121.32
+      WhiteIpAddressTo: 14.10.121.32
+      APIName: MD Memo API develop
+      FileAPIName: MD Memo File API develop
+      DbSuffix: _dev
+      LambdaMemorySize: 512
+      FileStorageBucketSuffix: -dev
+    local:
+      FileApiCustomDomain: localfileapi.dev-md-memo.tori-blog.net
+      ApiCustomDomain: localapi.dev-md-memo.tori-blog.net
+      StaticPageDomain: '''dev-md-memo.tori-blog.net'''
+      StaticPageBucket: md-memo-staticpage-dev
+      CertificateArn: arn:aws:acm:ap-northeast-1:913905735063:certificate/28036895-d230-4d61-9103-ac98781d8a04
+      ApiStageName: Local
+      AllowOrigin: '''https://dev-md-memo.tori-blog.net'''
+      WhiteIpAddressFrom: '0.0.0.0'
+      WhiteIpAddressTo: 255.255.255.255
+      APIName: MD Memo API develop
+      FileAPIName: MD Memo File API develop
+      DbSuffix: _dev
+      LambdaMemorySize: 512
+      FileStorageBucketSuffix: -dev
+Resources:
+  MyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Layer description
+      ContentUri: s3://aws-sam-nested-application-packages-md-memo/a7b6446c5bcb9d0e8736ecdfe2e75e8b
+      CompatibleRuntimes:
+      - python3.8
+    Metadata:
+      BuildMethod: python3.8
+  MyApi1:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo/e7f3710ef6e253bc53f2144f2bc3290f.template
+      Parameters:
+        FileApiCustomDomain:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - FileApiCustomDomain
+        ApiCustomDomain:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - ApiCustomDomain
+        StaticPageDomain:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - StaticPageDomain
+        StaticPageBucket:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - StaticPageBucket
+        CertificateArn:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - CertificateArn
+        ApiStageName:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - ApiStageName
+        AllowOrigin:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - AllowOrigin
+        WhiteIpAddressFrom:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - WhiteIpAddressFrom
+        WhiteIpAddressTo:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - WhiteIpAddressTo
+        DbSuffix:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - DbSuffix
+        LambdaMemorySize:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - LambdaMemorySize
+        FileStorageBucketSuffix:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - FileStorageBucketSuffix
+        MyLayer:
+          Ref: MyLayer
+        APIName:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - APIName
+  MyApi2:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo/c27941ffff6087341038925a611c89c4.template
+      Parameters:
+        FileApiCustomDomain:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - FileApiCustomDomain
+        ApiCustomDomain:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - ApiCustomDomain
+        StaticPageDomain:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - StaticPageDomain
+        StaticPageBucket:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - StaticPageBucket
+        CertificateArn:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - CertificateArn
+        ApiStageName:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - ApiStageName
+        AllowOrigin:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - AllowOrigin
+        WhiteIpAddressFrom:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - WhiteIpAddressFrom
+        WhiteIpAddressTo:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - WhiteIpAddressTo
+        DbSuffix:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - DbSuffix
+        LambdaMemorySize:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - LambdaMemorySize
+        FileStorageBucketSuffix:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - FileStorageBucketSuffix
+        MyLayer:
+          Ref: MyLayer
+        FileAPIName:
+          Fn::FindInMap:
+          - EnvMap
+          - Ref: Env
+          - FileAPIName

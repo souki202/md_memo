@@ -18,6 +18,7 @@ Parameters:
 Mappings:
   EnvMap:
     prod:
+      FileApiCustomDomain: 'fileapi.md-memo.tori-blog.net'
       ApiCustomDomain: 'api.md-memo.tori-blog.net'
       StaticPageDomain: 'md-memo.tori-blog.net'
       StaticPageBucket: 'md-memo-staticpage-prod'
@@ -27,10 +28,12 @@ Mappings:
       WhiteIpAddressFrom: '0.0.0.0'
       WhiteIpAddressTo: '255.255.255.255'
       APIName: 'MD Memo API Production'
+      FileAPIName: 'MD Memo File API Production'
       DbSuffix: '_prod'
       LambdaMemorySize: 1024
-      FileStrageBucketSuffix: '-prod'
+      FileStorageBucketSuffix: '-prod'
     stg:
+      FileApiCustomDomain: 'fileapi.stg-md-memo.tori-blog.net'
       ApiCustomDomain: 'api.stg-md-memo.tori-blog.net'
       StaticPageDomain: "'stg-md-memo.tori-blog.net'"
       StaticPageBucket: 'md-memo-staticpage-stg'
@@ -40,10 +43,12 @@ Mappings:
       WhiteIpAddressFrom: '14.10.121.32'
       WhiteIpAddressTo: '14.10.121.32'
       APIName: 'MD Memo API staging'
+      FileAPIName: 'MD Memo File API staging'
       DbSuffix: '_stg'
       LambdaMemorySize: 512
-      FileStrageBucketSuffix: '-stg'
+      FileStorageBucketSuffix: '-stg'
     dev:
+      FileApiCustomDomain: 'fileapi.dev-md-memo.tori-blog.net'
       ApiCustomDomain: 'api.dev-md-memo.tori-blog.net'
       StaticPageDomain: "'dev-md-memo.tori-blog.net'"
       StaticPageBucket: 'md-memo-staticpage-dev'
@@ -53,10 +58,12 @@ Mappings:
       WhiteIpAddressFrom: '14.10.121.32'
       WhiteIpAddressTo: '14.10.121.32'
       APIName: 'MD Memo API develop'
+      FileAPIName: 'MD Memo File API develop'
       DbSuffix: '_dev'
       LambdaMemorySize: 512
-      FileStrageBucketSuffix: '-dev'
+      FileStorageBucketSuffix: '-dev'
     local:
+      FileApiCustomDomain: 'localfileapi.dev-md-memo.tori-blog.net'
       ApiCustomDomain: 'localapi.dev-md-memo.tori-blog.net'
       StaticPageDomain: "'dev-md-memo.tori-blog.net'"
       StaticPageBucket: 'md-memo-staticpage-dev'
@@ -66,67 +73,12 @@ Mappings:
       WhiteIpAddressFrom: '0.0.0.0'
       WhiteIpAddressTo: '255.255.255.255'
       APIName: 'MD Memo API develop'
+      FileAPIName: 'MD Memo File API develop'
       DbSuffix: '_dev'
       LambdaMemorySize: 512
-      FileStrageBucketSuffix: '-dev'
-
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    CodeUri: app/
-    Environment:
-      Variables:
-        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
-        DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
-        FileStrageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStrageBucketSuffix]
-        EnvName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
-    MemorySize: !FindInMap [EnvMap, !Ref Env, LambdaMemorySize]
-    Layers:
-      - !Ref MyLayer
-    Runtime: python3.8
-    Timeout: 5
-
+      FileStorageBucketSuffix: '-dev'
 
 Resources:
-  RestApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      # Auth:
-      #   ResourcePolicy:
-      #     IpRangeWhitelist:
-      #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
-      #       - !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
-      # 実質的には, 画像以外は全てLargeFileUploadにするので使用しないはず
-      BinaryMediaTypes:
-        - "multipart/form-data"
-        - "image/*"
-        - "video/*"
-        - "audio/*"
-        - "model/*"
-        - "font/*"
-        - "application/octet-stream"
-        - "application/zip"
-        - "application/pdf"
-        - "application/ms*"
-        - "application/java*"
-        - "application/vnd.*"
-        - "application/rtf"
-        - "application/x-7z-compressed"
-      EndpointConfiguration: REGIONAL
-      Cors:
-        AllowCredentials: true
-        AllowHeaders: "'Origin, Authorization, Accept, Content-Type'"
-        AllowMethods: "'GET, PUT, POST, OPTIONS'"
-        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
-      Domain:
-        DomainName: !FindInMap [EnvMap, !Ref Env, ApiCustomDomain]
-        CertificateArn: !FindInMap [EnvMap, !Ref Env, CertificateArn]
-        Route53:
-          HostedZoneId: Z2JCR6TK8NIB6U
-        SecurityPolicy: TLS_1_2
-      Name: !FindInMap [EnvMap, !Ref Env, APIName]
-      StageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
-
   MyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -137,328 +89,42 @@ Resources:
     Metadata:
       BuildMethod: python3.8
 
-  PostTestFunction:
-    Type: AWS::Serverless::Function
+  MyApi1:
+    Type: AWS::Serverless::Application
     Properties:
-      Handler: test.post_test
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /post_test
-            Method: post
-
-  GetTestFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: test.get_test
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /get_test
-            Method: post
-
-  LoginFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.login
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /login
-            Method: post
+      Location: ./api_template.yaml
+      Parameters:
+        FileApiCustomDomain: !FindInMap [EnvMap, !Ref Env, FileApiCustomDomain]
+        ApiCustomDomain: !FindInMap [EnvMap, !Ref Env, ApiCustomDomain]
+        StaticPageDomain: !FindInMap [EnvMap, !Ref Env, StaticPageDomain]
+        StaticPageBucket: !FindInMap [EnvMap, !Ref Env, StaticPageBucket]
+        CertificateArn: !FindInMap [EnvMap, !Ref Env, CertificateArn]
+        ApiStageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
+        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
+        WhiteIpAddressFrom: !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
+        WhiteIpAddressTo: !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
+        DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
+        LambdaMemorySize: !FindInMap [EnvMap, !Ref Env, LambdaMemorySize]
+        FileStorageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStorageBucketSuffix]
+        MyLayer: !Ref MyLayer
+        APIName: !FindInMap [EnvMap, !Ref Env, APIName]
   
-  SignupFunction:
-    Type: AWS::Serverless::Function
+  MyApi2:
+    Type: AWS::Serverless::Application
     Properties:
-      Handler: auth.signup
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /signup
-            Method: post
-  
-  SnsLoginFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.sns_login
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /sns_login
-            Method: post
-  
-  WithdrawalFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: user.withdrawal_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /withdrawal
-            Method: post
-  
-  RegistCompleteFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.regist_complete
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /regist_complete
-            Method: post
-  
-  LogoutFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.logout
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /logout
-            Method: post
-  
-  CheckTokenFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.check_token
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /check_token
-            Method: post
-  
-  GetUserDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: user.get_user_data_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /get_user_data
-            Method: get
-  
-  UpdateUserDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: user.update_user_data_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /update_user_data
-            Method: post
-  
-  ResetPasswordPrepareFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.reset_password_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /reset_password
-            Method: post
-
-  ExecuteResetPasswordFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: auth.execute_reset_password_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /execute_reset_password
-            Method: post
-
-  GetMemoListFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.get_memo_list_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /get_memo_list
-            Method: get
-
-  GetPinnedMemoListFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.get_pinned_memo_list_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /get_pinned_memo_list
-            Method: get
-  
-  GetMemoDataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.get_memo_data_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /get_memo_data
-            Method: get
-  
-  GetMemoDataByShareIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.get_memo_data_by_share_id
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /get_memo_data_by_share_id
-            Method: get
-  
-  SaveMemoFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.save_memo_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /save_memo
-            Method: post
-  
-  DeleteMemoFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.delete_memo
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /delete_memo
-            Method: post
-
-  UpdateShareSettingsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.update_share_settings_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /update_share_settings
-            Method: post
-
-  SwitchPinnedFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: memo.switch_pinned_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /switch_pinned
-            Method: post
-
-  UploadFileFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: files.upload_file_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /upload_file
-            Method: post
-
-  CreateUploadUrlFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: files.create_upload_url_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /create_upload_url
-            Method: post
-
-  UploadLargeFileFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: files.upload_large_file_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
-      Events:
-        DefaultEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref RestApi
-            Path: /upload_large_file
-            Method: post
-
-Outputs:
-  LayerArn:
-    Value: !Ref MyLayer
-    Export:
-      Name: !Sub '${AWS::StackName}-MyLayer'
-# Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  # HelloWorldApi:
-  #   Description: "API Gateway endpoint URL for Stg stage for Hello World function"
-  #   Value: !Sub "https://${ApiCustomDomain}/Stage/hello/"
-
+      Location: ./file_api_template.yaml
+      Parameters:
+        FileApiCustomDomain: !FindInMap [EnvMap, !Ref Env, FileApiCustomDomain]
+        ApiCustomDomain: !FindInMap [EnvMap, !Ref Env, ApiCustomDomain]
+        StaticPageDomain: !FindInMap [EnvMap, !Ref Env, StaticPageDomain]
+        StaticPageBucket: !FindInMap [EnvMap, !Ref Env, StaticPageBucket]
+        CertificateArn: !FindInMap [EnvMap, !Ref Env, CertificateArn]
+        ApiStageName: !FindInMap [EnvMap, !Ref Env, ApiStageName]
+        AllowOrigin: !FindInMap [EnvMap, !Ref Env, AllowOrigin]
+        WhiteIpAddressFrom: !FindInMap [EnvMap, !Ref Env, WhiteIpAddressFrom]
+        WhiteIpAddressTo: !FindInMap [EnvMap, !Ref Env, WhiteIpAddressTo]
+        DbSuffix: !FindInMap [EnvMap, !Ref Env, DbSuffix]
+        LambdaMemorySize: !FindInMap [EnvMap, !Ref Env, LambdaMemorySize]
+        FileStorageBucketSuffix: !FindInMap [EnvMap, !Ref Env, FileStorageBucketSuffix]
+        MyLayer: !Ref MyLayer
+        FileAPIName: !FindInMap [EnvMap, !Ref Env, FileAPIName]

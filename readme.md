@@ -26,7 +26,7 @@
 
 `sam local invoke "DeleteMemoFunction" -e events/post.json --config-env develop -n env/env.json`
 
-`sam local invoke "GetFileFunction" -e events/post.json --config-env develop -n env/env.json -t file_api_template.yaml --config-file file_api_samconfig.toml`
+`sam local invoke "GetFileFunction" -e events/post.json --config-env develop -n env/env.json -t file_api_template.yaml --config-file file_api_samconfig.toml -b .aws-sam-file-api/build`
 
 ### apiの開始
 
@@ -38,9 +38,11 @@
 
 ### dev
 
-`sam build --config-env develop --use-container -t file_api_template.yaml --config-file file_api_samconfig.toml`
+`sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo`
 
-`sam deploy --config-env develop -t file_api_template.yaml --config-file file_api_samconfig.toml`
+`sam deploy --template-file template-output.yaml --stack-name md-memo-dev --parameter-overrides Env=dev --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND`
+
+`sam build --template-file template-output.yaml --parameter-overrides Env=dev`
 
 ### staging
 
