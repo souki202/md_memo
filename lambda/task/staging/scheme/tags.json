@@ -13,7 +13,7 @@
             "AttributeType": "S"
         }
     ],
-    "TableName": "md_memo_tags_dev",
+    "TableName": "md_memo_tags_stg",
     "KeySchema": [
         {
             "AttributeName": "uuid",

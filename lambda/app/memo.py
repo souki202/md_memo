@@ -158,7 +158,7 @@ def save_memo_event(event, context):
 
     # 文字数上限チェック
     if len(body) > get_memo_body_max_len(user_data['plan']):
-        return create_common_return_array(401, {'message': 'The body length is up to ' + str(get_memo_body_max_len(user_data['plan'])) + ' characters.'})
+        return create_common_return_array(401, {'message': 'The body length is up to ' + str(get_memo_body_max_len(user_data['plan'])) + ' characters.', 'is_limit_length': True})
 
 
     # 更新時はメモの編集権限があるかチェック

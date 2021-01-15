@@ -425,6 +425,30 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /get_tags
             Method: get
+        GetUuidEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_tag_id
+            Method: post # hide input parameters
+        GetRelationTagsEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_relation_tags
+            Method: get
+        SetTagRelationEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /set_tag_relation
+            Method: post
+        DeleteTagRelationEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /delete_tag_relation
+            Method: post
           
 # Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

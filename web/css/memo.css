@@ -120,6 +120,7 @@ body {
 /* タグ編集領域 */
 .tags-container {
     padding: 0.5rem;
+    z-index: 1000;
 }
 
 .tag-list {
@@ -184,12 +185,21 @@ body {
 }
 
 #tagRecommendation {
-    padding: 0 0.5rem;
+    box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.5);
 }
 
 #tagRecommendation p {
     margin: 0;
-    padding: 0 0.25rem;
+}
+
+.recommend-item-container {
+    cursor: pointer;
+    padding: 0 0.5rem;
+    width: 100%;
+}
+
+.recommend-item-container:hover, .recommend-item-container.selected {
+    background-color: var(--assort-hover-bg-color);
 }
 
 /* ソースモード時の表示 */

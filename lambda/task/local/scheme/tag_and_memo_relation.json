@@ -1,0 +1,60 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "tag_uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "memo_uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "memo_created_at",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_tag_and_memo_relation_dev",
+    "KeySchema": [
+        {
+            "AttributeName": "tag_uuid",
+            "KeyType": "HASH"
+        },
+        {
+            "AttributeName": "memo_uuid",
+            "KeyType": "RANGE"
+        }
+    ],
+    "LocalSecondaryIndexes": [
+        {
+            "IndexName": "tag_uuid-memo_created_at-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "tag_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "memo_created_at",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "memo_uuid-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "memo_uuid",
+                    "KeyType": "HASH"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}

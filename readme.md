@@ -20,9 +20,9 @@
 
 テーブル作成
 
-`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\tags.json"`
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\overviews.json"`
 
-`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\table.json"`
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\overviews.json"`
 
 ### lambdaのテスト
 
@@ -88,3 +88,8 @@ DynamoDBへの追加
 ### cookie
 
 <https://pizzamanz.net/web/javascript/js-cookie/>
+
+### vue
+
+* vue-multiselect
+  * https://vue-multiselect.js.org

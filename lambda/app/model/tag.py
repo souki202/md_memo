@@ -17,7 +17,9 @@ db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 
 TAG_TABLE_NAME = 'md_memo_tags' + os.environ['DbSuffix']
+TAG_RELATION_TABLE_NAME = 'md_memo_tag_and_memo_relation' + os.environ['DbSuffix']
 tags_table = db_resource.Table(TAG_TABLE_NAME)
+tag_relation_table = db_resource.Table(TAG_RELATION_TABLE_NAME)
 
 '''
 タグを作成
@@ -69,18 +71,18 @@ def get_all_tags(user_uuid):
         while True:
             if exclusive_start_key is None:
                 res = tags_table.query(
-                        IndexName='user_uuid-index',
+                        IndexName='user_uuid-name-index',
                         KeyConditionExpression=Key('user_uuid').eq(user_uuid)
                     )
             else:
                 res = tags_table.query(
-                        IndexName='user_uuid-index',
+                        IndexName='user_uuid-name-index',
                         KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                         ExclusiveStartKey=exclusive_start_key
                     )
-            items.extend(response['Items'])
-            if ("LastEvaluatedKey" in response) == True:
-                ExclusiveStartKey = response["LastEvaluatedKey"]
+            items.extend(res['Items'])
+            if ("LastEvaluatedKey" in res) == True:
+                ExclusiveStartKey = res["LastEvaluatedKey"]
             else:
                 break
         if len(items) == 0:
@@ -107,7 +109,7 @@ def get_tag(tag_uuid: str):
 def get_tags_count(user_uuid: str):
     try:
         res = tags_table.query(
-            IndexName='user_uuid-index',
+            IndexName='user_uuid-name-index',
             KeyConditionExpression=Key('user_uuid').eq(user_uuid),
             Select='COUNT'
         )
@@ -118,3 +120,60 @@ def get_tags_count(user_uuid: str):
         print(e)
         return None
     return None
+
+def get_tag_id(user_uuid: str, name: str):
+    try:
+        res = tags_table.query(
+            IndexName = 'user_uuid-name-index',
+            KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('name').eq(name)
+        )['Items']
+        if not res:
+            return None
+        return res[0]['uuid']
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def get_tag_relations(memo_uuid: str) -> list:
+    try:
+        res = tag_relation_table.query(
+            IndexName='memo_uuid-index',
+            KeyConditionExpression=Key('memo_uuid').eq(memo_uuid)
+        )['Items']
+        if not res:
+            return []
+        return res
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def set_tag_relation(tag_uuid: str, memo_uuid: str, memo_created_at: str) -> bool:
+    try:
+        res = tag_relation_table.put_item(
+            Item = {
+                'tag_uuid': tag_uuid,
+                'memo_uuid': memo_uuid,
+                'memo_created_at': memo_created_at
+            }
+        )
+        return not not res
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def delete_tag_relation(tag_uuid: str, memo_uuid: str) -> bool:
+    try:
+        res = tag_relation_table.delete_item(
+            Key = {
+                'tag_uuid': tag_uuid,
+                'memo_uuid': memo_uuid
+            }
+        )
+        return not not res
+    except Exception as e:
+        print(e)
+        return False
+    return False
