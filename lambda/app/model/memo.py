@@ -16,7 +16,7 @@ from service.user import *
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 
-MEMO_PAGE_LIMIT = 100
+MEMO_PAGE_LIMIT = 20
 
 class MemoStates(Enum):
     AVAILABLE = 1
@@ -28,10 +28,12 @@ class PinnedType(Enum):
     PINNED = 2
 
 MEMO_OVERVIEWS_TABLE_NAME = 'md_memo_overviews' + os.environ['DbSuffix']
+MEMO_TRASH_TABLE_NAME = 'md_memo_trash_memos' + os.environ['DbSuffix']
 MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
 MEMO_SHARES_TABLE_NAME = 'md_memo_shares' + os.environ['DbSuffix']
 
 memo_overviews_table = db_resource.Table('md_memo_overviews' + os.environ['DbSuffix'])
+memo_trash_table = db_resource.Table('md_memo_trash_memos' + os.environ['DbSuffix'])
 memo_bodies_table = db_resource.Table('md_memo_bodies' + os.environ['DbSuffix'])
 memo_shares_table = db_resource.Table('md_memo_shares' + os.environ['DbSuffix'])
 
@@ -50,7 +52,6 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
                     'description': description,
                     'memo_type': memo_type,
                     'user_uuid': user_uuid,
-                    'availability': MemoStates.AVAILABLE.value,
                     'created_at': now,
                     'updated_at': now,
                 }
@@ -125,23 +126,16 @@ def get_memo_list_include_trash(user_uuid):
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression='availability <> :availability',
                     ScanIndexForward = False,
-                    ExpressionAttributeValues={
-                        ':availability': MemoStates.DELETED.value
-                    })
+                    )
             else:
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression='availability <> :availability',
                     ScanIndexForward = False,
-                    ExpressionAttributeValues={
-                        ':availability': MemoStates.DELETED.value
-                    },
                     ExclusiveStartKey=exclusive_start_key
                 )
-            items.extend(response['Items'])
+            items.extend([i['uuid'] for i in response['Items']])
             if ("LastEvaluatedKey" in response) == True:
                 ExclusiveStartKey = response["LastEvaluatedKey"]
             else:
@@ -154,28 +148,35 @@ def get_memo_list_include_trash(user_uuid):
         return None
     return None
 
-def get_memo_list_in_trash(user_uuid: str):
-    return get_memo_list_all(user_uuid, MemoStates.TRASH.value)
-
-def get_available_memo_list(user_uuid: str):
-    return get_memo_list_all(user_uuid, MemoStates.AVAILABLE.value)
-
-def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.AVAILABLE.value, exclusive_start_key)
-
-def get_memo_list_in_trash_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.TRASH.value, exclusive_start_key)
-
-def get_memo_list_all(user_uuid, state):
+def get_all_memo_ids(user_uuid: str) -> list:
     try:
         exclusive_start_key = None
         items = []
         while True:
-            i, exclusive_start_key = get_memo_list_page(user_uuid, state, exclusive_start_key)
-            items.extend(i)
-            if not exclusive_start_key:
+            if exclusive_start_key is None:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='#my_uuid',
+                    ExpressionAttributeNames= {
+                        '#my_uuid' : 'uuid'
+                    },
+                    ReturnConsumedCapacity="TOTAL",
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                    )
+            else:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='uuid',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend([i['uuid'] for i in response['Items']])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
                 break
-        
         if len(items) == 0:
             return []
         return items
@@ -183,6 +184,12 @@ def get_memo_list_all(user_uuid, state):
         print(e)
         return None
     return None
+
+def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, MemoStates.AVAILABLE.value, exclusive_start_key)
+
+def get_memo_list_in_trash_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, MemoStates.TRASH.value, exclusive_start_key)
 
 '''
 メモ一覧を取得する
@@ -196,7 +203,6 @@ def get_memo_list_page(user_uuid, state, exclusive_start_key):
             response = memo_overviews_table.query(
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                FilterExpression=Key('availability').eq(state),
                 ScanIndexForward = False,
                 Limit=MEMO_PAGE_LIMIT
             )
@@ -204,7 +210,6 @@ def get_memo_list_page(user_uuid, state, exclusive_start_key):
             response = memo_overviews_table.query(
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                FilterExpression=Key('availability').eq(state),
                 ExclusiveStartKey=exclusive_start_key,
                 ScanIndexForward = False,
                 Limit=MEMO_PAGE_LIMIT
@@ -230,14 +235,12 @@ def get_pinned_memo_list(user_uuid):
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
                     ScanIndexForward = False
                 )
             else:
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
                     ScanIndexForward = False,
                     ExclusiveStartKey=exclusive_start_key
                 )
@@ -261,10 +264,23 @@ def get_memo_overview(memo_id: str) -> dict:
         # overviewの取得
         result = memo_overviews_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id),
-            FilterExpression='availability <> :availability',
-            ExpressionAttributeValues={
-                ':availability': MemoStates.DELETED.value
-            }
+        )['Items']
+        # 無ければゴミ箱から検索
+        if len(result) == 0:
+            return get_memo_overview_in_trash(memo_id)
+        return result[0]
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
+def get_memo_overview_in_trash(memo_id: str) -> dict:
+    if not memo_id:
+        return None
+    try:
+        # overviewの取得
+        result = memo_trash_table.query(
+            KeyConditionExpression=Key('uuid').eq(memo_id),
         )['Items']
         if len(result) == 0:
             return None
@@ -285,10 +301,7 @@ def get_memo_data(memo_id: str):
         # overviewの取得
         result = memo_overviews_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id),
-            FilterExpression='availability <> :availability',
-            ExpressionAttributeValues={
-                ':availability': MemoStates.DELETED.value
-            })['Items']
+        )['Items']
         if len(result) == 0:
             return None
         memo_data = result[0]
@@ -441,20 +454,26 @@ def move_trash_memo(memo_id):
     share_settings = get_share_setting_by_memo_id(memo_id)
     if share_settings == False:
         return False
-
+    # メモ設定を取得
+    memo_info = get_memo_overview(memo_id)
+    if not memo_info:
+        return False
+    
+    del memo_info['pinned_type']
+    memo_info['deleted_at'] = get_now_string()
     try:
         transacts = [
             {
-                'Update': {
+                'Delete': {
                     'TableName': MEMO_OVERVIEWS_TABLE_NAME,
                     'Key': {
                         'uuid': to_dynamo_format(memo_id)
                     },
-                    'UpdateExpression': 'SET availability=:availability',
-                    'ExpressionAttributeValues': {
-                        ':availability': to_dynamo_format(MemoStates.TRASH.value)
-                    }
                 },
+                'Put': {
+                    'TableName': MEMO_TRASH_TABLE_NAME,
+                    'Item': dict2dynamoformat(memo_info)
+                }
             }
         ]
         if share_settings:
@@ -475,16 +494,25 @@ def move_trash_memo(memo_id):
         print(e)
         return False
 
-def change_all_memos_to_private(user_uuid: str) -> bool:
-    memo_list = get_memo_list_include_trash(user_uuid)
-    memo_id_list = []
-    for v in memo_list:
-        memo_id_list.append(v['uuid'])
-    for memo_id in memo_id_list:
+def delete_share_setting(share_id):
+    try:
+        res = memo_shares_table.delete_item(
+            Key={
+                'share_id': share_id
+            }
+        )
+        return not not res
+    except Exception as e:
+        print(e)
+        return False
+
+def change_delete_all_shares(user_uuid: str) -> bool:
+    memo_list = get_all_memo_ids(user_uuid)
+    for memo_id in memo_list:
         share_settings = get_share_setting_by_memo_id(memo_id)
-        # シェア設定があればno shareに更新
+        # シェア設定があれば削除
         if share_settings:
-            result = update_share_settings(memo_id, ShareType.NO_SHARE.value, share_settings['share_scope'], share_settings['share_users'])
+            result = delete_share_setting(share_settings['share_id'])
             if not result:
                 print('Failed to share settings: ' + memo_id)
                 return False

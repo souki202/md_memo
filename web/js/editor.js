@@ -286,7 +286,6 @@ new Vue({
         },
     },
     mounted() {
-
         // まずテーマ取得
         this.theme = getTheme();
 

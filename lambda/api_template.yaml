@@ -165,6 +165,7 @@ Resources:
     Properties:
       Handler: user.withdrawal_event
       Role: !Ref RoleArn
+      Timeout: 900
       Events:
         DefaultEvent:
           Type: Api
@@ -270,11 +271,17 @@ Resources:
       Handler: memo.get_memo_list_event
       Role: !Ref RoleArn
       Events:
-        DefaultEvent:
+        GetMemoListEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RestApi
             Path: /get_memo_list
+            Method: get
+        GetTrashMemoListEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_trash_memo_list
             Method: get
 
   GetPinnedMemoListFunction:

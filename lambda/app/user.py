@@ -95,7 +95,7 @@ def withdrawal_event(event, context):
         print('failed to get user data')
         return create_common_return_array(500, {'message': 'Failed to withdrawal.'})
     
-    if not change_all_memos_to_private(user_uuid):
+    if not change_delete_all_shares(user_uuid):
         print('failed to change share settings')
         return create_common_return_array(500, {'message': 'Failed to withdrawal.'})
     

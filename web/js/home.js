@@ -52,8 +52,15 @@ new Vue({
         }
     },
     mounted() {
-        this.getMemoList();
-        this.getPinnedMemoList();
+        const place = urlParameter('place');
+
+        if (place == 'trash') {
+
+        }
+        else {
+            this.getMemoList();
+            this.getPinnedMemoList();
+        }
 
         // tableのカラーを設定
         this.theme = getTheme();
@@ -71,6 +78,20 @@ new Vue({
 
         getMemoList() {
             axios.get(getApiUrl() + '/get_memo_list').then((res) => {
+                for (let item of res.data.items) {
+                    item.checked = false;
+                    this.memos.push(item);
+                }
+                this.nextPageMemoId = res.data.next_page_memo_id;
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモ一覧の取得に失敗しました';
+            }).then(() => {
+            })
+        },
+
+        getTrashMemoList() {
+            axios.get(getApiUrl() + '/get_trash_memo_list').then((res) => {
                 for (let item of res.data.items) {
                     item.checked = false;
                     this.memos.push(item);

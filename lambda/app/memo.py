@@ -36,13 +36,23 @@ MULTIPLE_SELECT_MEMO_LIMIT = 10
 def get_memo_list_event(event, context):
     if os.environ['EnvName'] != 'Prod':
         print(json.dumps(event))
+    
+    httpMethod = str.upper(event['httpMethod'])
+    resource = str.lower(event['resource'])
+    
+    if httpMethod == 'GET':
+        if resource == '/get_memo_list':
+            return get_available_memo_list_event(event, context)
+        elif resource == '/get_trash_memo_list':
+            return get_trash_memo_list_event(event, context)
+
+    return create_common_return_array(404, {'message': 'Not Found',})
+
+
+def get_available_memo_list_event(event, context):
     user_uuid: str = get_user_uuid_by_event(event)
     if not user_uuid:
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "session timeout",}),
-        }
+        return create_common_return_array(401, {'message': "session timeout.",})
     
     exclusive_start_key = None
     if 'queryStringParameters' in event and event['queryStringParameters']:
@@ -57,45 +67,40 @@ def get_memo_list_event(event, context):
     if memos is None:
         print('Failed get memo list.')
         print('user_uuid: ' + user_uuid)
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': 'Failed to get the memo list.',}),
-        }
+        return create_common_return_array(500, {'message': "Failed to get the memo list.",})
+
     for memo in memos:
         del memo['user_uuid']
-    return {
-        "statusCode": 200,
-        "headers": create_common_header(),
-        "body": json.dumps({'items': memos, 'next_page_memo_id': next_page_memo_id}, default=decimal_default_proc),
-    }
+    
+    return create_common_return_array(200, {'items': memos, 'next_page_memo_id': next_page_memo_id})
+
+def get_trash_memo_list_event(event, context):
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "session timeout.",})
+    
+    exclusive_start_key = None
+    if 'queryStringParameters' in event and event['queryStringParameters']:
+        next_memo_uuid = event['queryStringParameters'].get('next_page_memo_id', '')
+        exclusive_start_key = {'user_uuid': user_uuid, 'uuid': next_memo_uuid}
+
 
 def get_pinned_memo_list_event(event, context):
     if os.environ['EnvName'] != 'Prod':
         print(json.dumps(event))
     user_uuid: str = get_user_uuid_by_event(event)
     if not user_uuid:
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "session timeout",}),
-        }
+        return create_common_return_array(401, {'message': "session timeout.",})
+
     memos = get_pinned_memo_list(user_uuid)
     if memos is None:
         print('Failed get memo list.')
         print('user_uuid: ' + user_uuid)
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': 'Failed to get the memo list.',}),
-        }
+        return create_common_return_array(500, {'message': "Failed to get the memo list.",})
+
     for memo in memos:
         del memo['user_uuid']
-    return {
-        "statusCode": 200,
-        "headers": create_common_header(),
-        "body": json.dumps({'items': memos,}, default=decimal_default_proc),
-    }
+    return create_common_return_array(200, {'items': memos})
 
 def get_memo_data_event(event, content):
     if os.environ['EnvName'] != 'Prod':
