@@ -135,7 +135,7 @@ new Vue({
         /**
          * メモのハードデリートを実行する
          */
-        deleteMemo() {
+        toTrashMemo() {
             this.clearMessage()
             const checkedMemoList = this.getCheckMemoList();
             if (!checkedMemoList.length) {
@@ -148,11 +148,11 @@ new Vue({
                 return; 
             }
 
-            if (!window.confirm('削除したメモは復元できません。よろしいですか?')) {
-                return;
-            }
+            // if (!window.confirm('ゴミ箱に移動するとシェアの設定が削除されます. よろしいですか?')) {
+            //     return;
+            // }
             
-            axios.post(getApiUrl() + '/delete_memo', {
+            axios.post(getApiUrl() + '/to_trash_memo', {
                 params: {memo_id_list: checkedMemoList}
             }).then((res) => {
                 console.log(res);
@@ -178,8 +178,8 @@ new Vue({
 
         memoOperation() {
             switch (this.operationType) {
-                case 'del':
-                    this.deleteMemo();
+                case 'trash':
+                    this.toTrashMemo();
                     break;
             }
             this.operationType  = '';

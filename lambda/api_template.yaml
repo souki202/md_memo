@@ -332,15 +332,22 @@ Resources:
   DeleteMemoFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: memo.delete_memo
+      Handler: memo.delete_memo_event
       Role: !Ref RoleArn
       Events:
-        DefaultEvent:
+        SoftDeleteEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /to_trash_memo
+            Method: post
+        HardDeleteEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RestApi
             Path: /delete_memo
             Method: post
+        
 
   UpdateShareSettingsFunction:
     Type: AWS::Serverless::Function

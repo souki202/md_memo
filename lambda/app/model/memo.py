@@ -20,7 +20,7 @@ MEMO_PAGE_LIMIT = 100
 
 class MemoStates(Enum):
     AVAILABLE = 1
-    GARBAGE = 2
+    TRASH = 2
     DELETED = 3
 
 class PinnedType(Enum):
@@ -105,7 +105,7 @@ def check_id_owner_of_the_memo_by_data(memo_data: dict, user_uuid: str) -> bool:
 すべてのメモが持ち主と一致しているか確認する
 '''
 def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool:
-    all_memo = get_memo_list_include_garbage(user_uuid)
+    all_memo = get_memo_list_include_trash(user_uuid)
     all_memo_id_list = {}
     # まずはsetに整理
     for memo in all_memo:
@@ -116,7 +116,7 @@ def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool
             return False
     return True
 
-def get_memo_list_include_garbage(user_uuid):
+def get_memo_list_include_trash(user_uuid):
     try:
         exclusive_start_key = None
         items = []
@@ -154,8 +154,8 @@ def get_memo_list_include_garbage(user_uuid):
         return None
     return None
 
-def get_memo_list_in_garbage(user_uuid: str):
-    return get_memo_list_all(user_uuid, MemoStates.GARBAGE.value)
+def get_memo_list_in_trash(user_uuid: str):
+    return get_memo_list_all(user_uuid, MemoStates.TRASH.value)
 
 def get_available_memo_list(user_uuid: str):
     return get_memo_list_all(user_uuid, MemoStates.AVAILABLE.value)
@@ -163,8 +163,8 @@ def get_available_memo_list(user_uuid: str):
 def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
     return get_memo_list_page(user_uuid, MemoStates.AVAILABLE.value, exclusive_start_key)
 
-def get_memo_list_in_garbage_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.GARBAGE.value, exclusive_start_key)
+def get_memo_list_in_trash_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, MemoStates.TRASH.value, exclusive_start_key)
 
 def get_memo_list_all(user_uuid, state):
     try:
@@ -371,42 +371,6 @@ def get_share_setting_by_share_id(share_id: str) -> dict:
         return None
     return None
 
-def get_share_settings_by_memo_ids(memo_ids: list) -> dict:
-    if not memo_ids:
-        return False
-    try:
-        share_settings = []
-        for memo_id in memo_ids:
-            s = get_share_setting_by_memo_id(memo_id)
-            if s == False:
-                print('failed to get share_settings: ' + memo_id)
-            if s:
-                share_settings.append(s)
-        return share_settings
-    except Exception as e:
-        print(e)
-        return False
-    return False
-
-def delete_share_setting_multi_by_memo_id(memo_ids) -> bool:
-    try:
-        share_settings = get_share_settings_by_memo_ids(memo_ids)
-        if share_settings == False:
-            print('failed to get share settings: ' + str(memo_ids))
-        with memo_shares_table.batch_writer() as batch:
-            for share_setting in share_settings:
-                batch.delete_item(
-                    Key = {
-                        'share_id': share_setting['share_id']
-                    }
-                )
-        return True
-    except Exception as e:
-        print(e)
-        return False
-    return False
-
-
 '''
 @param list user_data get_user_data_by_uuid等から取得したもの. 主にログイン中のユーザ
 @param str  memo_user_uuid メモの作成者
@@ -425,37 +389,94 @@ def check_has_auth_memo(user_data: dict, memo_user_uuid: str, share_targets: str
     # メモが共有対象かどうか
     return check_is_in_share_target(user_data['user_id'], share_targets)
 
-def delete_memo_multi(memo_id_list: list) -> bool:
+'''
+そのメモそのものの情報をハードデリートする
+リレーション周りは削除しない
+'''
+def delete_memo(memo_id: str) -> bool:
     try:
-        transacts = []
-        for memo_id in memo_id_list:
-            transacts.append(
-                {
-                    'Update': {
-                        'TableName': MEMO_OVERVIEWS_TABLE_NAME,
-                        'Key': {
-                            'uuid': to_dynamo_format(memo_id)
-                        },
-                        'UpdateExpression': 'SET availability=:availability',
-                        'ExpressionAttributeValues': {
-                            ':availability': to_dynamo_format(MemoStates.DELETED.value)
-                        }
+        transacts = [
+            {
+                # overviewの消去
+                'Delete': {
+                    'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                },
+                # bodyの消去
+                'Delete': {
+                    'TableName': MEMO_BODIES_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                }
+            }
+        ]
+        # シェア設定があればそれも削除
+        share_settings = get_share_setting_by_memo_id(memo_id)
+        if share_settings:
+            transacts.append({
+                'Delete': {
+                    'TableName': MEMO_SHARES_TABLE_NAME,
+                    'Key': {
+                        'share_id': to_dynamo_format(share_settings['share_id'])
                     }
                 }
-            )
-
-        result = db_client.transact_write_items(
+            })
+        # 削除処理
+        db_client.transact_write_items(
             TransactItems = transacts
         )
-        # TODO: 紐づく画像をs3から削除
-        return not not result
     except Exception as e:
         print(e)
         return False
     return False
 
+'''
+メモをゴミ箱に移動する
+シェアは物理削除
+'''
+def move_trash_memo(memo_id):
+    share_settings = get_share_setting_by_memo_id(memo_id)
+    if share_settings == False:
+        return False
+
+    try:
+        transacts = [
+            {
+                'Update': {
+                    'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                    'UpdateExpression': 'SET availability=:availability',
+                    'ExpressionAttributeValues': {
+                        ':availability': to_dynamo_format(MemoStates.TRASH.value)
+                    }
+                },
+            }
+        ]
+        if share_settings:
+            transacts.append({
+                'Delete': {
+                    'TableName': MEMO_SHARES_TABLE_NAME,
+                    'Key': {
+                        'share_id': to_dynamo_format(share_settings['share_id'])
+                    }
+                }
+            })
+
+        result = db_client.transact_write_items(
+            TransactItems = transacts
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        return False
+
 def change_all_memos_to_private(user_uuid: str) -> bool:
-    memo_list = get_memo_list_include_garbage(user_uuid)
+    memo_list = get_memo_list_include_trash(user_uuid)
     memo_id_list = []
     for v in memo_list:
         memo_id_list.append(v['uuid'])

@@ -17,6 +17,7 @@ from model.memo import *
 from model.plan import *
 import model.file as my_file
 from model.share import *
+import model.tag as my_tag
 
 def decimal_default_proc(obj):
     if isinstance(obj, Decimal):
@@ -284,12 +285,26 @@ def get_memo_data_by_share_id(event, context):
         "body": json.dumps({'memo': memo_data,}, default=decimal_default_proc),
     }
 
+def delete_memo_event(event, context):
+    if os.environ['EnvName'] != 'Prod':
+        print(json.dumps(event))
+    
+    httpMethod = str.upper(event['httpMethod'])
+    resource = str.lower(event['resource'])
+    
+    if httpMethod == 'POST':
+        if resource == '/to_trash_memo':
+            return to_trash_memo_event(event, context)
+        elif resource == '/delete_memo':
+            return hard_delete_memo_event(event, context)
+    
+    return create_common_return_array(404, {'message': 'Not Found',})
+
+
 '''
 完全に見れない状態にするdelete
 '''
-def delete_memo(event, context):
-    if os.environ['EnvName'] != 'Prod':
-        print(json.dumps(event))
+def hard_delete_memo_event(event, context):
     user_uuid: str = get_user_uuid_by_event(event)
     if not user_uuid:
         return create_common_return_array(401, {'message': "Failed to delete memo.",})
@@ -307,25 +322,51 @@ def delete_memo(event, context):
 
     # 重複消去
     memo_id_list = list(set(memo_id_list))
-
     # メモの持ち主と一致してるか調べる
     if not check_is_owner_of_the_memo_multi(memo_id_list, user_uuid):
         print('Unauthorized delete operation.')
         return create_common_return_array(401, {'message': "Failed to delete memo.",})
-    
-    # 削除
-    if not delete_memo_multi(memo_id_list):
-        return create_common_return_array(500, {'message': "Failed to delete memo.",})
-    
-    # メモのシェア設定の削除
-    if not delete_share_setting_multi_by_memo_id(memo_id_list):
-        return create_common_return_array(500, {'message': "Failed to delete share settings.",})
 
-    # ファイルのrelationの削除
-    if not my_file.delete_file_and_memo_relation_by_memos(memo_id_list):
-        return create_common_return_array(500, {'message': "Failed to delete memo and file relation.",})
+    for memo_id in memo_id_list:
+        # メモそのものの情報を削除
+        if not delete_memo(memo_id):
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
+        # メモとファイルの紐付けを削除
+        if not delete_file_and_memo_relation_by_memo_id(memo_id):
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
+        # メモとタグの紐付けを削除
+        if not my_tag.delete_tag_relations_by_memo_id(memo_id):
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
 
-    return create_common_return_array(200, {'memo': 'success',})
+    return create_common_return_array(200, {'message': 'success',})
+
+'''
+メモをゴミ箱に移動する
+'''
+def to_trash_memo_event(event, content):
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "Failed to delete memo.",})
+
+    params = json.loads(event['body'] or '{ }')
+    if not params or not params.get('params'):
+        return create_common_return_array(406, {'message': "Failed to delete memo.",})
+
+    memo_id_list = params['params'].get('memo_id_list')
+    if not memo_id_list:
+        return create_common_return_array(406, {'message': "Failed to delete memo.",})
+    
+    if len(memo_id_list) > MULTIPLE_SELECT_MEMO_LIMIT:
+        return create_common_return_array(406, {'message': "The maximum number of selections is " + MULTIPLE_SELECT_MEMO_LIMIT + ".",})
+    
+    for memo_id in memo_id_list:
+        # メモそのものの情報をゴミ箱に
+        # シェア設定は物理削除
+        if not move_trash_memo(memo_id):
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
+        # 紐付け周りはそのまま
+
+    return create_common_return_array(200, {'message': 'success',})
 
 def switch_pinned_event(event, context):
     if os.environ['EnvName'] != 'Prod':
