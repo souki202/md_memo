@@ -178,13 +178,14 @@ def delete_tag_relation(tag_uuid: str, memo_uuid: str) -> bool:
         return False
     return False
 
-def delete_tag_relation_multi(tag_uuids: list) -> bool:
+def delete_tag_relation_multi(tag_uuids: list, memo_id: str) -> bool:
     try:
-        with relation_table.batch_writer() as batch:
+        with tag_relation_table.batch_writer() as batch:
             for tag_uuid in tag_uuids:
                 batch.delete_item(
                     Key = {
-                        'tag_uuid': tag_uuids,
+                        'tag_uuid': tag_uuid,
+                        'memo_uuid': memo_id
                     }
                 )
         return True
@@ -207,7 +208,7 @@ def delete_tag_relations_by_memo_id(memo_id: str) -> bool:
 
     try:
         uuids = [r['tag_uuid'] for r in relations]
-        return delete_tag_relation_multi(uuids)
+        return delete_tag_relation_multi(uuids, memo_id)
     except Exception as e:
         print(e)
         return False

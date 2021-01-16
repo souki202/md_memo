@@ -343,18 +343,21 @@ def hard_delete_memo_event(event, context):
     memo_id_list = list(set(memo_id_list))
     # メモの持ち主と一致してるか調べる
     if not check_is_owner_of_the_memo_multi(memo_id_list, user_uuid):
-        print('Unauthorized delete operation.')
+        print('Unauthorized delete operation. ' + str(memo_id_list) + user_uuid)
         return create_common_return_array(401, {'message': "Failed to delete memo.",})
 
     for memo_id in memo_id_list:
         # メモそのものの情報を削除
         if not delete_memo(memo_id):
+            print("failed to delete memo")
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
         # メモとファイルの紐付けを削除
-        if not delete_file_and_memo_relation_by_memo_id(memo_id):
+        if not my_file.delete_file_and_memo_relation_by_memo_id(memo_id):
+            print("failed to delete memo and file relations")
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
         # メモとタグの紐付けを削除
         if not my_tag.delete_tag_relations_by_memo_id(memo_id):
+            print("failed to delete memo and tag relations")
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
 
     return create_common_return_array(200, {'message': 'success',})

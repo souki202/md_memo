@@ -48,6 +48,8 @@ new Vue({
             nextPageMemoId: '',
             memoAllCheck: false,
 
+            isTrash: false,
+
             operationType: '',
             theme: 'light',
         }
@@ -56,6 +58,7 @@ new Vue({
         const place = urlParameter('place');
 
         if (place == 'trash') {
+            this.isTrash = true;
             this.getTrashMemoList();
         }
         else {
@@ -155,9 +158,6 @@ new Vue({
             return result;
         },
 
-        /**
-         * メモのハードデリートを実行する
-         */
         toTrashMemo() {
             this.clearMessage()
             const checkedMemoList = this.getCheckMemoList();
@@ -190,19 +190,41 @@ new Vue({
         /**
          * メモのソフトデリートを実行する
          */
-        moveToGarbageMemo() {
+        deleteMemo() {
             this.clearMessage()
             const checkedMemoList = this.getCheckMemoList();
             if (!checkedMemoList.length) {
                 window.alert('メモが選択されていません');
                 return;
             }
+
+            if (checkedMemoList.length > 10) {
+                window.alert('10件より多くの選択はできません');
+                return; 
+            }
+
+            if (!window.confirm('ゴミ箱から削除したメモは復元できません。削除してよろしいですか?')) {
+                return;
+            }
+            axios.post(getApiUrl() + '/delete_memo', {
+                params: {memo_id_list: checkedMemoList}
+            }).then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+            })
         },
 
         memoOperation() {
             switch (this.operationType) {
                 case 'trash':
                     this.toTrashMemo();
+                    break;
+                case 'delete':
+                    this.deleteMemo();
                     break;
             }
             this.operationType  = '';

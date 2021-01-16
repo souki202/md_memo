@@ -31,7 +31,8 @@
                 <div class="memo-operation-selector-container">
                     <select class="form-control" name="memoOperationSelector" id="memoOperationSelector" @change="memoOperation" v-model="operationType">
                         <option value="">操作を選択</option>
-                        <option value="trash">削除</option>
+                        <option value="trash" v-if="!isTrash">ゴミ箱に移動</option>
+                        <option value="delete" v-if="isTrash">完全に削除</option>
                     </select>
                 </div>
             </div>
@@ -40,7 +41,8 @@
                 <div id="allMemoList" class="col-6">
                     <div class="all-memo-list-container memo-list-container">
                         <div class="list-header">
-                            <p>全てのメモ</p>
+                            <p v-if="!isTrash">全てのメモ</p>
+                            <p v-if="isTrash">ゴミ箱内のメモ</p>
                         </div>
                         <div class="memo-list">
                             <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'all'"></memo-card>

@@ -167,6 +167,7 @@ def delete_file_and_memo_relation_by_memo_id(memo_id: str) -> bool:
         result = delete_file_and_memo_relation_multi(memo_id, now_files)
         if not result:
             raise 'Failed to delete relation'
+        return not not result
     except Exception as e:
         print(e)
         return False

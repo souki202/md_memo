@@ -32,10 +32,10 @@ MEMO_TRASH_TABLE_NAME = 'md_memo_trash_memos' + os.environ['DbSuffix']
 MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
 MEMO_SHARES_TABLE_NAME = 'md_memo_shares' + os.environ['DbSuffix']
 
-memo_overviews_table = db_resource.Table('md_memo_overviews' + os.environ['DbSuffix'])
-memo_trash_table = db_resource.Table('md_memo_trash_memos' + os.environ['DbSuffix'])
-memo_bodies_table = db_resource.Table('md_memo_bodies' + os.environ['DbSuffix'])
-memo_shares_table = db_resource.Table('md_memo_shares' + os.environ['DbSuffix'])
+memo_overviews_table = db_resource.Table(MEMO_OVERVIEWS_TABLE_NAME)
+memo_trash_table = db_resource.Table(MEMO_TRASH_TABLE_NAME)
+memo_bodies_table = db_resource.Table(MEMO_BODIES_TABLE_NAME)
+memo_shares_table = db_resource.Table(MEMO_SHARES_TABLE_NAME)
 
 def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: int, user_uuid: str) -> str:
     # 新規作成時はuuidを新しく付与
@@ -89,12 +89,10 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
     if not memo_id or not user_uuid:
         return False
     try:
-        result = memo_overviews_table.query(
-            KeyConditionExpression=Key('uuid').eq(memo_id)
-        )['Items']
-        if len(result) == 0:
+        result = get_memo_overview(memo_id)
+        if not result:
             return False
-        return result[0]['user_uuid'] == user_uuid
+        return result['user_uuid'] == user_uuid
     except Exception as e:
         print(e)
         return False
@@ -106,14 +104,8 @@ def check_id_owner_of_the_memo_by_data(memo_data: dict, user_uuid: str) -> bool:
 すべてのメモが持ち主と一致しているか確認する
 '''
 def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool:
-    all_memo = get_memo_list_include_trash(user_uuid)
-    all_memo_id_list = {}
-    # まずはsetに整理
-    for memo in all_memo:
-        all_memo_id_list[memo.get('uuid', 'invalid')] = 1
-    # 引数にあるメモが, そのユーザのメモ所持リストにあるか調べる
     for memo_id in memo_id_list:
-        if memo_id not in all_memo_id_list:
+        if not check_is_owner_of_the_memo(memo_id, user_uuid):
             return False
     return True
 
@@ -263,13 +255,13 @@ def get_pinned_memo_list(user_uuid):
             if exclusive_start_key is None:
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-pinned_type-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED),
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED.value),
                     ScanIndexForward = False
                 )
             else:
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-pinned_type-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED),
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED.value),
                     ScanIndexForward = False,
                     ExclusiveStartKey=exclusive_start_key
                 )
@@ -441,7 +433,7 @@ def delete_memo(memo_id: str) -> bool:
             {
                 # overviewの消去
                 'Delete': {
-                    'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                    'TableName': MEMO_TRASH_TABLE_NAME,
                     'Key': {
                         'uuid': to_dynamo_format(memo_id)
                     },
@@ -467,9 +459,10 @@ def delete_memo(memo_id: str) -> bool:
                 }
             })
         # 削除処理
-        db_client.transact_write_items(
+        res = db_client.transact_write_items(
             TransactItems = transacts
         )
+        return not not res
     except Exception as e:
         print(e)
         return False
