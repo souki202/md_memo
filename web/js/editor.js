@@ -3,7 +3,6 @@ import getFileApiUrl from '/js/getFileApiUrl.js'
 import getTheme from '/js/colorTheme.js';
 import getEnv from '/js/getEnv.js';
 import urlParameter from '/js/urlParameter.js';
-import autoComplete from '/js/autoComplete.js';
 import '/codemirror/lib/codemirror.js';
 import '/js/js.cookie.min.js';
 import '/js/uuidv4.min.js';
@@ -93,7 +92,6 @@ const tagsComponent = Vue.extend({
     },
     props: ['memoId'],
     mounted() {
-        this.tagAutoComplete = new autoComplete('tagInputArea', 'tagRecommendation');
     },
     methods: {
         loadTags() {
