@@ -438,6 +438,8 @@ def delete_memo(memo_id: str) -> bool:
                         'uuid': to_dynamo_format(memo_id)
                     },
                 },
+            },
+            {
                 # bodyの消去
                 'Delete': {
                     'TableName': MEMO_BODIES_TABLE_NAME,
