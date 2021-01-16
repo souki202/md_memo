@@ -1,5 +1,6 @@
 import getApiUrl from '/js/getApiUrl.js';
 import getTheme from '/js/colorTheme.js';
+import urlParameter from '/js/urlParameter.js';
 import '/js/js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
@@ -55,7 +56,7 @@ new Vue({
         const place = urlParameter('place');
 
         if (place == 'trash') {
-
+            this.getTrashMemoList();
         }
         else {
             this.getMemoList();
@@ -78,6 +79,7 @@ new Vue({
 
         getMemoList() {
             axios.get(getApiUrl() + '/get_memo_list').then((res) => {
+                console.log(res);
                 for (let item of res.data.items) {
                     item.checked = false;
                     this.memos.push(item);

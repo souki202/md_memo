@@ -186,17 +186,17 @@ def get_all_memo_ids(user_uuid: str) -> list:
     return None
 
 def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.AVAILABLE.value, exclusive_start_key)
+    return get_memo_list_page(user_uuid, exclusive_start_key)
 
 def get_memo_list_in_trash_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.TRASH.value, exclusive_start_key)
+    return get_memo_list_page(user_uuid, exclusive_start_key)
 
 '''
 メモ一覧を取得する
 
 @return {list, str} メモ一覧, 次の取得に使用するキー
 '''
-def get_memo_list_page(user_uuid, state, exclusive_start_key):
+def get_memo_list_page(user_uuid, exclusive_start_key):
     try:
         items = []
         if exclusive_start_key is None:
@@ -225,6 +225,35 @@ def get_memo_list_page(user_uuid, state, exclusive_start_key):
         return None, None
     return None, None
 
+def get_memo_list_in_trash_page(user_uuid, exclusive_start_key):
+    try:
+        items = []
+        if exclusive_start_key is None:
+            response = memo_trash_table.query(
+                IndexName='user_uuid-created_at-index',
+                KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                ScanIndexForward = False,
+                Limit=MEMO_PAGE_LIMIT
+            )
+        else:
+            response = memo_trash_table.query(
+                IndexName='user_uuid-created_at-index',
+                KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                ExclusiveStartKey=exclusive_start_key,
+                ScanIndexForward = False,
+                Limit=MEMO_PAGE_LIMIT
+            )
+        items = response['Items']
+        exclusive_start_key = response.get('LastEvaluatedKey')
+
+        if len(items) == 0:
+            return [], None
+        return items, exclusive_start_key
+    except Exception as e:
+        print(e)
+        return None, None
+    return None, None
+
 def get_pinned_memo_list(user_uuid):
     state = MemoStates.AVAILABLE.value
     try:
@@ -233,14 +262,14 @@ def get_pinned_memo_list(user_uuid):
         while True:
             if exclusive_start_key is None:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-created_at-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    IndexName='user_uuid-pinned_type-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED),
                     ScanIndexForward = False
                 )
             else:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-created_at-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    IndexName='user_uuid-pinned_type-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED),
                     ScanIndexForward = False,
                     ExclusiveStartKey=exclusive_start_key
                 )
@@ -459,9 +488,15 @@ def move_trash_memo(memo_id):
     if not memo_info:
         return False
     
-    del memo_info['pinned_type']
+    if 'pinned_type' in memo_info:
+        del memo_info['pinned_type']
     memo_info['deleted_at'] = get_now_string()
     try:
+        res = memo_trash_table.put_item(
+            Item=memo_info
+        )
+        if not res:
+            return False
         transacts = [
             {
                 'Delete': {
@@ -469,10 +504,6 @@ def move_trash_memo(memo_id):
                     'Key': {
                         'uuid': to_dynamo_format(memo_id)
                     },
-                },
-                'Put': {
-                    'TableName': MEMO_TRASH_TABLE_NAME,
-                    'Item': dict2dynamoformat(memo_info)
                 }
             }
         ]
@@ -485,13 +516,18 @@ def move_trash_memo(memo_id):
                     }
                 }
             })
-
         result = db_client.transact_write_items(
             TransactItems = transacts
         )
         return not not result
     except Exception as e:
         print(e)
+        # 消したデータを戻す
+        memo_trash_table.delete_item(
+            Key={
+                'uuid': memo_info['uuid']
+            }
+        )
         return False
 
 def delete_share_setting(share_id):

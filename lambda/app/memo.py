@@ -84,6 +84,20 @@ def get_trash_memo_list_event(event, context):
         next_memo_uuid = event['queryStringParameters'].get('next_page_memo_id', '')
         exclusive_start_key = {'user_uuid': user_uuid, 'uuid': next_memo_uuid}
 
+    memos, exclusive_start_key = get_memo_list_in_trash_page(user_uuid, exclusive_start_key)
+    next_page_memo_id = ''
+    if exclusive_start_key is not None:
+        next_page_memo_id = exclusive_start_key['uuid']
+    
+    if memos is None:
+        print('Failed get memo list.')
+        print('user_uuid: ' + user_uuid)
+        return create_common_return_array(500, {'message': "Failed to get the memo list.",})
+
+    for memo in memos:
+        del memo['user_uuid']
+    
+    return create_common_return_array(200, {'items': memos, 'next_page_memo_id': next_page_memo_id})
 
 def get_pinned_memo_list_event(event, context):
     if os.environ['EnvName'] != 'Prod':

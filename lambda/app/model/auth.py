@@ -20,6 +20,7 @@ login_histories_table = db_client.Table('md_memo_login_histories' + os.environ['
 EXPIRATION_RESET_PASS = 60 * 5 # 5分
 EXPIRATION_TIME_PERIOD = 3600 * 24 * 30 # 30日
 EXPIRATION_LOGIN_HISTORY = 3600 * 24 * 90 # 90日
+LOGIN_TIME_RANGE = 60 * 5
 
 MAX_LOGIN_TRY_COUNT = 7
 
@@ -161,7 +162,7 @@ def add_login_history(user_id, ip_address):
 
 def check_login_history(user_id, ip_address):
     now = get_now_string()
-    from_time = get_calced_from_now_string(EXPIRATION_LOGIN_HISTORY)
+    from_time = get_calced_from_now_string(LOGIN_TIME_RANGE)
 
     try:
         result = login_histories_table.query(

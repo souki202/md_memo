@@ -43,7 +43,7 @@ def login(event, context):
     params = json.loads(event['body'] or '')
     email = params['params']['email'] or ''
     password = params['params']['password'] or ''
-    if (not email or not password):
+    if not email or not password:
         return create_common_return_array(401, {'message': 'Missing Email or Password.',})
 
     # ログイン履歴の確認と追加
@@ -91,20 +91,12 @@ def signup(event, context):
     params = json.loads(event['body'])
     email = params['params']['email'] or ''
     password = params['params']['password'] or ''
-    if (not email or not password):
-        return {
-            "statusCode": 403,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Missing Email or Password.",}),
-        }
+    if not email or not password:
+        return create_common_return_array(403, {'message': 'Missing Email or Password.',})
 
     # 登録できるユーザIDかチェック
     if not get_can_be_registered_user(email):
-        return {
-            "statusCode": 403,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Cannot be registered user id",}),
-        }
+        return create_common_return_array(403, {'message': 'Cannot be registered user id.',})
 
     # ユーザがいないので新規登録
     ph = PasswordHasher()
@@ -114,11 +106,7 @@ def signup(event, context):
     create_result, user_uuid, temp_token = add_user(email, pass_hash)
     print(user_uuid)
     if create_result == False:
-        return {
-            "statusCode": 500,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "Failure add user.",}),
-        }
+        return create_common_return_array(500, {'message': 'Failure add user.',})
 
     # セッション作成
     # create_result, session_token = create_session(user_uuid)
@@ -132,11 +120,7 @@ def signup(event, context):
     # 仮登録メール送信
     send_temporary_regist_mail(email, temp_token)
 
-    return {
-        "statusCode": 200,
-        "headers": create_common_header(),
-        "body": json.dumps({}),
-    }
+    return create_common_return_array(200, {})
 
 def sns_login(event, context):
     if os.environ['EnvName'] != 'Prod':
