@@ -76,6 +76,7 @@ const tagsComponent = Vue.extend({
             :limitText=10
             tagPlaceholder="タグを作成(50文字まで)"
             selectLabel=""
+            placeholder=""
             deselectLabel="選択を解除"
             @tag="createNewTag"
             @select="setTagRelation"

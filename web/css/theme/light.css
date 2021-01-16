@@ -5,6 +5,8 @@
     --assort-bg-color: #fafbfc;
     --assort-hover-bg-color: #d1d1d2;
     --assort-text-color: #333;
+    --assort-hover-text-color: #222;
+    --assort-reverse-text-color: #d1d1d2;
 
     --sidebar-bg-color: #161b22;
     --sidebar-text-color: #eee;
@@ -39,6 +41,8 @@
     --memo-helper-icon-color: #161b22;
     --memo-helper-icon-hover-color: #58a6ff;
     --memo-helper-border-color: #bbb;
+
+    --memo-tag-close-hover-color: #161b22;
 
     --memo-pinned-active-color: rgb(255 219 43);
 

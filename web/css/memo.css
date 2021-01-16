@@ -119,87 +119,50 @@ body {
 
 /* タグ編集領域 */
 .tags-container {
-    padding: 0.5rem;
     z-index: 1000;
 }
 
-.tag-list {
-    display: flex;
-    flex-direction: row;
+.tags-container .multiselect__tags {
+    background-color: var(--assort-bg-color);
+    border: none;
+    border-radius: 0;
 }
 
-.related-tag p {
-    margin: 0;
-    padding: 0.25rem;
+.tags-container .multiselect__tag {
+    background-color: var(--assort-hover-bg-color);
+    color: var(--assort-hover-text-color);
 }
 
-.related-tag {
-    border-radius: 4px;
-    border: 1px solid var(--memo-title-border);
+.tags-container .multiselect__tag-icon:focus, .multiselect__tag-icon:hover {
+    background-color: var(--memo-tag-close-hover-color);
+}
+
+.tags-container .multiselect__tag-icon:after {
+    transition: color .2s ease;
+    color: var(--assort-text-color);
+}
+
+.tags-container .multiselect__tag-icon:focus:after,
+.tags-container .multiselect__tag-icon:hover:after {
+    color: var(--assort-reverse-text-color);
+}
+
+.tags-container .multiselect__input {
     background-color: var(--assort-bg-color);
     color: var(--assort-text-color);
-    margin: 0 0.25rem;
-
-    display: flex;
-    flex-direction: row;
 }
 
-.close-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 0.5rem 0 0.25rem;
-}
-
-.tag-input-area {
-    position: relative;
-    width: 10rem;
-    min-width: 10rem;
-}
-
-.tag-recommendation {
-    position: absolute;
+.tags-container .multiselect__content-wrapper {
     background-color: var(--assort-bg-color);
-    border-radius: 4px;
-    z-index: 1000;
 }
 
-.add-button {
-    position: absolute;
-    top: 4px;
-    right: 0.5rem;
-    cursor: pointer;
+.tags-container .multiselect__element {
+    color: var(--assort-text-color);
 }
 
-#tagInputArea {
-    background-color: transparent;
-    border: none;
-    width: 100%;
-    height: 100%;
-    color: var(--base-text-color);
-}
-
-#tagInputArea:focus {
-    border: none;
-}
-
-#tagRecommendation {
-    box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.5);
-}
-
-#tagRecommendation p {
-    margin: 0;
-}
-
-.recommend-item-container {
-    cursor: pointer;
-    padding: 0 0.5rem;
-    width: 100%;
-}
-
-.recommend-item-container:hover, .recommend-item-container.selected {
+.tags-container .multiselect__element .multiselect__option--highlight {
     background-color: var(--assort-hover-bg-color);
+    color: var(--assort-hover-text-color);
 }
 
 /* ソースモード時の表示 */
