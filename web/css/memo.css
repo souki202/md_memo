@@ -85,8 +85,7 @@ body {
 }
 
 #memoEditor .CodeMirror {
-    height: calc(100% - 80px);
-    top: 80px;
+    flex-grow: 1;
     font-family: consolas, monospace;
 }
 
@@ -94,18 +93,17 @@ body {
     color: inherit;
 }
 
+#memoEditor .memo-body-edit-container {
+    display: flex;
+    flex-direction: column;
+}
+
 .memo-body-edit-container {
     position: relative;
 }
 
-.memo-body-edit-container .CodeMirror {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    height: auto;
-    width: auto;
+#memoBodyTextarea {
+    height: 0;
 }
 
 .memo-editor-overlay {
@@ -117,6 +115,54 @@ body {
 
 .memo-editor-overlay .memo-message {
     text-align: right;
+}
+
+/* タグ編集領域 */
+.tags-container {
+    z-index: 1000;
+}
+
+.tags-container .multiselect__tags {
+    background-color: var(--assort-bg-color);
+    border: none;
+    border-radius: 0;
+}
+
+.tags-container .multiselect__tag {
+    background-color: var(--assort-hover-bg-color);
+    color: var(--assort-hover-text-color);
+}
+
+.tags-container .multiselect__tag-icon:focus, .multiselect__tag-icon:hover {
+    background-color: var(--memo-tag-close-hover-color);
+}
+
+.tags-container .multiselect__tag-icon:after {
+    transition: color .2s ease;
+    color: var(--assort-text-color);
+}
+
+.tags-container .multiselect__tag-icon:focus:after,
+.tags-container .multiselect__tag-icon:hover:after {
+    color: var(--assort-reverse-text-color);
+}
+
+.tags-container .multiselect__input {
+    background-color: var(--assort-bg-color);
+    color: var(--assort-text-color);
+}
+
+.tags-container .multiselect__content-wrapper {
+    background-color: var(--assort-bg-color);
+}
+
+.tags-container .multiselect__element {
+    color: var(--assort-text-color);
+}
+
+.tags-container .multiselect__element .multiselect__option--highlight {
+    background-color: var(--assort-hover-bg-color);
+    color: var(--assort-hover-text-color);
 }
 
 /* ソースモード時の表示 */

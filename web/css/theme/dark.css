@@ -2,6 +2,12 @@
     --base-bg-color: #111115;
     --base-text-color: #eee;
 
+    --assort-bg-color: #161b22;
+    --assort-hover-bg-color: #323e4d;
+    --assort-text-color: #ddd;
+    --assort-hover-text-color: #ddd;
+    --assort-reverse-text-color: #323e4d;
+
     --sidebar-bg-color: #161b22;
     --sidebar-text-color: #eee;
     --sidebar-separator-color: #888;
@@ -13,9 +19,6 @@
 
     --footer-bg-color: #161b22;
     --footer-text-color: #eee;
-
-    --assort-bg-color: #161b22;
-    --assort-text-color: #ddd;
 
     --table-header-bg: inherit;
     
@@ -38,6 +41,8 @@
     --memo-helper-icon-color: #eee;
     --memo-helper-icon-hover-color: #58a6ff;
     --memo-helper-border-color: #aaa;
+
+    --memo-tag-close-hover-color: #ddd;
     
     --memo-pinned-active-color: rgb(255 219 43);
 

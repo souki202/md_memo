@@ -11,6 +11,14 @@
         {
             "AttributeName": "created_at",
             "AttributeType": "S"
+        },
+        {
+            "AttributeName": "title",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "pinned_type",
+            "AttributeType": "N"
         }
     ],
     "TableName": "md_memo_overviews_dev",
@@ -29,12 +37,50 @@
                     "KeyType": "HASH"
                 },
                 {
-                    "KeyType": "RANGE",
-                    "AttributeName": "created_at"
+                    "AttributeName": "created_at",
+                    "KeyType": "RANGE"
                 }
             ],
             "Projection": {
                 "ProjectionType": "ALL"
+            }
+        },
+        {
+            "IndexName": "user_uuid-title-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "user_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "title",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "INCLUDE",
+                "NonKeyAttributes": [
+                    "title", "uuid", "description", "availability"
+                ]
+            }
+        },
+        {
+            "IndexName": "user_uuid-pinned_type-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "user_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "pinned_type",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "INCLUDE",
+                "NonKeyAttributes": [
+                    "title", "uuid", "description", "availability"
+                ]
             }
         }
     ],

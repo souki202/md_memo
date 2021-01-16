@@ -21,7 +21,15 @@ def get_memo_body_max_len(plan: int):
     else:
         return 10000
 
-
+def get_tags_limit(plan: int):
+    if plan == Plans.FREE.value:
+        return 50
+    elif plan >= Plans.PAYMENT.value:
+        return 500
+    elif plan >= Plans.TEAM.value:
+        return 1000
+    else:
+        return 50
 
 
 

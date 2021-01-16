@@ -20,7 +20,9 @@
 
 テーブル作成
 
-`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\table.json"`
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\overviews.json"`
+
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\overviews.json"`
 
 ### lambdaのテスト
 
@@ -44,8 +46,6 @@ requiementsの追加があればwslに入って
 cd /mnt/d/Projects/md_memo/lambda/my_layer
 pip3 install -r requirements.txt -t ../my_layer_libs/python
 ```
-
-`pip install --user --install-option="--install-purelib=D:\Projects\md_memo\lambda\my_layer" -r requirements.txt`
 
 `sam package --template-file template.yaml --output-template-file template-output.yaml --s3-bucket aws-sam-nested-application-packages-md-memo-dev`
 
@@ -88,3 +88,8 @@ DynamoDBへの追加
 ### cookie
 
 <https://pizzamanz.net/web/javascript/js-cookie/>
+
+### vue
+
+* vue-multiselect
+  * <https://vue-multiselect.js.org>

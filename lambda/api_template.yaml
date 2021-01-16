@@ -36,6 +36,8 @@ Parameters:
     Type: String
   Route53HostZone:
     Type: String
+  RoleArn:
+    Type: String
 
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -97,7 +99,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: test.post_test
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -110,7 +112,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: test.get_test
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -123,7 +125,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.login
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -136,7 +138,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.signup
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -149,7 +151,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.sns_login
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -162,7 +164,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: user.withdrawal_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -175,7 +177,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.regist_complete
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -188,7 +190,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.logout
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -201,7 +203,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.check_token
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -214,7 +216,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: user.get_user_data_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -227,7 +229,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: user.update_user_data_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -240,7 +242,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.reset_password_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -253,7 +255,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: auth.execute_reset_password_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -266,7 +268,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.get_memo_list_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -279,7 +281,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.get_pinned_memo_list_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -292,7 +294,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.get_memo_data_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -305,7 +307,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.get_memo_data_by_share_id
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -318,7 +320,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.save_memo_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -331,7 +333,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.delete_memo
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -344,7 +346,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.update_share_settings_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -357,7 +359,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: memo.switch_pinned_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -370,7 +372,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: files.upload_file_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -383,7 +385,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: files.create_upload_url_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -396,7 +398,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: files.upload_large_file_event
-      Role: 'arn:aws:iam::913905735063:role/MdMemoLambdaRole'
+      Role: !Ref RoleArn
       Events:
         DefaultEvent:
           Type: Api
@@ -405,11 +407,49 @@ Resources:
             Path: /upload_large_file
             Method: post
 
-Outputs:
-  LayerArn:
-    Value: !Ref MyLayer
-    Export:
-      Name: !Sub '${AWS::StackName}-MyLayer'
+  TagFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: tags.tag_event
+      Role: !Ref RoleArn
+      Events:
+        PostEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /update_tag
+            Method: post
+        GetEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_tags
+            Method: get
+        GetUuidEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_tag_id
+            Method: post # hide input parameters
+        GetRelationTagsEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /get_relation_tags
+            Method: get
+        SetTagRelationEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /set_tag_relation
+            Method: post
+        DeleteTagRelationEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /delete_tag_relation
+            Method: post
+          
 # Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

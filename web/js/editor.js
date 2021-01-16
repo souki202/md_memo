@@ -3,6 +3,7 @@ import getFileApiUrl from '/js/getFileApiUrl.js'
 import getTheme from '/js/colorTheme.js';
 import getEnv from '/js/getEnv.js';
 import urlParameter from '/js/urlParameter.js';
+import autoComplete from '/js/autoComplete.js';
 import '/codemirror/lib/codemirror.js';
 import '/js/js.cookie.min.js';
 import '/js/uuidv4.min.js';
@@ -58,6 +59,168 @@ class ViewModes {
         this.modeDescription[this.nowMode];
     }
 }
+
+const tagsComponent = Vue.extend({
+    name: 'tags-component',
+    template:`
+    <div class="tags-container">
+        <tags-select
+            :options="allTags"
+            v-model="relatedTags"
+            label="name"
+            track-by="name"
+            hideSelected="true"
+            :taggable="true"
+            :multiple="true"
+            :max=10
+            :limitText=10
+            tagPlaceholder="タグを作成(50文字まで)"
+            selectLabel=""
+            placeholder=""
+            deselectLabel="選択を解除"
+            @tag="createNewTag"
+            @select="setTagRelation"
+            @remove="removeTagRelation"
+        ></tags-select>
+    </div>
+    `,
+    data() {
+        return {
+            allTags: [],
+            relatedTags: [],
+            tagRecommends: [],
+        }
+    },
+    props: ['memoId'],
+    mounted() {
+        this.tagAutoComplete = new autoComplete('tagInputArea', 'tagRecommendation');
+    },
+    methods: {
+        loadTags() {
+            // tagを取得
+            this.getAllTags();
+        },
+
+        getAllTags() {
+            axios.get(getApiUrl() + '/get_tags').then(res => {
+                console.log(res.data);
+                let tagNameList = []
+                this.allTags = res.data.tags;
+                res.data.tags.forEach((e) => {
+                    tagNameList.push(e.name);
+                })
+
+                this.$set(this, 'tagRecommends', tagNameList)
+
+                // 成功したら関連付けを取得
+                this.getRelationTags();
+            }).catch(err => {
+                console.log(err);
+                this.$parent.errorMessage = 'タグの取得に失敗しました';
+            }).then(() => {
+            });
+        },
+
+        getRelationTags() {
+            // 新規保存時は空の場合がある
+            if (!this.memoId) return;
+            axios.get(getApiUrl() + '/get_relation_tags', {
+                params: {
+                    memo_id: this.memoId
+                }
+            }).then(res => {
+                console.log(res.data);
+                res.data.tags.forEach(e => {
+                    const uuid = e.tag_uuid;
+                    // 探してくる
+                    const targetTag = this.allTags.find(e => e.uuid == uuid);
+                    if (!targetTag) {
+                        this.$parent.errorMessage = 'メモと関連付けられたタグの取得に失敗しました';
+                        return;
+                    }
+                    const newTagData = {
+                        uuid: uuid,
+                        name: targetTag.name,
+                    }
+                    this.relatedTags.push(newTagData);
+                });
+            }).catch(err => {
+                console.log(err);
+                this.$parent.errorMessage = 'メモと関連付けられたタグの取得に失敗しました';
+            }).then(() => {
+            });
+        },
+
+        /**
+         * 新規にタグを作成する
+         * 
+         * @param {string} newTag 新しいタグ 
+         */
+        createNewTag(newTag) {
+            console.log(newTag);
+            if (newTag.length > 50) {
+                this.$parent.errorMessage = 'タグの名前の長さは50文字までです';
+                return false;
+            }
+            axios.post(getApiUrl() + '/update_tag', {
+                params: {
+                    name: newTag,
+                }
+            }).then(res => {
+                const newTagData = {
+                    uuid: res.data.id,
+                    name: newTag,
+                }
+                this.allTags.push(newTagData);
+                this.relatedTags.push(newTagData);
+                this.setTagRelation(newTagData);
+            }).catch(err => {
+                console.log(err);
+                this.$parent.errorMessage = 'タグの追加に失敗しました';
+            }).then(() => {
+            });
+        },
+        
+        setTagRelation(tag) {
+            console.log(tag);
+            // 10個制限
+            if (this.relatedTags.length >= 10) {
+                this.$parent.errorMessage = '1つのメモに対するタグ付けは10個までです';
+                return false;
+            }
+            axios.post(getApiUrl() + '/set_tag_relation', {
+                params: {
+                    'tag_uuid': tag.uuid,
+                    'memo_uuid': this.memoId
+                }
+            }).then(res => {
+                console.log(res.data);
+            }).catch(err => {
+                console.log(err);
+                this.$parent.errorMessage = 'タグの関連付けに失敗しました';
+            }).then(() => {
+            });
+        },
+        
+        removeTagRelation(tag) {
+            axios.post(getApiUrl() + '/delete_tag_relation', {
+                params: {
+                    'tag_uuid': tag.uuid,
+                    'memo_uuid': this.memoId
+                }
+            }).then(res => {
+                console.log(res.data);
+            }).catch(err => {
+                console.log(err);
+                this.$parent.errorMessage = 'タグの関連付けの削除に失敗しました';
+            }).then(() => {
+            });
+        }
+    },
+});
+
+Vue.component('tags-component', tagsComponent);
+Vue.component('tags-select', window.VueMultiselect.default)
 
 new Vue({
     el: '#memoEditor',
@@ -125,6 +288,7 @@ new Vue({
         },
     },
     mounted() {
+
         // まずテーマ取得
         this.theme = getTheme();
 
@@ -169,6 +333,11 @@ new Vue({
             this.isSharedView = true;
             this.loadByShareId(shareId);
         }
+        else if (!memoId) {
+            // 新規作成なので即保存
+            this.save();
+            this.$refs.tags.loadTags();
+        }
 
         // markedの設定
         marked.setOptions({
@@ -183,7 +352,7 @@ new Vue({
          * メモを保存する
          */
         _save() {
-            if (!this.canSave || !window.userData) {
+            if (!this.canSave) {
                 return;
             }
 
@@ -208,12 +377,17 @@ new Vue({
                     files: this.getFileKeys(),
                 }
             }).then(res => {
-                console.log('auto save complete: ' + res.data.id);
+                console.log('save complete: ' + res.data.id);
                 this.memo.id = res.data.id
                 this.drawMessage('saved');
             }).catch(err => {
                 console.log(err);
-                this.errorMessage = 'Failed to update memo.'
+                if (err.response && err.response.data.is_limit_length) {
+                    this.errorMessage = 'メモの上限文字数は' + this.getMaxBodyLen() + '文字です'
+                }
+                else {
+                    this.errorMessage = 'Failed to update memo.'
+                }
             }).then(() => {
                 this.isSaving = false;
             })
@@ -230,6 +404,9 @@ new Vue({
         },
 
         getMaxBodyLen() {
+            if (!window.userData) {
+                return 10000000
+            }
             const userData = window.userData;
             if (!userData) {
                 return 10000;
@@ -246,7 +423,6 @@ new Vue({
         },
 
         getFileKeys() {
-            let apiUrl = getFileApiUrl();
             let r = /a/
             switch (getEnv()) {
                 case 'dev':
@@ -303,7 +479,7 @@ new Vue({
         },
 
         /**
-         * メモを読み込む
+         * メモとタグを読み込む
          */
         load() {
             if (this.memo.id) {
@@ -318,6 +494,8 @@ new Vue({
                 }).then(() => {
                 });
             }
+            // タグを読み込む
+            this.$refs.tags.loadTags();
         },
 
         loadByShareId(shareId) {

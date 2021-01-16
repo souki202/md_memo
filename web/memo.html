@@ -134,6 +134,7 @@
                                 </div>
                             </div>
                         </div>
+                        <tags-component :memo-id="memo.id" ref="tags"></tags-component>
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
@@ -219,9 +220,13 @@
             appendCss('/highlight/styles/darcula.css');
             appendScript('/highlight/highlight.pack.js');
 
+            appendCss('/css/vue-multiselect.min.css');
+
             appendScript('/js/marked.min.js');
             appendScript('/js/auth.js', true);
+            appendScript('/js/autoComplete.js', true);
             appendScript('/js/memoHelper.js', true);
+            appendScript('/js/vue-multiselect.min.js');
             appendScript('/js/editor.js', true);
             appendCss('/css/memo.css');
         })

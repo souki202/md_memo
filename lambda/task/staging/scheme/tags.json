@@ -1,0 +1,42 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "user_uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "name",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_tags_stg",
+    "KeySchema": [
+        {
+            "AttributeName": "uuid",
+            "KeyType": "HASH"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "user_uuid-name-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "user_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "name",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "ALL"
+            }
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}
