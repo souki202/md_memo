@@ -69,8 +69,14 @@ const tagsComponent = Vue.extend({
             v-model="relatedTags"
             label="name"
             track-by="name"
+            hideSelected="true"
             :taggable="true"
             :multiple="true"
+            :max=10
+            :limitText=10
+            tagPlaceholder="タグを作成(50文字まで)"
+            selectLabel=""
+            deselectLabel="選択を解除"
             @tag="createNewTag"
             @select="setTagRelation"
             @remove="removeTagRelation"
@@ -151,6 +157,10 @@ const tagsComponent = Vue.extend({
          */
         createNewTag(newTag) {
             console.log(newTag);
+            if (newTag.length > 50) {
+                this.$parent.errorMessage = 'タグの名前の長さは50文字までです';
+                return false;
+            }
             axios.post(getApiUrl() + '/update_tag', {
                 params: {
                     name: newTag,
@@ -172,6 +182,11 @@ const tagsComponent = Vue.extend({
         
         setTagRelation(tag) {
             console.log(tag);
+            // 10個制限
+            if (this.relatedTags.length >= 10) {
+                this.$parent.errorMessage = '1つのメモに対するタグ付けは10個までです';
+                return false;
+            }
             axios.post(getApiUrl() + '/set_tag_relation', {
                 params: {
                     'tag_uuid': tag.uuid,

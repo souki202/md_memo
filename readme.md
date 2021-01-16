@@ -92,4 +92,4 @@ DynamoDBへの追加
 ### vue
 
 * vue-multiselect
-  * https://vue-multiselect.js.org
+  * <https://vue-multiselect.js.org>

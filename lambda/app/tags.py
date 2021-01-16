@@ -13,10 +13,8 @@ from model.user import *
 from model.memo import *
 from model.plan import *
 import model.file as my_file
-from model.share import *
 import model.tag as my_tag
 
-MAX_TAG_COUNT = 500
 MAX_TAG_NAME_LEN = 50
 
 def tag_event(event, context):
@@ -50,6 +48,11 @@ def update_tag_event(event, context):
     if not user_uuid:
         return create_common_return_array(401, {'message': 'session timeout.',})
     
+    user_data = get_user_data_by_uuid(user_uuid)
+
+    if not user_data:
+        return create_common_return_array(500, {'message': 'Failed to get user data.',})
+
     # 各種値を変数に
     params = json.loads(event['body'] or '{ }')
     if 'params' not in params:
@@ -64,7 +67,6 @@ def update_tag_event(event, context):
     if len(name) > MAX_TAG_NAME_LEN:
         return create_common_return_array(403, {'message': 'The name can be up to 50 characters.'})
 
-
     if not tag_uuid:
         # uuidが無ければ新規作成
         # まずは件数を取得して作成できるか調べる
@@ -73,7 +75,7 @@ def update_tag_event(event, context):
         if num_of_tags is None:
             return create_common_return_array(500, {'message': 'Failed to create tag'})
         
-        if num_of_tags >= MAX_TAG_COUNT:
+        if num_of_tags >= get_tags_limit(user_data['plan']):
             return create_common_return_array(500, {'message': 'Failed to create tag', 'is_limit': True})
             
         # タグの新規作成
@@ -110,7 +112,6 @@ def get_tags_event(event, context):
 
 def get_tag_id_event(event, context):
     user_uuid: str = get_user_uuid_by_event(event)
-    # 更新はログイン必須
     if not user_uuid:
         return create_common_return_array(401, {'message': 'session timeout.',})
 
@@ -176,7 +177,7 @@ def set_tag_relation_event(event, context):
     if not tag_uuid or not memo_uuid:
         return create_common_return_array(406, {'message': 'Insufficient input'})
 
-    # メモとタグの所持者がどちらもログインユーザか調べる
+    # メモとタグの所持者がどちらもログインユーザのものか調べる
     tag_info = my_tag.get_tag(tag_uuid)
     memo_overview = get_memo_overview(memo_uuid)
 
@@ -184,6 +185,7 @@ def set_tag_relation_event(event, context):
         return create_common_return_array(401, {'message': 'Unauthorized'})
 
     # relationをつける
+    # とりあえず関連付けの個数制限はフロントでのみ判定.
     if not my_tag.set_tag_relation(tag_uuid, memo_uuid, memo_overview['created_at']):
         return create_common_return_array(500, {'message': 'Failed to set tag relation'})
     return create_common_return_array(200, {'message': 'Success'})
