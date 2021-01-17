@@ -110,17 +110,16 @@ def get_pinned_memo_list_event(event, context):
 def get_memo_data_event(event, content):
     if os.environ['EnvName'] != 'Prod':
         print(json.dumps(event))
-    user_uuid: str = get_user_uuid_by_event(event)
-    if not user_uuid:
-        return {
-            "statusCode": 401,
-            "headers": create_common_header(),
-            "body": json.dumps({'message': "session timeout",}),
-        }
     
     memo_id = ''
     if 'queryStringParameters' in event:
         memo_id = event['queryStringParameters'].get('memo_id', '')
+
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': 'session timeout',})
+
+
     # 取得時はメモの持ち主が一致しているか確認
     if not check_is_owner_of_the_memo(memo_id, user_uuid):
         print('Unauthorized get memo data.')
@@ -140,10 +139,6 @@ def get_memo_data_event(event, content):
 def save_memo_event(event, context):
     if os.environ['EnvName'] != 'Prod':
         print(json.dumps(event))
-    user_uuid: str = get_user_uuid_by_event(event)
-    # 更新はログイン必須
-    if not user_uuid:
-        return create_common_return_array(401, {'message': 'session timeout.',})
 
     # 各種値を変数に
     params = json.loads(event['body'] or '{ }')
@@ -167,6 +162,10 @@ def save_memo_event(event, context):
     if len(body) > get_memo_body_max_len(user_data['plan']):
         return create_common_return_array(401, {'message': 'The body length is up to ' + str(get_memo_body_max_len(user_data['plan'])) + ' characters.', 'is_limit_length': True})
 
+    user_uuid: str = get_user_uuid_by_event(event)
+    # 更新はログイン必須
+    if not user_uuid:
+        return create_common_return_array(401, {'message': 'session timeout.',})
 
     # 更新時はメモの編集権限があるかチェック
     if memo_id:

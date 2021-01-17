@@ -476,6 +476,7 @@ new Vue({
             }
             if (memo.is_trash) {
                 newMemoData.isTrash = true;
+                this.viewModes.setMode(ViewModes.ModeList.Preview);
             }
             this.$set(this, 'memo', newMemoData);
             this.codemirror.setValue(this.memo.body);

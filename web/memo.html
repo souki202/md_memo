@@ -134,7 +134,7 @@
                                 </div>
                             </div>
                         </div>
-                        <tags-component :memo-id="memo.id" ref="tags"></tags-component>
+                        <tags-component :memo-id="memo.id" ref="tags" v-if="!isReadOnly"></tags-component>
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
@@ -154,7 +154,7 @@
                 <div class="tool-tip" v-if="!isReadOnly">
                     <div class="tool-tip-icons">
                         <!-- 保存アイコン -->
-                        <div class="tool-tip-icon-container save-icon" v-if="!isSharedView || memo.share.type == 4">
+                        <div class="tool-tip-icon-container save-icon" v-if="!isReadOnly">
                             <i class="fas fa-save fa-2x tool-tip-icon" @click="save"></i>
                         </div>
                         <!-- シェアアイコン -->
@@ -165,7 +165,7 @@
                             <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showShareDialog"></i>
                         </div> -->
                         <!-- 表示状態のスイッチ -->
-                        <div class="tool-tip-icon-container switch-view-icon" v-if="!isSharedView || memo.share.type == 4">
+                        <div class="tool-tip-icon-container switch-view-icon" v-if="!isReadOnly">
                             <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
                         </div>
                         <!-- ピン留め -->

@@ -353,7 +353,7 @@ def get_memo_data(memo_id: str):
             KeyConditionExpression=Key('uuid').eq(memo_id)
         )['Items']
         if len(result) == 0:
-            print('Overview found, but body not found')
+            print('Overview found, but body not found. memo_id: ' + memo_id)
             return None
         memo_data['body'] = result[0]['body']
 
