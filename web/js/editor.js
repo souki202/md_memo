@@ -688,6 +688,7 @@ new Vue({
                     // アップ完了の文字置換
                     this.invokeCodemirrorOperation('uploadComplete', tmpKey, key);
                     // 反映のため, 即保存
+                    this.canSave = true;
                     this.save();
 
                     // 画像本体アップ

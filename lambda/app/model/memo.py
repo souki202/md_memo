@@ -100,15 +100,6 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
 def check_id_owner_of_the_memo_by_data(memo_data: dict, user_uuid: str) -> bool:
     return memo_data['user_uuid'] == user_uuid
 
-'''
-すべてのメモが持ち主と一致しているか確認する
-'''
-def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool:
-    for memo_id in memo_id_list:
-        if not check_is_owner_of_the_memo(memo_id, user_uuid):
-            return False
-    return True
-
 def get_memo_list_include_trash(user_uuid):
     try:
         exclusive_start_key = None
@@ -305,6 +296,7 @@ def get_memo_overview_in_trash(memo_id: str) -> dict:
         )['Items']
         if len(result) == 0:
             return None
+        result[0]['is_trash'] = True
         return result[0]
     except Exception as e:
         print(e)
@@ -487,11 +479,6 @@ def move_trash_memo(memo_id):
         del memo_info['pinned_type']
     memo_info['deleted_at'] = get_now_string()
     try:
-        res = memo_trash_table.put_item(
-            Item=memo_info
-        )
-        if not res:
-            return False
         transacts = [
             {
                 'Delete': {
@@ -499,6 +486,12 @@ def move_trash_memo(memo_id):
                     'Key': {
                         'uuid': to_dynamo_format(memo_id)
                     },
+                }
+            },
+            {
+                'Put': {
+                    'TableName': MEMO_TRASH_TABLE_NAME,
+                    'Item': dict2dynamoformat(memo_info)
                 }
             }
         ]
@@ -511,6 +504,45 @@ def move_trash_memo(memo_id):
                     }
                 }
             })
+        result = db_client.transact_write_items(
+            TransactItems = transacts
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        # 消したデータを戻す
+        memo_trash_table.delete_item(
+            Key={
+                'uuid': memo_info['uuid']
+            }
+        )
+        return False
+
+def restore_memo(memo_id: str) -> bool:
+    # メモ設定を取得
+    memo_info = get_memo_overview_in_trash(memo_id)
+    if not memo_info:
+        return False
+    del memo_info['deleted_at']
+    del memo_info['is_trash']
+    memo_info['pinned_type'] = PinnedType.NO_PINNED.value
+    try:
+        transacts = [
+            {
+                'Delete': {
+                    'TableName': MEMO_TRASH_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                },
+            },
+            {
+                'Put': {
+                    'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                    'Item': dict2dynamoformat(memo_info)
+                }
+            }
+        ]
         result = db_client.transact_write_items(
             TransactItems = transacts
         )

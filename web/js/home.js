@@ -5,6 +5,8 @@ import '/js/js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
 
+const Loading = window.VueLoading;
+
 Vue.component('memo-card', {
     template: `
     <div class="memo-card all-memo-item">
@@ -40,6 +42,9 @@ Vue.component('memo-card', {
 
 new Vue({
     el: '#homeMemoList',
+    components: {
+        'loading': Loading
+    },
     data: () => {
         return {
             errorMessage: '',
@@ -52,6 +57,10 @@ new Vue({
 
             operationType: '',
             theme: 'light',
+
+            // loading
+            isLoading: false,
+            fullPage: true
         }
     },
     mounted() {
@@ -158,23 +167,10 @@ new Vue({
             return result;
         },
 
-        toTrashMemo() {
-            this.clearMessage()
-            const checkedMemoList = this.getCheckMemoList();
-            if (!checkedMemoList.length) {
-                window.alert('メモが選択されていません');
-                return;
-            }
-
-            if (checkedMemoList.length > 10) {
-                window.alert('10件より多くの選択はできません');
-                return; 
-            }
-
+        toTrashMemo(checkedMemoList) {
             // if (!window.confirm('ゴミ箱に移動するとシェアの設定が削除されます. よろしいですか?')) {
             //     return;
             // }
-            
             axios.post(getApiUrl() + '/to_trash_memo', {
                 params: {memo_id_list: checkedMemoList}
             }).then((res) => {
@@ -184,25 +180,14 @@ new Vue({
                 console.log(err);
                 this.errorMessage = 'メモの削除に失敗しました';
             }).then(() => {
+                this.isLoading = false;
             })
         },
 
         /**
          * メモのソフトデリートを実行する
          */
-        deleteMemo() {
-            this.clearMessage()
-            const checkedMemoList = this.getCheckMemoList();
-            if (!checkedMemoList.length) {
-                window.alert('メモが選択されていません');
-                return;
-            }
-
-            if (checkedMemoList.length > 10) {
-                window.alert('10件より多くの選択はできません');
-                return; 
-            }
-
+        deleteMemo(checkedMemoList) {
             if (!window.confirm('ゴミ箱から削除したメモは復元できません。削除してよろしいですか?')) {
                 return;
             }
@@ -215,16 +200,49 @@ new Vue({
                 console.log(err);
                 this.errorMessage = 'メモの削除に失敗しました';
             }).then(() => {
+                this.isLoading = false;
+            })
+        },
+
+        /**
+         * メモをゴミ箱から戻す
+         */
+        restoreMemo(checkedMemoList) {
+            axios.post(getApiUrl() + '/restore_memo', {
+                params: {memo_id_list: checkedMemoList}
+            }).then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+                this.isLoading = false;
             })
         },
 
         memoOperation() {
+            this.clearMessage()
+            const checkedMemoList = this.getCheckMemoList();
+            if (!checkedMemoList.length) {
+                window.alert('メモが選択されていません');
+                return;
+            }
+
+            if (checkedMemoList.length > 10) {
+                window.alert('10件より多くの選択はできません');
+                return; 
+            }
+            this.isLoading = true;
             switch (this.operationType) {
                 case 'trash':
-                    this.toTrashMemo();
+                    this.toTrashMemo(checkedMemoList);
                     break;
                 case 'delete':
-                    this.deleteMemo();
+                    this.deleteMemo(checkedMemoList);
+                    break;
+                case 'restore':
+                    this.restoreMemo(checkedMemoList);
                     break;
             }
             this.operationType  = '';

@@ -10,6 +10,11 @@
     <div id="header"></div>
     <main id="main">
         <div id="homeMemoList">
+            <loading
+                :active.sync="isLoading"
+                :can-cancel="false"
+                :is-full-page="fullPage"
+            ></loading>
             <!-- messages -->
             <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
                 <p>{{ errorMessage }}</p>
@@ -33,6 +38,7 @@
                         <option value="">操作を選択</option>
                         <option value="trash" v-if="!isTrash">ゴミ箱に移動</option>
                         <option value="delete" v-if="isTrash">完全に削除</option>
+                        <option value="restore" v-if="isTrash">ゴミ箱から戻す</option>
                     </select>
                 </div>
             </div>
@@ -73,8 +79,10 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/vue-loading-overlay@3.js', true);
             appendScript('/js/auth.js', true);
             appendScript('/js/home.js', true);
+            appendCss('/css/vue-loading.css')
             appendCss('/css/home.css')
         })
     </script>

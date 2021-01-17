@@ -354,6 +354,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /delete_memo
             Method: post
+        RestoreMemoEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /restore_memo
+            Method: post
         
 
   UpdateShareSettingsFunction:

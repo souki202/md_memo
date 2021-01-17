@@ -7,8 +7,6 @@ import time
 import secrets
 from enum import Enum
 from decimal import Decimal
-from http.cookies import SimpleCookie
-from boto3.dynamodb.conditions import Key
 from common_headers import *
 from model.auth import *
 from my_common import *
@@ -23,13 +21,6 @@ def decimal_default_proc(obj):
     if isinstance(obj, Decimal):
         return float(obj)
     raise TypeError
-
-db_client = boto3.resource("dynamodb")
-users_table = db_client.Table('md_memo_users' + os.environ['DbSuffix'])
-sessions_table = db_client.Table('md_memo_sessions' + os.environ['DbSuffix'])
-memo_overviews_table = db_client.Table('md_memo_overviews' + os.environ['DbSuffix'])
-memo_bodies_table = db_client.Table('md_memo_bodies' + os.environ['DbSuffix'])
-memo_shares_table = db_client.Table('md_memo_shares' + os.environ['DbSuffix'])
 
 MULTIPLE_SELECT_MEMO_LIMIT = 10
 
@@ -316,6 +307,8 @@ def delete_memo_event(event, context):
             return to_trash_memo_event(event, context)
         elif resource == '/delete_memo':
             return hard_delete_memo_event(event, context)
+        elif resource == '/restore_memo':
+            return restore_memo_event(event, context)
     
     return create_common_return_array(404, {'message': 'Not Found',})
 
@@ -337,27 +330,28 @@ def hard_delete_memo_event(event, context):
         return create_common_return_array(406, {'message': "Failed to delete memo.",})
     
     if len(memo_id_list) > MULTIPLE_SELECT_MEMO_LIMIT:
-        return create_common_return_array(406, {'message': "The maximum number of selections is " + MULTIPLE_SELECT_MEMO_LIMIT + ".",})
+        print('Limit: len: ' + str(len(memo_id_list)) + ' limit: ' + str(MULTIPLE_SELECT_MEMO_LIMIT))
+        return create_common_return_array(406, {'message': "The maximum number of selections is " + str(MULTIPLE_SELECT_MEMO_LIMIT) + ".",})
 
     # 重複消去
     memo_id_list = list(set(memo_id_list))
-    # メモの持ち主と一致してるか調べる
-    if not check_is_owner_of_the_memo_multi(memo_id_list, user_uuid):
-        print('Unauthorized delete operation. ' + str(memo_id_list) + user_uuid)
-        return create_common_return_array(401, {'message': "Failed to delete memo.",})
 
     for memo_id in memo_id_list:
+        # メモの持ち主と一致してるか調べる
+        if not check_is_owner_of_the_memo(memo_id, user_uuid):
+            print('Unauthorized hard delete operation. ' + str(memo_id_list) + user_uuid)
+            return create_common_return_array(401, {'message': "Unauthorized",})
         # メモそのものの情報を削除
         if not delete_memo(memo_id):
-            print("failed to delete memo")
+            print("failed to delete memo: " + memo_id)
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
         # メモとファイルの紐付けを削除
         if not my_file.delete_file_and_memo_relation_by_memo_id(memo_id):
-            print("failed to delete memo and file relations")
+            print("failed to delete memo and file relations: " + memo_id)
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
         # メモとタグの紐付けを削除
         if not my_tag.delete_tag_relations_by_memo_id(memo_id):
-            print("failed to delete memo and tag relations")
+            print("failed to delete memo and tag relations: " + memo_id)
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
 
     return create_common_return_array(200, {'message': 'success',})
@@ -368,27 +362,76 @@ def hard_delete_memo_event(event, context):
 def to_trash_memo_event(event, content):
     user_uuid: str = get_user_uuid_by_event(event)
     if not user_uuid:
+        print('do not input uuid')
         return create_common_return_array(401, {'message': "Failed to delete memo.",})
 
     params = json.loads(event['body'] or '{ }')
     if not params or not params.get('params'):
-        return create_common_return_array(406, {'message': "Failed to delete memo.",})
+        return create_common_return_array(406, {'message': "Insufficient input.",})
 
     memo_id_list = params['params'].get('memo_id_list')
     if not memo_id_list:
-        return create_common_return_array(406, {'message': "Failed to delete memo.",})
+        print('Insufficient input')
+        return create_common_return_array(406, {'message': "Insufficient input.",})
     
     if len(memo_id_list) > MULTIPLE_SELECT_MEMO_LIMIT:
-        return create_common_return_array(406, {'message': "The maximum number of selections is " + MULTIPLE_SELECT_MEMO_LIMIT + ".",})
+        print('Limit: len: ' + str(len(memo_id_list)) + ' limit: ' + str(MULTIPLE_SELECT_MEMO_LIMIT))
+        return create_common_return_array(406, {'message': "The maximum number of selections is " + str(MULTIPLE_SELECT_MEMO_LIMIT) + ".",})
     
+    # 重複消去
+    memo_id_list = list(set(memo_id_list))
+
     for memo_id in memo_id_list:
+        if not check_is_owner_of_the_memo(memo_id, user_uuid):
+            print('Unauthorized trash operation. ' + str(memo_id_list) + user_uuid)
+            return create_common_return_array(401, {'message': "Unauthorized",})
         # メモそのものの情報をゴミ箱に
         # シェア設定は物理削除
         if not move_trash_memo(memo_id):
+            print('Failed to trash memo: ' + memo_id)
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
         # 紐付け周りはそのまま
 
     return create_common_return_array(200, {'message': 'success',})
+
+'''
+ゴミ箱から戻す
+'''
+def restore_memo_event(event, context):
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        print('do not input uuid')
+        return create_common_return_array(401, {'message': "Failed to restore memo.",})
+
+    params = json.loads(event['body'] or '{ }')
+    if not params or not params.get('params'):
+        print('Insufficient input')
+        return create_common_return_array(406, {'message': "Insufficient input.",})
+
+    memo_id_list = params['params'].get('memo_id_list')
+    if not memo_id_list:
+        print('Insufficient input')
+        return create_common_return_array(406, {'message': "Insufficient input.",})
+    
+    if len(memo_id_list) > MULTIPLE_SELECT_MEMO_LIMIT:
+        print('Limit: len: ' + str(len(memo_id_list)) + ' limit: ' + str(MULTIPLE_SELECT_MEMO_LIMIT))
+        return create_common_return_array(406, {'message': "The maximum number of selections is " + str(MULTIPLE_SELECT_MEMO_LIMIT) + ".",})
+
+    # 重複消去
+    memo_id_list = list(set(memo_id_list))
+    for memo_id in memo_id_list:
+        if not check_is_owner_of_the_memo(memo_id, user_uuid):
+            print('Unauthorized restore operation. ' + str(memo_id_list) + user_uuid)
+            return create_common_return_array(401, {'message': "Unauthorized",})
+        # メモそのものの情報をゴミ箱に
+        # シェア設定は物理削除
+        if not restore_memo(memo_id):
+            print('Failed to restore memo: ' + memo_id)
+            return create_common_return_array(500, {'message': "Failed to restore memo.",})
+        # 紐付け周りはそのまま
+
+    return create_common_return_array(200, {'message': 'success',})
+
 
 def switch_pinned_event(event, context):
     if os.environ['EnvName'] != 'Prod':
