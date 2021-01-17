@@ -284,6 +284,9 @@ new Vue({
             const domain = document.domain;
             return 'https://' + domain + '/' + 'memo.html?share_id=' + this.memo.share.id;
         },
+        isReadOnly() {
+            return this.getIsReadOnly();
+        }
     },
     mounted() {
         // まずテーマ取得
@@ -396,6 +399,7 @@ new Vue({
         },
 
         save() {
+            if (this.getIsReadOnly()) return;
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
             this._save();
         },
@@ -470,9 +474,16 @@ new Vue({
             else {
                 newMemoData.pinnedType = memo.pinned_type
             }
+            if (memo.is_trash) {
+                newMemoData.isTrash = true;
+            }
             this.$set(this, 'memo', newMemoData);
             this.codemirror.setValue(this.memo.body);
             this.updatePreviewCallback();
+        },
+
+        getIsReadOnly() {
+            return !(!this.isSharedView || (this.memo.share && this.memo.share.type == 4)) || this.memo.isTrash;
         },
 
         /**

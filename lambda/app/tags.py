@@ -149,11 +149,13 @@ def get_relation_tags_event(event, context):
 
     # 取得時はメモの持ち主が一致しているか確認
     if not check_is_owner_of_the_memo(memo_id, user_uuid):
+        print('Unauthorized: memo_id: ' + memo_id + ' user_uuid: ' + user_uuid)
         return create_common_return_array(401, {'message': 'Unauthorized',})
     
     # 取得
     tags = my_tag.get_tag_relations(memo_id)
     if tags == False:
+        print('Failed to set tag relation: memo_id: ' + memo_id + ' user_uuid: ' + user_uuid)
         return create_common_return_array(500, {'message': 'Failed to set tag relation'})
     
     return create_common_return_array(200, {'tags': tags,})

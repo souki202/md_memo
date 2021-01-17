@@ -125,25 +125,17 @@ def get_memo_data_event(event, content):
     if not check_is_owner_of_the_memo(memo_id, user_uuid):
         print('Unauthorized get memo data.')
         print({'user': user_uuid, 'memo_id': memo_id})
-        return {
-            'statusCode': 404,
-            'headers': create_common_header(),
-            'body': json.dumps({'message': 'Not Found',}),
-        }
+        return create_common_return_array(401, {'message': 'Unauthorized',})
+
     # メモ情報の取得
     memo_data = get_memo_data(memo_id)
     if not memo_data:
-        return {
-            'statusCode': 404,
-            'headers': create_common_header(),
-            'body': json.dumps({'message': 'Not Found',}),
-        }
+        return create_common_return_array(404, {'message': 'Not Found',})
+
     del memo_data['user_uuid']
-    return {
-        "statusCode": 200,
-        "headers": create_common_header(),
-        "body": json.dumps({'memo': memo_data,}, default=decimal_default_proc),
-    }
+
+    return create_common_return_array(200, {'memo': memo_data,})
+
 
 def save_memo_event(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -163,9 +155,13 @@ def save_memo_event(event, context):
     description: str = params['params'].get('memo', {}).get('description', '')
     memo_type: int   = int(params['params'].get('memo', {}).get('type', 1))
     body: str        = params['params'].get('memo', {}).get('body', '')
+    is_trash: list      = params['params'].get('memo', {}).get('isTrash', [])
     files: list      = params['params'].get('files', [])
 
     user_data: dict = get_user_data_by_uuid(user_uuid)
+
+    if is_trash:
+        return create_common_return_array(401, {'message': 'Unauthorized'})
 
     # 文字数上限チェック
     if len(body) > get_memo_body_max_len(user_data['plan']):
@@ -177,7 +173,7 @@ def save_memo_event(event, context):
         share_settings: dict = get_share_setting_by_memo_id(memo_id)
         share_users: str = ''
         edit_auth: bool = False
-        memo_data: dict = get_memo_overview(memo_id)
+        memo_data: dict = get_available_memo_overview(memo_id)
 
         if share_settings and share_settings['share_type'] == ShareType.EDITABLE.value:
             # シェア時に, 更新権限があるか調べる

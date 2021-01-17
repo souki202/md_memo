@@ -97,6 +97,21 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
         print(e)
         return False
 
+'''
+メモの持ち主とログインユーザが一致しているか確認する
+'''
+def check_is_owner_of_the_available_memo(memo_id: str, user_uuid: str) -> bool:
+    if not memo_id or not user_uuid:
+        return False
+    try:
+        result = get_available_memo_overview(memo_id)
+        if not result:
+            return False
+        return result['user_uuid'] == user_uuid
+    except Exception as e:
+        print(e)
+        return False
+
 def check_id_owner_of_the_memo_by_data(memo_data: dict, user_uuid: str) -> bool:
     return memo_data['user_uuid'] == user_uuid
 
@@ -286,6 +301,23 @@ def get_memo_overview(memo_id: str) -> dict:
         return None
     return None
 
+def get_available_memo_overview(memo_id: str) -> dict:
+    if not memo_id:
+        return None
+    try:
+        # overviewの取得
+        result = memo_overviews_table.query(
+            KeyConditionExpression=Key('uuid').eq(memo_id),
+        )['Items']
+        # 無ければゴミ箱から検索
+        if len(result) == 0:
+            return None
+        return result[0]
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
 def get_memo_overview_in_trash(memo_id: str) -> dict:
     if not memo_id:
         return None
@@ -312,12 +344,9 @@ def get_memo_data(memo_id: str):
     memo_data = {}
     try:
         # overviewの取得
-        result = memo_overviews_table.query(
-            KeyConditionExpression=Key('uuid').eq(memo_id),
-        )['Items']
-        if len(result) == 0:
-            return None
-        memo_data = result[0]
+        memo_data = get_memo_overview(memo_id)
+        if not memo_data:
+            return False
 
         # bodyの取得
         result = memo_bodies_table.query(

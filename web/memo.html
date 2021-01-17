@@ -151,7 +151,7 @@
                 </div>
                 
                 <!-- 各種メモの操作用ボタン -->
-                <div class="tool-tip" v-if="!isSharedView || memo.share.type == 4">
+                <div class="tool-tip" v-if="!isReadOnly">
                     <div class="tool-tip-icons">
                         <!-- 保存アイコン -->
                         <div class="tool-tip-icon-container save-icon" v-if="!isSharedView || memo.share.type == 4">
