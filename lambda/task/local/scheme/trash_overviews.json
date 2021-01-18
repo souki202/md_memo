@@ -15,13 +15,9 @@
         {
             "AttributeName": "title",
             "AttributeType": "S"
-        },
-        {
-            "AttributeName": "pinned_type",
-            "AttributeType": "N"
         }
     ],
-    "TableName": "md_memo_overviews_dev",
+    "TableName": "md_memo_trash_memos_dev",
     "KeySchema": [
         {
             "AttributeName": "uuid",
@@ -42,7 +38,10 @@
                 }
             ],
             "Projection": {
-                "ProjectionType": "ALL"
+                "ProjectionType": "INCLUDE",
+                "NonKeyAttributes": [
+                    "title", "uuid", "description"
+                ]
             }
         },
         {
@@ -54,25 +53,6 @@
                 },
                 {
                     "AttributeName": "title",
-                    "KeyType": "RANGE"
-                }
-            ],
-            "Projection": {
-                "ProjectionType": "INCLUDE",
-                "NonKeyAttributes": [
-                    "title", "uuid", "description"
-                ]
-            }
-        },
-        {
-            "IndexName": "user_uuid-pinned_type-index",
-            "KeySchema": [
-                {
-                    "AttributeName": "user_uuid",
-                    "KeyType": "HASH"
-                },
-                {
-                    "AttributeName": "pinned_type",
                     "KeyType": "RANGE"
                 }
             ],

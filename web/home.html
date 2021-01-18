@@ -10,20 +10,34 @@
     <div id="header"></div>
     <main id="main">
         <div id="homeMemoList">
+            <loading
+                :active.sync="isLoading"
+                :can-cancel="false"
+                :is-full-page="fullPage"
+            ></loading>
             <!-- messages -->
             <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
                 <p>{{ errorMessage }}</p>
             </div>
             <div class="memo-operation-items">
                 <!-- 新規メモボタン -->
-                <div class="new-memo-container">
-                    <div class="new-memo">
+                <div class="main-operation-button-container" v-if="!isTrash">
+                    <div class="main-operation-button">
                         <a href="/memo.html">
                             <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
-                                <i class="far fa-plus-square fa-2x"></i>
-                                <div class="new-memo-text">New Memo</div>
+                                <i class="main-operation-button-icon far fa-plus-square fa-2x"></i>
+                                <div class="main-operation-button-text">New Memo</div>
                             </div>
                         </a>
+                    </div>
+                </div>
+                <!-- ゴミ箱を空にボタン -->
+                <div class="main-operation-button-container" v-if="isTrash">
+                    <div class="main-operation-button" @click="truncateTrash">
+                        <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
+                            <i class="fas fa-trash-alt"></i>
+                            <div class="main-operation-button-text">ゴミ箱を空に</div>
+                        </div>
                     </div>
                 </div>
 
@@ -31,7 +45,9 @@
                 <div class="memo-operation-selector-container">
                     <select class="form-control" name="memoOperationSelector" id="memoOperationSelector" @change="memoOperation" v-model="operationType">
                         <option value="">操作を選択</option>
-                        <option value="del">削除</option>
+                        <option value="trash" v-if="!isTrash">ゴミ箱に移動</option>
+                        <option value="delete" v-if="isTrash">完全に削除</option>
+                        <option value="restore" v-if="isTrash">ゴミ箱から戻す</option>
                     </select>
                 </div>
             </div>
@@ -40,7 +56,8 @@
                 <div id="allMemoList" class="col-6">
                     <div class="all-memo-list-container memo-list-container">
                         <div class="list-header">
-                            <p>全てのメモ</p>
+                            <p v-if="!isTrash">全てのメモ</p>
+                            <p v-if="isTrash">ゴミ箱内のメモ</p>
                         </div>
                         <div class="memo-list">
                             <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'all'"></memo-card>
@@ -54,7 +71,7 @@
                         <p>これ以上メモはありません</p>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-6 pinned-memo-list-container" v-if="!isTrash">
                     <div class="memo-list-container">
                         <div class="list-header">
                             <p>ピン留めされたメモ</p>
@@ -71,8 +88,10 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/vue-loading-overlay@3.js', true);
             appendScript('/js/auth.js', true);
             appendScript('/js/home.js', true);
+            appendCss('/css/vue-loading.css')
             appendCss('/css/home.css')
         })
     </script>

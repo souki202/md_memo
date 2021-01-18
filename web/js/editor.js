@@ -284,9 +284,11 @@ new Vue({
             const domain = document.domain;
             return 'https://' + domain + '/' + 'memo.html?share_id=' + this.memo.share.id;
         },
+        isReadOnly() {
+            return this.getIsReadOnly();
+        }
     },
     mounted() {
-
         // まずテーマ取得
         this.theme = getTheme();
 
@@ -366,6 +368,16 @@ new Vue({
                 return;
             }
 
+            if (this.memo.title.length == 0) {
+                this.errorMessage = 'メモのタイトルは必須です'
+                return;
+            }
+
+            if (this.memo.title.length > 200) {
+                this.errorMessage = 'メモのタイトルの上限文字数は200文字です'
+                return;
+            }
+
             // 保存処理
             this.isSaving = true;
             this.canSave = false;
@@ -397,6 +409,7 @@ new Vue({
         },
 
         save() {
+            if (this.getIsReadOnly()) return;
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
             this._save();
         },
@@ -471,9 +484,17 @@ new Vue({
             else {
                 newMemoData.pinnedType = memo.pinned_type
             }
+            if (memo.is_trash) {
+                newMemoData.isTrash = true;
+                this.viewModes.setMode(ViewModes.ModeList.Preview);
+            }
             this.$set(this, 'memo', newMemoData);
             this.codemirror.setValue(this.memo.body);
             this.updatePreviewCallback();
+        },
+
+        getIsReadOnly() {
+            return !(!this.isSharedView || (this.memo.share && this.memo.share.type == 4)) || this.memo.isTrash;
         },
 
         /**
@@ -689,6 +710,7 @@ new Vue({
                     // アップ完了の文字置換
                     this.invokeCodemirrorOperation('uploadComplete', tmpKey, key);
                     // 反映のため, 即保存
+                    this.canSave = true;
                     this.save();
 
                     // 画像本体アップ

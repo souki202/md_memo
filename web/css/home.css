@@ -15,21 +15,21 @@ main {
 
 /* 新規メモ周り */
 
-.new-memo-container {
+.main-operation-button-container {
     margin: 8px;
     margin-left: 24px;
 }
 
-.new-memo-container a {
+.main-operation-button-container a {
     text-decoration: none;
 }
 
-.new-memo {
+.main-operation-button {
     height: 48px;
     width: 150px;
 }
 
-.new-memo .btn {
+.main-operation-button .btn {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -39,11 +39,11 @@ main {
     border: var(--new-memo-border);
 }
 
-.new-memo .fa-plus-square {
+.main-operation-button .main-operation-button-icon {
     color: var(--new-memo-icon-color);
 }
 
-.new-memo-text {
+.main-operation-button-text {
     margin-left: 8px;
 }
 
@@ -58,7 +58,7 @@ main {
 }
 
 .memo-list-group-container > * {
-    width: 50%;
+    min-width: 50%;
 }
 
 #allMemoList {

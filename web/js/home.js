@@ -1,8 +1,11 @@
 import getApiUrl from '/js/getApiUrl.js';
 import getTheme from '/js/colorTheme.js';
+import urlParameter from '/js/urlParameter.js';
 import '/js/js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
+
+const Loading = window.VueLoading;
 
 Vue.component('memo-card', {
     template: `
@@ -39,6 +42,9 @@ Vue.component('memo-card', {
 
 new Vue({
     el: '#homeMemoList',
+    components: {
+        'loading': Loading
+    },
     data: () => {
         return {
             errorMessage: '',
@@ -47,13 +53,27 @@ new Vue({
             nextPageMemoId: '',
             memoAllCheck: false,
 
+            isTrash: false,
+
             operationType: '',
             theme: 'light',
+
+            // loading
+            isLoading: false,
+            fullPage: true
         }
     },
     mounted() {
-        this.getMemoList();
-        this.getPinnedMemoList();
+        const place = urlParameter('place');
+
+        if (place == 'trash') {
+            this.isTrash = true;
+            this.getTrashMemoList();
+        }
+        else {
+            this.getMemoList();
+            this.getPinnedMemoList();
+        }
 
         // tableのカラーを設定
         this.theme = getTheme();
@@ -71,6 +91,21 @@ new Vue({
 
         getMemoList() {
             axios.get(getApiUrl() + '/get_memo_list').then((res) => {
+                console.log(res);
+                for (let item of res.data.items) {
+                    item.checked = false;
+                    this.memos.push(item);
+                }
+                this.nextPageMemoId = res.data.next_page_memo_id;
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモ一覧の取得に失敗しました';
+            }).then(() => {
+            })
+        },
+
+        getTrashMemoList() {
+            axios.get(getApiUrl() + '/get_trash_memo_list').then((res) => {
                 for (let item of res.data.items) {
                     item.checked = false;
                     this.memos.push(item);
@@ -132,10 +167,61 @@ new Vue({
             return result;
         },
 
+        toTrashMemo(checkedMemoList) {
+            // if (!window.confirm('ゴミ箱に移動するとシェアの設定が削除されます. よろしいですか?')) {
+            //     return;
+            // }
+            axios.post(getApiUrl() + '/to_trash_memo', {
+                params: {memo_id_list: checkedMemoList}
+            }).then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+                this.isLoading = false;
+            })
+        },
+
         /**
-         * メモのハードデリートを実行する
+         * メモのソフトデリートを実行する
          */
-        deleteMemo() {
+        deleteMemo(checkedMemoList) {
+            if (!window.confirm('ゴミ箱から削除したメモは復元できません。削除してよろしいですか?')) {
+                return;
+            }
+            axios.post(getApiUrl() + '/delete_memo', {
+                params: {memo_id_list: checkedMemoList}
+            }).then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+                this.isLoading = false;
+            })
+        },
+
+        /**
+         * メモをゴミ箱から戻す
+         */
+        restoreMemo(checkedMemoList) {
+            axios.post(getApiUrl() + '/restore_memo', {
+                params: {memo_id_list: checkedMemoList}
+            }).then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+                this.isLoading = false;
+            })
+        },
+
+        memoOperation() {
             this.clearMessage()
             const checkedMemoList = this.getCheckMemoList();
             if (!checkedMemoList.length) {
@@ -147,42 +233,37 @@ new Vue({
                 window.alert('10件より多くの選択はできません');
                 return; 
             }
+            this.isLoading = true;
+            switch (this.operationType) {
+                case 'trash':
+                    this.toTrashMemo(checkedMemoList);
+                    break;
+                case 'delete':
+                    this.deleteMemo(checkedMemoList);
+                    break;
+                case 'restore':
+                    this.restoreMemo(checkedMemoList);
+                    break;
+            }
+            this.operationType  = '';
+        },
 
-            if (!window.confirm('削除したメモは復元できません。よろしいですか?')) {
+        truncateTrash() {
+            this.clearMessage()
+            if (!window.confirm('ゴミ箱から削除したメモは復元できません。削除してよろしいですか?\nなお、件数次第で削除に時間がかかる場合があります。')) {
                 return;
             }
-            
-            axios.post(getApiUrl() + '/delete_memo', {
-                params: {memo_id_list: checkedMemoList}
-            }).then((res) => {
+            this.isLoading = true;
+
+            axios.post(getApiUrl() + '/truncate_trash_memo').then((res) => {
                 console.log(res);
                 location.reload();
             }).catch((err) => {
                 console.log(err);
                 this.errorMessage = 'メモの削除に失敗しました';
             }).then(() => {
+                this.isLoading = false;
             })
-        },
-
-        /**
-         * メモのソフトデリートを実行する
-         */
-        moveToGarbageMemo() {
-            this.clearMessage()
-            const checkedMemoList = this.getCheckMemoList();
-            if (!checkedMemoList.length) {
-                window.alert('メモが選択されていません');
-                return;
-            }
-        },
-
-        memoOperation() {
-            switch (this.operationType) {
-                case 'del':
-                    this.deleteMemo();
-                    break;
-            }
-            this.operationType  = '';
         }
     },
 });

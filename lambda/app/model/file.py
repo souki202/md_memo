@@ -154,18 +154,29 @@ def update_file_and_memo_relation(memo_id, files) -> bool:
         return False
     return False
 
+def delete_file_and_memo_relation_by_memo_id(memo_id: str) -> bool:
+    # 削除対象のファイルをまとめる
+    now_files = get_file_list_by_memo_id(memo_id)
+    if now_files == False:
+        print('delete_file_and_memo_relation_by_memos failed to get file and memo relation: ' + memo_id)
+        return
+    now_files = [f['file_key'] for f in now_files]
+
+    # 削除実行
+    try:
+        result = delete_file_and_memo_relation_multi(memo_id, now_files)
+        if not result:
+            raise 'Failed to delete relation'
+        return not not result
+    except Exception as e:
+        print(e)
+        return False
+
 def delete_file_and_memo_relation_by_memos(memo_ids):
     for memo_id in memo_ids:
-        # 削除対象のファイルをまとめる
-        now_files = get_file_list_by_memo_id(memo_id)
-        if now_files == False:
-            print('delete_file_and_memo_relation_by_memos failed to get file and memo relation: ' + memo_id)
-            continue
-        now_files = [f['file_key'] for f in now_files]
-
         # 削除実行
         try:
-            result = delete_file_and_memo_relation_multi(memo_id, now_files)
+            result = delete_file_and_memo_relation_by_memo_id(memo_id)
             if not result:
                 raise 'Failed to delete relation'
         except Exception as e:

@@ -11,7 +11,7 @@ class Plans(Enum):
     PAYMENT = 1000
     TEAM = 10000
 
-def get_memo_body_max_len(plan: int):
+def get_memo_body_max_len(plan: int) -> int:
     if plan == Plans.FREE.value:
         return 10000
     elif plan >= Plans.PAYMENT.value:
@@ -21,7 +21,21 @@ def get_memo_body_max_len(plan: int):
     else:
         return 10000
 
-def get_tags_limit(plan: int):
+'''
+メモ数の上限を取得
+-1で無制限
+'''
+def get_memo_count_limit(plan: int) -> int:
+    if plan == Plans.FREE.value:
+        return 100
+    elif plan >= Plans.PAYMENT.value:
+        return -1
+    elif plan >= Plans.TEAM.value:
+        return -1
+    else:
+        return 100
+
+def get_tags_limit(plan: int) -> int:
     if plan == Plans.FREE.value:
         return 50
     elif plan >= Plans.PAYMENT.value:

@@ -177,3 +177,39 @@ def delete_tag_relation(tag_uuid: str, memo_uuid: str) -> bool:
         print(e)
         return False
     return False
+
+def delete_tag_relation_multi(tag_uuids: list, memo_id: str) -> bool:
+    try:
+        with tag_relation_table.batch_writer() as batch:
+            for tag_uuid in tag_uuids:
+                batch.delete_item(
+                    Key = {
+                        'tag_uuid': tag_uuid,
+                        'memo_uuid': memo_id
+                    }
+                )
+        return True
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def delete_tag_relations_by_memo_id(memo_id: str) -> bool:
+    if not memo_id:
+        return False
+    
+    # メモとのrelationを全て取得
+    relations = get_tag_relations(memo_id)
+    if relations == False:
+        return False
+    # 単に関連付けがない場合
+    if not relations:
+        return True
+
+    try:
+        uuids = [r['tag_uuid'] for r in relations]
+        return delete_tag_relation_multi(uuids, memo_id)
+    except Exception as e:
+        print(e)
+        return False
+    return False

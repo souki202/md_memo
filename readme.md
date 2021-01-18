@@ -20,7 +20,7 @@
 
 テーブル作成
 
-`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\overviews.json"`
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\trash_overviews.json"`
 
 `aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\overviews.json"`
 
@@ -38,9 +38,11 @@
 
 ## デプロイ
 
+本当はActionsとCodeBuildでなんとかしたかったけどディレクトリ構造が悪かったりで手抜き
+
 ### dev
 
-requiementsの追加があればwslに入って
+requiementsの変更があればwslに入って
 
 ```shell
 cd /mnt/d/Projects/md_memo/lambda/my_layer

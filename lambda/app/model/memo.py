@@ -16,11 +16,11 @@ from service.user import *
 db_resource = boto3.resource("dynamodb")
 db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 
-MEMO_PAGE_LIMIT = 100
+MEMO_PAGE_LIMIT = 20
 
 class MemoStates(Enum):
     AVAILABLE = 1
-    GARBAGE = 2
+    TRASH = 2
     DELETED = 3
 
 class PinnedType(Enum):
@@ -28,12 +28,14 @@ class PinnedType(Enum):
     PINNED = 2
 
 MEMO_OVERVIEWS_TABLE_NAME = 'md_memo_overviews' + os.environ['DbSuffix']
+MEMO_TRASH_TABLE_NAME = 'md_memo_trash_memos' + os.environ['DbSuffix']
 MEMO_BODIES_TABLE_NAME = 'md_memo_bodies' + os.environ['DbSuffix']
 MEMO_SHARES_TABLE_NAME = 'md_memo_shares' + os.environ['DbSuffix']
 
-memo_overviews_table = db_resource.Table('md_memo_overviews' + os.environ['DbSuffix'])
-memo_bodies_table = db_resource.Table('md_memo_bodies' + os.environ['DbSuffix'])
-memo_shares_table = db_resource.Table('md_memo_shares' + os.environ['DbSuffix'])
+memo_overviews_table = db_resource.Table(MEMO_OVERVIEWS_TABLE_NAME)
+memo_trash_table = db_resource.Table(MEMO_TRASH_TABLE_NAME)
+memo_bodies_table = db_resource.Table(MEMO_BODIES_TABLE_NAME)
+memo_shares_table = db_resource.Table(MEMO_SHARES_TABLE_NAME)
 
 def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: int, user_uuid: str) -> str:
     # 新規作成時はuuidを新しく付与
@@ -50,7 +52,6 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
                     'description': description,
                     'memo_type': memo_type,
                     'user_uuid': user_uuid,
-                    'availability': MemoStates.AVAILABLE.value,
                     'created_at': now,
                     'updated_at': now,
                 }
@@ -69,13 +70,12 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
                 },
                 ReturnValues="UPDATED_NEW"
             )
-        with memo_bodies_table.batch_writer(overwrite_by_pkeys=['uuid']) as batch:
-            batch.put_item(
-                Item = {
+        memo_bodies_table.put_item(
+            Item = {
                     'uuid': memo_id,
                     'body': body,
-                }
-            )
+            }
+        )
     except Exception as e:
         print(e)
         return None
@@ -88,12 +88,25 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
     if not memo_id or not user_uuid:
         return False
     try:
-        result = memo_overviews_table.query(
-            KeyConditionExpression=Key('uuid').eq(memo_id)
-        )['Items']
-        if len(result) == 0:
+        result = get_memo_overview(memo_id)
+        if not result:
             return False
-        return result[0]['user_uuid'] == user_uuid
+        return result['user_uuid'] == user_uuid
+    except Exception as e:
+        print(e)
+        return False
+
+'''
+メモの持ち主とログインユーザが一致しているか確認する
+'''
+def check_is_owner_of_the_available_memo(memo_id: str, user_uuid: str) -> bool:
+    if not memo_id or not user_uuid:
+        return False
+    try:
+        result = get_available_memo_overview(memo_id)
+        if not result:
+            return False
+        return result['user_uuid'] == user_uuid
     except Exception as e:
         print(e)
         return False
@@ -101,22 +114,7 @@ def check_is_owner_of_the_memo(memo_id: str, user_uuid: str) -> bool:
 def check_id_owner_of_the_memo_by_data(memo_data: dict, user_uuid: str) -> bool:
     return memo_data['user_uuid'] == user_uuid
 
-'''
-すべてのメモが持ち主と一致しているか確認する
-'''
-def check_is_owner_of_the_memo_multi(memo_id_list: list, user_uuid: str) -> bool:
-    all_memo = get_memo_list_include_garbage(user_uuid)
-    all_memo_id_list = {}
-    # まずはsetに整理
-    for memo in all_memo:
-        all_memo_id_list[memo.get('uuid', 'invalid')] = 1
-    # 引数にあるメモが, そのユーザのメモ所持リストにあるか調べる
-    for memo_id in memo_id_list:
-        if memo_id not in all_memo_id_list:
-            return False
-    return True
-
-def get_memo_list_include_garbage(user_uuid):
+def get_memo_list_include_trash(user_uuid):
     try:
         exclusive_start_key = None
         items = []
@@ -125,23 +123,16 @@ def get_memo_list_include_garbage(user_uuid):
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression='availability <> :availability',
                     ScanIndexForward = False,
-                    ExpressionAttributeValues={
-                        ':availability': MemoStates.DELETED.value
-                    })
+                    )
             else:
                 response = memo_overviews_table.query(
                     IndexName='user_uuid-created_at-index',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression='availability <> :availability',
                     ScanIndexForward = False,
-                    ExpressionAttributeValues={
-                        ':availability': MemoStates.DELETED.value
-                    },
                     ExclusiveStartKey=exclusive_start_key
                 )
-            items.extend(response['Items'])
+            items.extend([i['uuid'] for i in response['Items']])
             if ("LastEvaluatedKey" in response) == True:
                 ExclusiveStartKey = response["LastEvaluatedKey"]
             else:
@@ -154,28 +145,34 @@ def get_memo_list_include_garbage(user_uuid):
         return None
     return None
 
-def get_memo_list_in_garbage(user_uuid: str):
-    return get_memo_list_all(user_uuid, MemoStates.GARBAGE.value)
-
-def get_available_memo_list(user_uuid: str):
-    return get_memo_list_all(user_uuid, MemoStates.AVAILABLE.value)
-
-def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.AVAILABLE.value, exclusive_start_key)
-
-def get_memo_list_in_garbage_page(user_uuid: str, exclusive_start_key:dict):
-    return get_memo_list_page(user_uuid, MemoStates.GARBAGE.value, exclusive_start_key)
-
-def get_memo_list_all(user_uuid, state):
+def get_all_memo_ids(user_uuid: str) -> list:
     try:
         exclusive_start_key = None
         items = []
         while True:
-            i, exclusive_start_key = get_memo_list_page(user_uuid, state, exclusive_start_key)
-            items.extend(i)
-            if not exclusive_start_key:
+            if exclusive_start_key is None:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='#my_uuid',
+                    ExpressionAttributeNames= {
+                        '#my_uuid' : 'uuid'
+                    },
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                )
+            else:
+                response = memo_overviews_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='uuid',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend([i['uuid'] for i in response['Items']])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
                 break
-        
         if len(items) == 0:
             return []
         return items
@@ -184,19 +181,60 @@ def get_memo_list_all(user_uuid, state):
         return None
     return None
 
+def get_all_trash_memo_ids(user_uuid: str) -> list:
+    try:
+        exclusive_start_key = None
+        items = []
+        while True:
+            if exclusive_start_key is None:
+                response = memo_trash_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='#my_uuid',
+                    ExpressionAttributeNames= {
+                        '#my_uuid' : 'uuid'
+                    },
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                )
+            else:
+                response = memo_trash_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='uuid',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend([i['uuid'] for i in response['Items']])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
+                break
+        if len(items) == 0:
+            return []
+        return items
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
+def get_available_memo_list_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, exclusive_start_key)
+
+def get_memo_list_in_trash_page(user_uuid: str, exclusive_start_key:dict):
+    return get_memo_list_page(user_uuid, exclusive_start_key)
+
 '''
 メモ一覧を取得する
 
 @return {list, str} メモ一覧, 次の取得に使用するキー
 '''
-def get_memo_list_page(user_uuid, state, exclusive_start_key):
+def get_memo_list_page(user_uuid, exclusive_start_key):
     try:
         items = []
         if exclusive_start_key is None:
             response = memo_overviews_table.query(
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                FilterExpression=Key('availability').eq(state),
                 ScanIndexForward = False,
                 Limit=MEMO_PAGE_LIMIT
             )
@@ -204,7 +242,35 @@ def get_memo_list_page(user_uuid, state, exclusive_start_key):
             response = memo_overviews_table.query(
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                FilterExpression=Key('availability').eq(state),
+                ExclusiveStartKey=exclusive_start_key,
+                ScanIndexForward = False,
+                Limit=MEMO_PAGE_LIMIT
+            )
+        items = response['Items']
+        exclusive_start_key = response.get('LastEvaluatedKey')
+
+        if len(items) == 0:
+            return [], None
+        return items, exclusive_start_key
+    except Exception as e:
+        print(e)
+        return None, None
+    return None, None
+
+def get_memo_list_in_trash_page(user_uuid, exclusive_start_key):
+    try:
+        items = []
+        if exclusive_start_key is None:
+            response = memo_trash_table.query(
+                IndexName='user_uuid-created_at-index',
+                KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                ScanIndexForward = False,
+                Limit=MEMO_PAGE_LIMIT
+            )
+        else:
+            response = memo_trash_table.query(
+                IndexName='user_uuid-created_at-index',
+                KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                 ExclusiveStartKey=exclusive_start_key,
                 ScanIndexForward = False,
                 Limit=MEMO_PAGE_LIMIT
@@ -228,16 +294,14 @@ def get_pinned_memo_list(user_uuid):
         while True:
             if exclusive_start_key is None:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-created_at-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
+                    IndexName='user_uuid-pinned_type-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED.value),
                     ScanIndexForward = False
                 )
             else:
                 response = memo_overviews_table.query(
-                    IndexName='user_uuid-created_at-index',
-                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                    FilterExpression=Key('availability').eq(state) & Key('pinned_type').eq(PinnedType.PINNED.value),
+                    IndexName='user_uuid-pinned_type-index',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid) & Key('pinned_type').eq(PinnedType.PINNED.value),
                     ScanIndexForward = False,
                     ExclusiveStartKey=exclusive_start_key
                 )
@@ -261,13 +325,44 @@ def get_memo_overview(memo_id: str) -> dict:
         # overviewの取得
         result = memo_overviews_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id),
-            FilterExpression='availability <> :availability',
-            ExpressionAttributeValues={
-                ':availability': MemoStates.DELETED.value
-            }
+        )['Items']
+        # 無ければゴミ箱から検索
+        if len(result) == 0:
+            return get_memo_overview_in_trash(memo_id)
+        return result[0]
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
+def get_available_memo_overview(memo_id: str) -> dict:
+    if not memo_id:
+        return None
+    try:
+        # overviewの取得
+        result = memo_overviews_table.query(
+            KeyConditionExpression=Key('uuid').eq(memo_id),
+        )['Items']
+        # 無ければゴミ箱から検索
+        if len(result) == 0:
+            return None
+        return result[0]
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
+def get_memo_overview_in_trash(memo_id: str) -> dict:
+    if not memo_id:
+        return None
+    try:
+        # overviewの取得
+        result = memo_trash_table.query(
+            KeyConditionExpression=Key('uuid').eq(memo_id),
         )['Items']
         if len(result) == 0:
             return None
+        result[0]['is_trash'] = True
         return result[0]
     except Exception as e:
         print(e)
@@ -283,22 +378,16 @@ def get_memo_data(memo_id: str):
     memo_data = {}
     try:
         # overviewの取得
-        result = memo_overviews_table.query(
-            KeyConditionExpression=Key('uuid').eq(memo_id),
-            FilterExpression='availability <> :availability',
-            ExpressionAttributeValues={
-                ':availability': MemoStates.DELETED.value
-            })['Items']
-        if len(result) == 0:
-            return None
-        memo_data = result[0]
+        memo_data = get_memo_overview(memo_id)
+        if not memo_data:
+            return False
 
         # bodyの取得
         result = memo_bodies_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id)
         )['Items']
         if len(result) == 0:
-            print('Overview found, but body not found')
+            print('Overview found, but body not found. memo_id: ' + memo_id)
             return None
         memo_data['body'] = result[0]['body']
 
@@ -371,42 +460,6 @@ def get_share_setting_by_share_id(share_id: str) -> dict:
         return None
     return None
 
-def get_share_settings_by_memo_ids(memo_ids: list) -> dict:
-    if not memo_ids:
-        return False
-    try:
-        share_settings = []
-        for memo_id in memo_ids:
-            s = get_share_setting_by_memo_id(memo_id)
-            if s == False:
-                print('failed to get share_settings: ' + memo_id)
-            if s:
-                share_settings.append(s)
-        return share_settings
-    except Exception as e:
-        print(e)
-        return False
-    return False
-
-def delete_share_setting_multi_by_memo_id(memo_ids) -> bool:
-    try:
-        share_settings = get_share_settings_by_memo_ids(memo_ids)
-        if share_settings == False:
-            print('failed to get share settings: ' + str(memo_ids))
-        with memo_shares_table.batch_writer() as batch:
-            for share_setting in share_settings:
-                batch.delete_item(
-                    Key = {
-                        'share_id': share_setting['share_id']
-                    }
-                )
-        return True
-    except Exception as e:
-        print(e)
-        return False
-    return False
-
-
 '''
 @param list user_data get_user_data_by_uuid等から取得したもの. 主にログイン中のユーザ
 @param str  memo_user_uuid メモの作成者
@@ -425,45 +478,167 @@ def check_has_auth_memo(user_data: dict, memo_user_uuid: str, share_targets: str
     # メモが共有対象かどうか
     return check_is_in_share_target(user_data['user_id'], share_targets)
 
-def delete_memo_multi(memo_id_list: list) -> bool:
+'''
+そのメモそのものの情報をハードデリートする
+リレーション周りは削除しない
+'''
+def delete_memo(memo_id: str) -> bool:
     try:
-        transacts = []
-        for memo_id in memo_id_list:
-            transacts.append(
-                {
-                    'Update': {
-                        'TableName': MEMO_OVERVIEWS_TABLE_NAME,
-                        'Key': {
-                            'uuid': to_dynamo_format(memo_id)
-                        },
-                        'UpdateExpression': 'SET availability=:availability',
-                        'ExpressionAttributeValues': {
-                            ':availability': to_dynamo_format(MemoStates.DELETED.value)
-                        }
+        transacts = [
+            {
+                # overviewの消去
+                'Delete': {
+                    'TableName': MEMO_TRASH_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                },
+            },
+            {
+                # bodyの消去
+                'Delete': {
+                    'TableName': MEMO_BODIES_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                }
+            }
+        ]
+        # シェア設定があればそれも削除
+        share_settings = get_share_setting_by_memo_id(memo_id)
+        if share_settings:
+            transacts.append({
+                'Delete': {
+                    'TableName': MEMO_SHARES_TABLE_NAME,
+                    'Key': {
+                        'share_id': to_dynamo_format(share_settings['share_id'])
                     }
                 }
-            )
-
-        result = db_client.transact_write_items(
+            })
+        # 削除処理
+        res = db_client.transact_write_items(
             TransactItems = transacts
         )
-        # TODO: 紐づく画像をs3から削除
-        return not not result
+        return not not res
     except Exception as e:
         print(e)
         return False
     return False
 
-def change_all_memos_to_private(user_uuid: str) -> bool:
-    memo_list = get_memo_list_include_garbage(user_uuid)
-    memo_id_list = []
-    for v in memo_list:
-        memo_id_list.append(v['uuid'])
-    for memo_id in memo_id_list:
-        share_settings = get_share_setting_by_memo_id(memo_id)
-        # シェア設定があればno shareに更新
+'''
+メモをゴミ箱に移動する
+シェアは物理削除
+'''
+def move_trash_memo(memo_id):
+    share_settings = get_share_setting_by_memo_id(memo_id)
+    if share_settings == False:
+        return False
+    # メモ設定を取得
+    memo_info = get_memo_overview(memo_id)
+    if not memo_info:
+        return False
+    
+    if 'pinned_type' in memo_info:
+        del memo_info['pinned_type']
+    memo_info['deleted_at'] = get_now_string()
+    try:
+        transacts = [
+            {
+                'Delete': {
+                    'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                }
+            },
+            {
+                'Put': {
+                    'TableName': MEMO_TRASH_TABLE_NAME,
+                    'Item': dict2dynamoformat(memo_info)
+                }
+            }
+        ]
         if share_settings:
-            result = update_share_settings(memo_id, ShareType.NO_SHARE.value, share_settings['share_scope'], share_settings['share_users'])
+            transacts.append({
+                'Delete': {
+                    'TableName': MEMO_SHARES_TABLE_NAME,
+                    'Key': {
+                        'share_id': to_dynamo_format(share_settings['share_id'])
+                    }
+                }
+            })
+        result = db_client.transact_write_items(
+            TransactItems = transacts
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        # 消したデータを戻す
+        memo_trash_table.delete_item(
+            Key={
+                'uuid': memo_info['uuid']
+            }
+        )
+        return False
+
+def restore_memo(memo_id: str) -> bool:
+    # メモ設定を取得
+    memo_info = get_memo_overview_in_trash(memo_id)
+    if not memo_info:
+        return False
+    del memo_info['deleted_at']
+    del memo_info['is_trash']
+    memo_info['pinned_type'] = PinnedType.NO_PINNED.value
+    try:
+        transacts = [
+            {
+                'Delete': {
+                    'TableName': MEMO_TRASH_TABLE_NAME,
+                    'Key': {
+                        'uuid': to_dynamo_format(memo_id)
+                    },
+                },
+            },
+            {
+                'Put': {
+                    'TableName': MEMO_OVERVIEWS_TABLE_NAME,
+                    'Item': dict2dynamoformat(memo_info)
+                }
+            }
+        ]
+        result = db_client.transact_write_items(
+            TransactItems = transacts
+        )
+        return not not result
+    except Exception as e:
+        print(e)
+        # 消したデータを戻す
+        memo_trash_table.delete_item(
+            Key={
+                'uuid': memo_info['uuid']
+            }
+        )
+        return False
+
+def delete_share_setting(share_id):
+    try:
+        res = memo_shares_table.delete_item(
+            Key={
+                'share_id': share_id
+            }
+        )
+        return not not res
+    except Exception as e:
+        print(e)
+        return False
+
+def change_delete_all_shares(user_uuid: str) -> bool:
+    memo_list = get_all_memo_ids(user_uuid)
+    for memo_id in memo_list:
+        share_settings = get_share_setting_by_memo_id(memo_id)
+        # シェア設定があれば削除
+        if share_settings:
+            result = delete_share_setting(share_settings['share_id'])
             if not result:
                 print('Failed to share settings: ' + memo_id)
                 return False

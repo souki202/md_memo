@@ -260,7 +260,7 @@ def release_temporary(user_id) -> bool:
     return False
 
 def add_user(id, passHash):
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    now = get_now_string()
     user_uuid = str(uuid.uuid4())
     temp_token = secrets.token_urlsafe(64)
     try:
@@ -269,8 +269,8 @@ def add_user(id, passHash):
                 'user_id': id,
                 'uuid': user_uuid,
                 'password': passHash,
-                'firebase_user_id': '',
-                'line_user_id': '',
+                'firebase_user_id': '-',
+                'line_user_id': '-',
                 'plan': 1,
                 'created_at': now,
                 'updated_at': now,
@@ -295,7 +295,7 @@ def add_firebase_user(email, sns_user_id):
                 'uuid': user_uuid,
                 'password': '',
                 'firebase_user_id': sns_user_id,
-                'line_user_id': '',
+                'line_user_id': '-',
                 'plan': 1,
                 'created_at': now,
                 'updated_at': now,
