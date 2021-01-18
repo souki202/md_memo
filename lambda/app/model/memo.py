@@ -70,13 +70,12 @@ def save_memo(memo_id: str, title: str, description: str, body: str, memo_type: 
                 },
                 ReturnValues="UPDATED_NEW"
             )
-        with memo_bodies_table.batch_writer(overwrite_by_pkeys=['uuid']) as batch:
-            batch.put_item(
-                Item = {
+        memo_bodies_table.put_item(
+            Item = {
                     'uuid': memo_id,
                     'body': body,
-                }
-            )
+            }
+        )
     except Exception as e:
         print(e)
         return None
@@ -158,12 +157,47 @@ def get_all_memo_ids(user_uuid: str) -> list:
                     ExpressionAttributeNames= {
                         '#my_uuid' : 'uuid'
                     },
-                    ReturnConsumedCapacity="TOTAL",
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                     ScanIndexForward = False,
-                    )
+                )
             else:
                 response = memo_overviews_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='uuid',
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend([i['uuid'] for i in response['Items']])
+            if ("LastEvaluatedKey" in response) == True:
+                ExclusiveStartKey = response["LastEvaluatedKey"]
+            else:
+                break
+        if len(items) == 0:
+            return []
+        return items
+    except Exception as e:
+        print(e)
+        return None
+    return None
+
+def get_all_trash_memo_ids(user_uuid: str) -> list:
+    try:
+        exclusive_start_key = None
+        items = []
+        while True:
+            if exclusive_start_key is None:
+                response = memo_trash_table.query(
+                    IndexName='user_uuid-created_at-index',
+                    ProjectionExpression='#my_uuid',
+                    ExpressionAttributeNames= {
+                        '#my_uuid' : 'uuid'
+                    },
+                    KeyConditionExpression=Key('user_uuid').eq(user_uuid),
+                    ScanIndexForward = False,
+                )
+            else:
+                response = memo_trash_table.query(
                     IndexName='user_uuid-created_at-index',
                     ProjectionExpression='uuid',
                     KeyConditionExpression=Key('user_uuid').eq(user_uuid),

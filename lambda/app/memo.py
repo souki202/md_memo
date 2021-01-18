@@ -23,6 +23,7 @@ def decimal_default_proc(obj):
     raise TypeError
 
 MULTIPLE_SELECT_MEMO_LIMIT = 10
+MAX_TITLE_LEN = 200
 
 def get_memo_list_event(event, context):
     if os.environ['EnvName'] != 'Prod':
@@ -153,6 +154,17 @@ def save_memo_event(event, context):
     is_trash: list      = params['params'].get('memo', {}).get('isTrash', [])
     files: list      = params['params'].get('files', [])
 
+    if not title or not memo_type:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+
+    if len(title) > MAX_TITLE_LEN:
+        return create_common_return_array(403, {'message': 'The title can be up to ' + str(MAX_TITLE_LEN) + ' characters long.',})
+
+    user_uuid: str = get_user_uuid_by_event(event)
+    # 更新はログイン必須
+    if not user_uuid:
+        return create_common_return_array(401, {'message': 'session timeout.',})
+
     user_data: dict = get_user_data_by_uuid(user_uuid)
 
     if is_trash:
@@ -162,10 +174,6 @@ def save_memo_event(event, context):
     if len(body) > get_memo_body_max_len(user_data['plan']):
         return create_common_return_array(401, {'message': 'The body length is up to ' + str(get_memo_body_max_len(user_data['plan'])) + ' characters.', 'is_limit_length': True})
 
-    user_uuid: str = get_user_uuid_by_event(event)
-    # 更新はログイン必須
-    if not user_uuid:
-        return create_common_return_array(401, {'message': 'session timeout.',})
 
     # 更新時はメモの編集権限があるかチェック
     if memo_id:
@@ -187,6 +195,18 @@ def save_memo_event(event, context):
             print('Unauthorized memo save.')
             print({'user': user_uuid, 'memo_id': memo_id})
             return create_common_return_array(401, {'message': 'Unauthorized.',})
+    else:
+        # 新規保存時は上限に引っかかっていないか調べる
+        memo_count_limit: int = get_memo_count_limit(user_data['plan'])
+        if memo_count_limit > 0:
+            # メモの数を取得
+            memo_ids = get_all_memo_ids(user_uuid)
+            trash_memo_ids = get_all_trash_memo_ids(user_uuid)
+            if memo_ids is None or trash_memo_ids is None:
+                return create_common_return_array(500, {'message': 'Failed to get number of memos.',})
+            # メモの上限を超えていたら新規保存せずに終了
+            if memo_count_limit <= len(memo_ids) + len(trash_memo_ids):
+                return create_common_return_array(403, {'message': 'The maximum number of memos is ' + str(memo_count_limit) + '.',})
 
     # メモを更新または作成
     saved_uuid: str = save_memo(memo_id, title, description, body, memo_type, user_uuid)

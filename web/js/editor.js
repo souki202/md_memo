@@ -368,6 +368,11 @@ new Vue({
                 return;
             }
 
+            if (this.memo_title.length > 200) {
+                this.errorMessage = 'メモのタイトルの上限文字数は200文字です'
+                return;
+            }
+
             // 保存処理
             this.isSaving = true;
             this.canSave = false;
