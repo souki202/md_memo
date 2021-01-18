@@ -368,7 +368,12 @@ new Vue({
                 return;
             }
 
-            if (this.memo_title.length > 200) {
+            if (this.memo.title.length == 0) {
+                this.errorMessage = 'メモのタイトルは必須です'
+                return;
+            }
+
+            if (this.memo.title.length > 200) {
                 this.errorMessage = 'メモのタイトルの上限文字数は200文字です'
                 return;
             }

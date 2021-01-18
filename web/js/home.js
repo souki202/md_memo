@@ -246,6 +246,24 @@ new Vue({
                     break;
             }
             this.operationType  = '';
+        },
+
+        truncateTrash() {
+            this.clearMessage()
+            if (!window.confirm('ゴミ箱から削除したメモは復元できません。削除してよろしいですか?\nなお、件数次第で削除に時間がかかる場合があります。')) {
+                return;
+            }
+            this.isLoading = true;
+
+            axios.post(getApiUrl() + '/truncate_trash_memo').then((res) => {
+                console.log(res);
+                location.reload();
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの削除に失敗しました';
+            }).then(() => {
+                this.isLoading = false;
+            })
         }
     },
 });

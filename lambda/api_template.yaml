@@ -360,7 +360,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /restore_memo
             Method: post
-        
+        TruncateMemoEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /truncate_trash_memo
+            Method: post
 
   UpdateShareSettingsFunction:
     Type: AWS::Serverless::Function

@@ -21,14 +21,23 @@
             </div>
             <div class="memo-operation-items">
                 <!-- 新規メモボタン -->
-                <div class="new-memo-container">
-                    <div class="new-memo">
+                <div class="main-operation-button-container" v-if="!isTrash">
+                    <div class="main-operation-button">
                         <a href="/memo.html">
                             <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
-                                <i class="far fa-plus-square fa-2x"></i>
-                                <div class="new-memo-text">New Memo</div>
+                                <i class="main-operation-button-icon far fa-plus-square fa-2x"></i>
+                                <div class="main-operation-button-text">New Memo</div>
                             </div>
                         </a>
+                    </div>
+                </div>
+                <!-- ゴミ箱を空にボタン -->
+                <div class="main-operation-button-container" v-if="isTrash">
+                    <div class="main-operation-button" @click="truncateTrash">
+                        <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
+                            <i class="fas fa-trash-alt"></i>
+                            <div class="main-operation-button-text">ゴミ箱を空に</div>
+                        </div>
                     </div>
                 </div>
 

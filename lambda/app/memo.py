@@ -324,7 +324,8 @@ def delete_memo_event(event, context):
             return hard_delete_memo_event(event, context)
         elif resource == '/restore_memo':
             return restore_memo_event(event, context)
-    
+        elif resource == '/truncate_trash_memo':
+            return truncate_trash_memo_event(event, context)
     return create_common_return_array(404, {'message': 'Not Found',})
 
 
@@ -332,10 +333,6 @@ def delete_memo_event(event, context):
 完全に見れない状態にするdelete
 '''
 def hard_delete_memo_event(event, context):
-    user_uuid: str = get_user_uuid_by_event(event)
-    if not user_uuid:
-        return create_common_return_array(401, {'message': "Failed to delete memo.",})
-
     params = json.loads(event['body'] or '{ }')
     if not params or not params.get('params'):
         return create_common_return_array(406, {'message': "Failed to delete memo.",})
@@ -351,11 +348,18 @@ def hard_delete_memo_event(event, context):
     # 重複消去
     memo_id_list = list(set(memo_id_list))
 
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "Failed to delete memo.",})
+
+    # 先に全てのメモが持ち主と一致しているか調べる
     for memo_id in memo_id_list:
         # メモの持ち主と一致してるか調べる
         if not check_is_owner_of_the_memo(memo_id, user_uuid):
             print('Unauthorized hard delete operation. ' + str(memo_id_list) + user_uuid)
             return create_common_return_array(401, {'message': "Unauthorized",})
+
+    for memo_id in memo_id_list:
         # メモそのものの情報を削除
         if not delete_memo(memo_id):
             print("failed to delete memo: " + memo_id)
@@ -370,6 +374,32 @@ def hard_delete_memo_event(event, context):
             return create_common_return_array(500, {'message': "Failed to delete memo.",})
 
     return create_common_return_array(200, {'message': 'success',})
+
+def truncate_trash_memo_event(event, context):
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "Failed to delete memo.",})
+    
+    # ゴミ箱の全てのメモを取得する
+    trash_memo_ids = get_all_trash_memo_ids(user_uuid)
+
+    # 削除
+    for memo_id in trash_memo_ids:
+        # メモそのものの情報を削除
+        if not delete_memo(memo_id):
+            print("failed to delete memo: " + memo_id)
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
+        # メモとファイルの紐付けを削除
+        if not my_file.delete_file_and_memo_relation_by_memo_id(memo_id):
+            print("failed to delete memo and file relations: " + memo_id)
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
+        # メモとタグの紐付けを削除
+        if not my_tag.delete_tag_relations_by_memo_id(memo_id):
+            print("failed to delete memo and tag relations: " + memo_id)
+            return create_common_return_array(500, {'message': "Failed to delete memo.",})
+
+    return create_common_return_array(200, {'message': 'success',})
+
 
 '''
 メモをゴミ箱に移動する
@@ -396,10 +426,13 @@ def to_trash_memo_event(event, content):
     # 重複消去
     memo_id_list = list(set(memo_id_list))
 
+    # 先に全件持ち主のものか調べる
     for memo_id in memo_id_list:
         if not check_is_owner_of_the_memo(memo_id, user_uuid):
             print('Unauthorized trash operation. ' + str(memo_id_list) + user_uuid)
             return create_common_return_array(401, {'message': "Unauthorized",})
+
+    for memo_id in memo_id_list:
         # メモそのものの情報をゴミ箱に
         # シェア設定は物理削除
         if not move_trash_memo(memo_id):
@@ -434,10 +467,14 @@ def restore_memo_event(event, context):
 
     # 重複消去
     memo_id_list = list(set(memo_id_list))
+
+    # 先に全件持ち主のものか調べる
     for memo_id in memo_id_list:
         if not check_is_owner_of_the_memo(memo_id, user_uuid):
             print('Unauthorized restore operation. ' + str(memo_id_list) + user_uuid)
             return create_common_return_array(401, {'message': "Unauthorized",})
+
+    for memo_id in memo_id_list:
         # メモそのものの情報をゴミ箱に
         # シェア設定は物理削除
         if not restore_memo(memo_id):
@@ -485,12 +522,3 @@ def switch_pinned_event(event, context):
         return create_common_return_array(500, {'message': "Failed to pinned memo.",})
     return create_common_return_array(200, {'message': "updated.", 'pinned_type': new_pinned_type})
 
-
-def get_max_body_len(event, context):
-    if os.environ['EnvName'] != 'Prod':
-        print(json.dumps(event))
-    user_uuid: str = get_user_uuid_by_event(event)
-    if not user_uuid:
-        return create_common_return_array(401, {'message': "session timeout.",})
-
-    user_data: dict = get_user_data()
