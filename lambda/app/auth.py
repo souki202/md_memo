@@ -10,7 +10,7 @@ from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
 from common_headers import *
 from model.auth import *
-from my_mail import *
+from service.mail import *
 from model.user import *
 from model.auth import *
 from user import *

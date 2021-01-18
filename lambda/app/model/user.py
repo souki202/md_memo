@@ -10,7 +10,7 @@ from boto3.dynamodb.conditions import Key
 from argon2 import PasswordHasher
 from common_headers import *
 from my_common import *
-from my_mail import *
+from service.mail import *
 from dynamo_utility import *
 from service.user import *
 
@@ -19,9 +19,13 @@ db_client = boto3.client("dynamodb", region_name='ap-northeast-1')
 USERS_TABLE_NAME = 'md_memo_users' + os.environ['DbSuffix']
 DELETED_USERS_TABLE_NAME = 'md_memo_deleted_users' + os.environ['DbSuffix']
 RESET_PASS_TABLE_NAME = 'md_memo_reset_password' + os.environ['DbSuffix']
+TMP_USER_ID_TABLE_NAME = 'md_memo_tmp_user_id' + os.environ['DbSuffix']
 users_table = db_resource.Table(USERS_TABLE_NAME)
 deleted_users_table = db_resource.Table(DELETED_USERS_TABLE_NAME)
 reset_password_table = db_resource.Table(RESET_PASS_TABLE_NAME)
+tmp_user_id_table = db_resource.Table(TMP_USER_ID_TABLE_NAME)
+
+EXPIRATION_USER_ID_UPDATE = 60 * 5
 
 '''
 user_idからユーザ情報を取得
@@ -32,6 +36,21 @@ def get_user(id: str):
     try:
         result = users_table.query(
             KeyConditionExpression=Key('user_id').eq(id)
+        )['Items']
+        if len(result) == 0:
+            print('Not found user id: ' + id)
+            return None
+        return result[0]
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def get_user_consistent(id: str):
+    try:
+        result = users_table.query(
+            KeyConditionExpression=Key('user_id').eq(id),
+            ConsistentRead=True
         )['Items']
         if len(result) == 0:
             print('Not found user id: ' + id)
@@ -148,6 +167,49 @@ def update_user_id(user_data: dict, new_user_id: str):
         )
         print(result)
         return not not result
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def add_tmp_update_user_id(user_data: dict, new_user_id: str) -> (bool, str):
+    tmp_token = secrets.token_urlsafe(64)
+    try:
+        res = tmp_user_id_table.put_item(
+            Item={
+                'token': tmp_token,
+                'old_user_id': user_data['user_id'],
+                'new_user_id': new_user_id,
+                'expiration': int(time.time()) + EXPIRATION_USER_ID_UPDATE
+            }
+        )
+        return not not res, tmp_token
+    except Exception as e:
+        print(e)
+        return False, None
+    return False, None
+
+def get_update_user_id_data(token: str) -> dict:
+    try:
+        res = tmp_user_id_table.query(
+            KeyConditionExpression=Key('token').eq(token),
+        )['Items']
+        if not res:
+            return None
+        return res[0]
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def delete_tmp_update_user_id_data(token: str) -> bool:
+    try:
+        res = tmp_user_id_table.delete_item(
+            Key={
+                'token': token
+            }
+        )
+        return not not res
     except Exception as e:
         print(e)
         return False
