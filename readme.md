@@ -38,9 +38,11 @@
 
 ## デプロイ
 
+本当はActionsとCodeBuildでなんとかしたかったけどディレクトリ構造が悪かったりで手抜き
+
 ### dev
 
-requiementsの追加があればwslに入って
+requiementsの変更があればwslに入って
 
 ```shell
 cd /mnt/d/Projects/md_memo/lambda/my_layer
