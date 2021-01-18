@@ -232,11 +232,17 @@ Resources:
       Handler: user.update_user_data_event
       Role: !Ref RoleArn
       Events:
-        DefaultEvent:
+        UpdateUserDataEvent:
           Type: Api
           Properties:
             RestApiId: !Ref RestApi
             Path: /update_user_data
+            Method: post
+        UpdateUserIdEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /update_user_id
             Method: post
   
   ResetPasswordPrepareFunction:

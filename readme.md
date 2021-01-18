@@ -20,7 +20,7 @@
 
 テーブル作成
 
-`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\trash_overviews.json"`
+`aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\local\scheme\tmp_user_id.json"`
 
 `aws dynamodb create-table --cli-input-json "file://D:\Projects\md_memo\lambda\task\staging\scheme\overviews.json"`
 

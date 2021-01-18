@@ -21,9 +21,9 @@ def get_page_url():
     elif os.environ['EnvName'] == 'Stg':
         return 'https://stg-md-memo.tori-blog.net'
     elif os.environ['EnvName'] == 'Dev':
-        return 'http://dev-md-memo.tori-blog.net'
+        return 'https://dev-md-memo.tori-blog.net'
     elif os.environ['EnvName'] == 'Local':
-        return 'http://dev-md-memo.tori-blog.net'
+        return 'https://dev-md-memo.tori-blog.net'
 
 def get_domain():
     if os.environ['EnvName'] == 'Prod':

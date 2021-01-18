@@ -24,7 +24,7 @@ LOGIN_TIME_RANGE = 60 * 5
 
 MAX_LOGIN_TRY_COUNT = 7
 
-def check_and_update_session(event):
+def check_and_update_session(event) -> bool:
     cookie = create_simple_cookie(event)
     if not cookie.get('session_token', None):
         return False
@@ -38,7 +38,7 @@ def check_and_update_session(event):
     update_result = update_session(token)
     return True
 
-def check_session(event):
+def check_session(event) -> bool:
     cookie = create_simple_cookie(event)
     if not cookie.get('session_token', None):
         return False
@@ -73,7 +73,7 @@ def get_session_token(event) -> str:
     return cookie.get('session_token').value
 
 
-def get_is_correct_session(session_token):
+def get_is_correct_session(session_token: str) -> bool:
     if not session_token:
         return False
     try:
@@ -92,7 +92,7 @@ def get_is_correct_session(session_token):
         return False
     return False
 
-def create_session(user_uuid):
+def create_session(user_uuid: str) -> (bool, str):
     if not user_uuid:
         return None, None
     token = secrets.token_urlsafe(64)
@@ -105,13 +105,13 @@ def create_session(user_uuid):
                 'expiration_time': int(time.time()) + EXPIRATION_TIME_PERIOD
             }
         )
-        return res, token
+        return not not res, token
     except Exception as e:
         print(e)
         return False, None
     return None, None
 
-def delete_session(token):
+def delete_session(token: str) -> bool:
     if not token:
         return False
     try:
@@ -134,14 +134,12 @@ def delete_session(token):
                 'session_token': token,
             },
         )
-        if not res:
-            return False
-        return True
+        return not not res
     except Exception as e:
         print(e)
         return False
 
-def add_login_history(user_id, ip_address):
+def add_login_history(user_id: str, ip_address: str) -> bool:
     if not user_id or not ip_address:
         return False
     
@@ -160,7 +158,7 @@ def add_login_history(user_id, ip_address):
         return False
     return False
 
-def check_login_history(user_id, ip_address):
+def check_login_history(user_id: str, ip_address: str) -> bool:
     now = get_now_string()
     from_time = get_calced_from_now_string(LOGIN_TIME_RANGE)
 
@@ -183,7 +181,7 @@ def check_login_history(user_id, ip_address):
         return False
     return False
 
-def get_user_uuid_by_token(session_token) -> str:
+def get_user_uuid_by_token(session_token: str) -> str:
     if not session_token:
         return None
     try:
@@ -214,7 +212,7 @@ def get_user_uuid_by_event(event) -> str:
         return None
     return get_user_uuid_by_token(token)
 
-def update_session(token):
+def update_session(token: str) -> bool:
     try:
         res = sessions_table.update_item(
             Key = {
@@ -226,7 +224,7 @@ def update_session(token):
             },
             ReturnValues="UPDATED_NEW"
         )
-        return res
+        return not not res
     except Exception as e:
         print(e)
         return False
