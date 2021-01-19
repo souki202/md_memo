@@ -1,0 +1,26 @@
+#tagManager {
+    display: flex;
+    flex-direction: row;
+}
+
+#tagListContainer {
+    margin: 1rem;
+    overflow: auto;
+    width: 256px;
+}
+
+.tag-name-container {
+    cursor: pointer;
+    width: 100%;
+}
+
+.tag-name-container p {
+    margin: 0;
+    padding: 0.25rem;
+    overflow-wrap: break-word;
+}
+
+.tag-name-container:hover {
+    background-color: var(--assort-hover-bg-color);
+    color: var(--assort-hover-text-color);
+}

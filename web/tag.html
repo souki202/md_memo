@@ -3,9 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <script src="/js/loadCommonParts.js"></script>
+    <title>MemoEase タグ管理</title>
 </head>
 <body>
-    
+    <div id="header"></div>
+    <main id="main">
+        <div id="tagManager">
+            <div id="tagListContainer">
+                <div id="tagList">
+                    <div class="tag-search-container form-group">
+                        <input type="text" class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" v-model="tagSearchValue" placeholder="タグを検索">
+                    </div>
+                    <div v-for="tag in allTags" class="tag-name-container" @click="searchMemoByTag(tag.uuid)">
+                        <p class="tag-name" v-if="!tagSearchValue || tag.name.indexOf(tagSearchValue) != -1">
+                            {{tag.name}}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/auth.js', true);
+            appendScript('/js/tag.js', true);
+            appendCss('/css/tag.css');
+        })
+    </script>
 </body>
 </html>

@@ -4,3 +4,4 @@ lambda/events
 lambda/app/credentials
 lambda/my_layer_libs
 lambda/template-output.yaml
+_test

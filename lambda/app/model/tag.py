@@ -21,6 +21,8 @@ TAG_RELATION_TABLE_NAME = 'md_memo_tag_and_memo_relation' + os.environ['DbSuffix
 tags_table = db_resource.Table(TAG_TABLE_NAME)
 tag_relation_table = db_resource.Table(TAG_RELATION_TABLE_NAME)
 
+GET_SEARCH_MEMO_PER_PAGE = 20
+
 '''
 タグを作成
 
@@ -209,6 +211,44 @@ def delete_tag_relations_by_memo_id(memo_id: str) -> bool:
     try:
         uuids = [r['tag_uuid'] for r in relations]
         return delete_tag_relation_multi(uuids, memo_id)
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
+def check_is_owner_of_the_tag(tag_uuid: str, user_uuid: str) -> bool:
+    tag_data = get_tag(tag_uuid)
+    if not tag_data:
+        return False
+    
+    return tag_data['user_uuid'] == user_uuid
+
+'''
+検索結果を取得
+'''
+def get_memo_uuids_by_tag(tag_uuid: str, exclusive_start_key: dict) -> list:
+    try:
+        res = None
+        if exclusive_start_key is None:
+            res = tag_relation_table.query(
+                IndexName='tag_uuid-memo_created_at-index',
+                KeyConditionExpression=Key('tag_uuid').eq(tag_uuid),
+                Limit=GET_SEARCH_MEMO_PER_PAGE
+            )
+        else:
+            res = tag_relation_table.query(
+                IndexName='tag_uuid-memo_created_at-index',
+                KeyConditionExpression=Key('tag_uuid').eq(tag_uuid),
+                ExclusiveStartKey=exclusive_start_key,
+                Limit=GET_SEARCH_MEMO_PER_PAGE
+            )
+        items = res['Items']
+        exclusive_start_key = res.get('LastEvaluatedKey')
+
+        if len(items) == 0:
+            return [], None
+        items = [i['memo_uuid'] for i in items]
+        return items, exclusive_start_key
     except Exception as e:
         print(e)
         return False

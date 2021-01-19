@@ -37,9 +37,10 @@ def get_memo_list_event(event, context):
             return get_available_memo_list_event(event, context)
         elif resource == '/get_trash_memo_list':
             return get_trash_memo_list_event(event, context)
+        elif resource == '/search_memo_by_tag':
+            return search_memo_by_tag_event(event, context)
 
     return create_common_return_array(404, {'message': 'Not Found',})
-
 
 def get_available_memo_list_event(event, context):
     user_uuid: str = get_user_uuid_by_event(event)
@@ -90,6 +91,30 @@ def get_trash_memo_list_event(event, context):
         del memo['user_uuid']
     
     return create_common_return_array(200, {'items': memos, 'next_page_memo_id': next_page_memo_id})
+
+def search_memo_by_tag_event(event, context):
+    user_uuid: str = get_user_uuid_by_event(event)
+    if not user_uuid:
+        return create_common_return_array(401, {'message': "session timeout.",})
+    
+    tag_uuid: str = event.get('queryStringParameters', {}).get('uuid', '')
+    exclusive_start_key: str = event.get('queryStringParameters', {}).get('next_page_memo_id', '')
+    if not tag_uuid:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+
+    # そのタグがログインユーザのものかチェック
+    if not my_tag.check_is_owner_of_the_tag(tag_uuid, user_uuid):
+        return create_common_return_array(401, {'message': 'Unauthorized'})
+    
+    # メモuuid一覧を取得
+    memo_uuids, exclusive_start_key = my_tag.get_memo_uuids_by_tag(user_uuid, exclusive_start_key)
+    if memo_uuids == False:
+        print('Failed to get memo ids. tag_uuid: ' + tag_uuid)
+        return create_common_return_array(500, {'message': 'Failed to get memo ids.'})
+
+    # uuid一覧からoverview一覧を取得
+    memos = get_memo_overviews_by_uuids(memo_uuids)
+    return create_common_return_array(200, {'items': memos, 'next_page_memo_id': exclusive_start_key})
 
 def get_pinned_memo_list_event(event, context):
     if os.environ['EnvName'] != 'Prod':
