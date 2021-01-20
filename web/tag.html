@@ -10,6 +10,10 @@
     <div id="header"></div>
     <main id="main">
         <div id="tagManager">
+            <!-- messages -->
+            <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
+                <p>{{ errorMessage }}</p>
+            </div>
             <div id="tagListContainer">
                 <div id="tagList">
                     <div class="tag-search-container form-group">
@@ -19,12 +23,19 @@
                         <p class="tag-name" v-if="!tagSearchValue || tag.name.indexOf(tagSearchValue) != -1">
                             {{tag.name}}
                         </p>
+                        <div class="delete-tag-button" @click="deleteTag(tag.uuid)">
+                            <i class="fas fa-times"></i>
+                        </div>
                     </div>
                 </div>
             </div>
             <div id="memoList">
                 <div class="memo-list">
                     <memo-card v-for="memo of matchMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'tagSearch'" :is-view-checkbox="false"></memo-card>
+                </div>
+                <!-- 続きを読み込むボタン -->
+                <div class="load-more-button-container" v-if="this.nextPageMemoId">
+                    <button class="btn" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]" @click="addMemoList">続きを読み込む</button>
                 </div>
             </div>
         </div>

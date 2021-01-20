@@ -96,7 +96,7 @@ Resources:
   MyApi1:
     Type: AWS::Serverless::Application
     Properties:
-      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-dev/41c4ee96de81d131c1a5269633583727.template
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-dev/3d40a2865c9f3f14e0191679aa8094b0.template
       Parameters:
         FileApiCustomDomain:
           Fn::FindInMap:
@@ -175,7 +175,7 @@ Resources:
   MyApi2:
     Type: AWS::Serverless::Application
     Properties:
-      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-dev/c199a8d5b40ad831b8528a0fbd98c0d8.template
+      Location: https://s3.ap-northeast-1.amazonaws.com/aws-sam-nested-application-packages-md-memo-dev/0d2d89ee32c817e70877896375eb7ac2.template
       Parameters:
         FileApiCustomDomain:
           Fn::FindInMap:

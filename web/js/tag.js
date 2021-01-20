@@ -17,7 +17,9 @@ new Vue({
             allTags: [],
             matchMemos: [],
             tagSearchValue: '',
+            activeTag: '',
             theme: 'light',
+            nextPageMemoId: null
         }
     },
     mounted() {
@@ -26,6 +28,7 @@ new Vue({
     },
     methods: {
         getAllTags() {
+            this.errorMessage = '';
             axios.get(getApiUrl() + '/get_tags').then(res => {
                 console.log(res.data);
                 this.allTags = res.data.tags;
@@ -42,6 +45,7 @@ new Vue({
          * @param {string} newTag 新しいタグ 
          */
         createNewTag(newTag) {
+            this.errorMessage = '';
             console.log(newTag);
             if (newTag.length > 50) {
                 this.$parent.errorMessage = 'タグの名前の長さは50文字までです';
@@ -66,18 +70,48 @@ new Vue({
 
         searchMemoByTag(tagUuid) {
             console.log(tagUuid);
+            this.errorMessage = '';
+            this.matchMemos.splice(0, this.matchMemos.length);
+            this.activeTag = tagUuid;
+            this.nextPageMemoId = null;
+            this.addMemoList(tagUuid);
+        },
+
+        addMemoList() {
             axios.get(getApiUrl() + '/search_memo_by_tag', {
+                params: {
+                    uuid: this.activeTag,
+                    next_page_memo_id: this.nextPageMemoId
+                }
+            }).then((res) => {
+                console.log(res);
+                if (res.data.items) {
+                    this.matchMemos = this.matchMemos.concat(res.data.items.filter(v => !!v));
+                }
+                this.nextPageMemoId = res.data.next_page_memo_id;
+            }).catch((err) => {
+                console.log(err);
+                this.errorMessage = 'メモの検索に失敗しました'
+            }).then(() => {
+
+            });
+        },
+
+        deleteTag(tagUuid) {
+            this.errorMessage = '';
+            axios.post(getApiUrl() + '/delete_tag', {
                 params: {
                     uuid: tagUuid
                 }
             }).then((res) => {
                 console.log(res);
-                this.matchMemos = res.data.items;
+                location.reload();
             }).catch((err) => {
                 console.log(err);
+                this.errorMessage = 'タグの削除に失敗しました'
             }).then(() => {
 
             });
-        },
+        }
     }
 });

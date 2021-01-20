@@ -104,6 +104,8 @@ def search_memo_by_tag_event(event, context):
 
     if not exclusive_start_key:
         exclusive_start_key = None
+    else:
+        exclusive_start_key = json.loads(exclusive_start_key)
 
     # そのタグがログインユーザのものかチェック
     if not my_tag.check_is_owner_of_the_tag(tag_uuid, user_uuid):

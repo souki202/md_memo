@@ -33,6 +33,8 @@ def tag_event(event, context):
             return set_tag_relation_event(event, context)
         elif resource == '/delete_tag_relation':
             return delete_tag_relation_event(event, context)
+        elif resource == '/delete_tag':
+            return delete_tag_event(event, context)
     elif httpMethod == 'GET':
         if resource == '/get_tags':
             return get_tags_event(event, context)
@@ -196,14 +198,14 @@ def set_tag_relation_event(event, context):
 メモとタグの関連付けを削除する
 '''
 def delete_tag_relation_event(event, context):
+    params = json.loads(event['body'] or '{ }')
+    if 'params' not in params:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+
     user_uuid: str = get_user_uuid_by_event(event)
     # 更新はログイン必須
     if not user_uuid:
         return create_common_return_array(401, {'message': 'session timeout.',})
-
-    params = json.loads(event['body'] or '{ }')
-    if 'params' not in params:
-        return create_common_return_array(406, {'message': 'Insufficient input'})
     
     tag_uuid: str = params['params'].get('tag_uuid', '')
     memo_uuid: str = params['params'].get('memo_uuid', '')
@@ -223,3 +225,43 @@ def delete_tag_relation_event(event, context):
         return create_common_return_array(500, {'message': 'Failed to set tag relation'})
 
     return create_common_return_array(200, {'message': 'Success'})
+
+def delete_tag_event(event, context):
+    params = json.loads(event['body'] or '{ }')
+    if 'params' not in params:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+
+    tag_uuid: str = params['params'].get('uuid', '')
+
+    if not tag_uuid:
+        return create_common_return_array(406, {'message': 'Insufficient input'})
+    
+    user_uuid: str = get_user_uuid_by_event(event)
+
+    # 削除はログイン必須
+    if not user_uuid:
+        return create_common_return_array(401, {'message': 'session timeout.',})
+    
+    # タグの所持者がログインユーザか調べる
+    tag_info = my_tag.get_tag(tag_uuid)
+
+    if not tag_info:
+        print('Not found tag. tag_uuid: ' + tag_uuid)
+        return create_common_return_array(404, {'message': 'Not Found.',})
+
+    if tag_info['user_uuid'] != user_uuid:
+        print('FUnauthorized. tag_uuid: ' + tag_uuid + ' user_uuid: ' + user_uuid)
+        return create_common_return_array(401, {'message': 'Unauthorized'})
+    
+    # 削除
+    # relationから
+    if not my_tag.delete_relations_by_tag_uuid(tag_info['uuid']):
+        print('Failed to delete tag relations. tag_uuid: ' + tag_uuid)
+        return create_common_return_array(500, {'message': 'Failed to delete tag'})
+    # タグ本体削除
+    if not my_tag.delete_tag(tag_info['uuid']):
+        print('Failed to delete tag. tag_uuid: ' + tag_uuid)
+        return create_common_return_array(500, {'message': 'Failed to delete tag'})
+
+    return create_common_return_array(200, {'message': 'Success'})
+

@@ -236,7 +236,7 @@ def get_memo_list_page(user_uuid, exclusive_start_key):
             response = memo_overviews_table.query(
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                ScanIndexForward = False,
+                ScanIndexForward=False,
                 Limit=MEMO_PAGE_LIMIT
             )
         else:
@@ -244,7 +244,7 @@ def get_memo_list_page(user_uuid, exclusive_start_key):
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                 ExclusiveStartKey=exclusive_start_key,
-                ScanIndexForward = False,
+                ScanIndexForward=False,
                 Limit=MEMO_PAGE_LIMIT
             )
         items = response['Items']
