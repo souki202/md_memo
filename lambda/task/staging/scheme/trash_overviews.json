@@ -1,0 +1,68 @@
+{
+    "AttributeDefinitions": [
+        {
+            "AttributeName": "uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "user_uuid",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "created_at",
+            "AttributeType": "S"
+        },
+        {
+            "AttributeName": "title",
+            "AttributeType": "S"
+        }
+    ],
+    "TableName": "md_memo_trash_memos_stg",
+    "KeySchema": [
+        {
+            "AttributeName": "uuid",
+            "KeyType": "HASH"
+        }
+    ],
+    "GlobalSecondaryIndexes": [
+        {
+            "IndexName": "user_uuid-created_at-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "user_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "created_at",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "INCLUDE",
+                "NonKeyAttributes": [
+                    "title", "uuid", "description"
+                ]
+            }
+        },
+        {
+            "IndexName": "user_uuid-title-index",
+            "KeySchema": [
+                {
+                    "AttributeName": "user_uuid",
+                    "KeyType": "HASH"
+                },
+                {
+                    "AttributeName": "title",
+                    "KeyType": "RANGE"
+                }
+            ],
+            "Projection": {
+                "ProjectionType": "INCLUDE",
+                "NonKeyAttributes": [
+                    "title", "uuid", "description"
+                ]
+            }
+        }
+    ],
+    "BillingMode": "PAY_PER_REQUEST"
+}
