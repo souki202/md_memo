@@ -289,6 +289,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /get_trash_memo_list
             Method: get
+        SearchMemoListByTagEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /search_memo_by_tag
+            Method: get
 
   GetPinnedMemoListFunction:
     Type: AWS::Serverless::Function
@@ -456,6 +462,12 @@ Resources:
             RestApiId: !Ref RestApi
             Path: /get_tags
             Method: get
+        DeleteEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /delete_tag
+            Method: post
         GetUuidEvent:
           Type: Api
           Properties:

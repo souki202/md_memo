@@ -195,6 +195,7 @@ body {
     height: 80px;
     background-color: var(--assort-bg-color);
     color: var(--assort-text-color);
+    flex-shrink: 0;
 }
 
 .helper-button-set {

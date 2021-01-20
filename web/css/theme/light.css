@@ -3,9 +3,10 @@
     --base-text-color: #222;
 
     --assort-bg-color: #fafbfc;
-    --assort-hover-bg-color: #d1d1d2;
     --assort-text-color: #333;
+    --assort-hover-bg-color: #d1d1d2;
     --assort-hover-text-color: #222;
+    --assort-reverse-bg-color: #333;
     --assort-reverse-text-color: #d1d1d2;
 
     --sidebar-bg-color: #161b22;

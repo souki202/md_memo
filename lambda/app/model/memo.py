@@ -5,6 +5,7 @@ import uuid
 import datetime
 import time
 import secrets
+import concurrent.futures
 from enum import Enum
 from boto3.dynamodb.conditions import Key
 from common_headers import *
@@ -235,7 +236,7 @@ def get_memo_list_page(user_uuid, exclusive_start_key):
             response = memo_overviews_table.query(
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
-                ScanIndexForward = False,
+                ScanIndexForward=False,
                 Limit=MEMO_PAGE_LIMIT
             )
         else:
@@ -243,7 +244,7 @@ def get_memo_list_page(user_uuid, exclusive_start_key):
                 IndexName='user_uuid-created_at-index',
                 KeyConditionExpression=Key('user_uuid').eq(user_uuid),
                 ExclusiveStartKey=exclusive_start_key,
-                ScanIndexForward = False,
+                ScanIndexForward=False,
                 Limit=MEMO_PAGE_LIMIT
             )
         items = response['Items']
@@ -343,7 +344,6 @@ def get_available_memo_overview(memo_id: str) -> dict:
         result = memo_overviews_table.query(
             KeyConditionExpression=Key('uuid').eq(memo_id),
         )['Items']
-        # 無ければゴミ箱から検索
         if len(result) == 0:
             return None
         return result[0]
@@ -665,4 +665,18 @@ def update_pinned_memo(memo_id: str, state: int) -> bool:
         return False
     return False
 
+'''
+メモのuuidからoverviewを取得する
+'''
+def get_memo_overviews_by_uuids(memo_ids: list) -> list:
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+    rets = [executor.submit(get_available_memo_overview, memo_id) for memo_id in memo_ids]
+    
+    memos = [None] * len(memo_ids)
 
+    for ret in concurrent.futures.as_completed(rets):
+        result = ret.result()
+        # 失敗はスルー
+        if result:
+            memos[memo_ids.index(result['uuid'])] = result
+    return memos

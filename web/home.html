@@ -90,9 +90,11 @@
         window.addEventListener('DOMContentLoaded', (e) => {
             appendScript('/js/vue-loading-overlay@3.js', true);
             appendScript('/js/auth.js', true);
+            appendScript('/js/memoListItemComponent.js', true)
             appendScript('/js/home.js', true);
-            appendCss('/css/vue-loading.css')
-            appendCss('/css/home.css')
+            appendCss('/css/vue-loading.css');
+            appendCss('/css/home.css');
+            appendCss('/css/memoItem.css');
         })
     </script>
 </body>

@@ -4,7 +4,7 @@ from my_common import *
 
 client = boto3.client('ses')
 
-COMPANY_NAME = 'MD Writer'
+COMPANY_NAME = 'MemoEase'
 
 reg_mail_body = '''
 本サイトにご登録いただき、ありがとうございます。
@@ -89,19 +89,19 @@ def send_mail(from_view_name, from_mail, to_mail, subject, body):
 def send_temporary_regist_mail(to_mail, temp_token):
     body = reg_mail_body + MAIL_FOOTER
     body = body.replace('[[[temp_reg_url]]]', create_temporary_regist_url(temp_token))
-    return send_mail('noreply', get_noreply_from(), to_mail, 'MD Writer 仮登録', body)
+    return send_mail('noreply', get_noreply_from(), to_mail, 'MemoEase 仮登録', body)
 
 def send_reset_password_mail(to_mail, new_password, reset_token):
     body = reset_password_mail_body + MAIL_FOOTER
     body = body.replace('[[[new_password]]]', new_password)
     body = body.replace('[[[reset_password_url]]]', create_reset_password_url(reset_token))
-    return send_mail('noreply', get_noreply_from(), to_mail, 'MD Writer パスワードリセット', body)
+    return send_mail('noreply', get_noreply_from(), to_mail, 'MemoEase パスワードリセット', body)
 
 def send_update_user_id_mail(to_mail, new_user_id, update_token):
     body = update_user_id_mail_body + MAIL_FOOTER
     body = body.replace('[[[new_user_id]]]', new_user_id)
     body = body.replace('[[[update_user_id_url]]]', create_update_user_id_url(update_token))
-    return send_mail('noreply', get_noreply_from(), to_mail, 'MD Writer ユーザID更新確認', body)
+    return send_mail('noreply', get_noreply_from(), to_mail, 'MemoEase ユーザID更新確認', body)
 
 def get_noreply_from():
     return 'noreply@tori-blog.net'

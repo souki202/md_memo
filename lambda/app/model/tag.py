@@ -21,6 +21,8 @@ TAG_RELATION_TABLE_NAME = 'md_memo_tag_and_memo_relation' + os.environ['DbSuffix
 tags_table = db_resource.Table(TAG_TABLE_NAME)
 tag_relation_table = db_resource.Table(TAG_RELATION_TABLE_NAME)
 
+GET_SEARCH_MEMO_PER_PAGE = 20
+
 '''
 タグを作成
 
@@ -164,6 +166,19 @@ def set_tag_relation(tag_uuid: str, memo_uuid: str, memo_created_at: str) -> boo
         return False
     return False
 
+def delete_tag(tag_uuid: str) -> bool:
+    try:
+        res = tags_table.delete_item(
+            Key={
+                'uuid': tag_uuid
+            }
+        )
+        return not not res
+    except Exception as e:
+        print(e)
+        return False
+    return False
+
 def delete_tag_relation(tag_uuid: str, memo_uuid: str) -> bool:
     try:
         res = tag_relation_table.delete_item(
@@ -210,6 +225,110 @@ def delete_tag_relations_by_memo_id(memo_id: str) -> bool:
         uuids = [r['tag_uuid'] for r in relations]
         return delete_tag_relation_multi(uuids, memo_id)
     except Exception as e:
+        print(e)
+        return False
+    return False
+
+'''
+該当のtag_uuidを持つrelationを全て削除
+'''
+def delete_relations_by_tag_uuid(tag_uuid: str) -> bool:
+    memo_uuids = get_all_memo_uuids_by_tag(tag_uuid)
+    if memo_uuids == False:
+        return False
+    if memo_uuids == []:
+        return True
+    
+    try:
+        with tag_relation_table.batch_writer() as batch:
+            for memo_uuid in memo_uuids:
+                batch.delete_item(
+                    Key={
+                        'tag_uuid': tag_uuid,
+                        'memo_uuid': memo_uuid
+                    }
+                )
+        return True
+    except Exception as e:
+        print('Faield to delete tag relations by tag uuid. tag_uuid: ' + tag_uuid)
+        print(e)
+        return False
+    return False
+
+def check_is_owner_of_the_tag(tag_uuid: str, user_uuid: str) -> bool:
+    tag_data = get_tag(tag_uuid)
+    if not tag_data:
+        return False
+    
+    return tag_data['user_uuid'] == user_uuid
+
+'''
+検索結果を取得
+'''
+def get_memo_uuids_by_tag(tag_uuid: str, exclusive_start_key: dict) -> list:
+    try:
+        res = None
+        if exclusive_start_key is None:
+            res = tag_relation_table.query(
+                IndexName='tag_uuid-memo_created_at-index',
+                KeyConditionExpression=Key('tag_uuid').eq(tag_uuid),
+                Limit=GET_SEARCH_MEMO_PER_PAGE,
+                ScanIndexForward = False
+            )
+        else:
+            res = tag_relation_table.query(
+                IndexName='tag_uuid-memo_created_at-index',
+                KeyConditionExpression=Key('tag_uuid').eq(tag_uuid),
+                ExclusiveStartKey=exclusive_start_key,
+                Limit=GET_SEARCH_MEMO_PER_PAGE,
+                ScanIndexForward = False
+            )
+        items = res['Items']
+        exclusive_start_key = res.get('LastEvaluatedKey')
+
+        if len(items) == 0:
+            return [], None
+        items = [i['memo_uuid'] for i in items]
+        return items, exclusive_start_key
+    except Exception as e:
+        print('Failed to get_memo_uuids_by_tag. tag_uuid: ' + tag_uuid + ' exclusive_start_key' + str(exclusive_start_key))
+        print(e)
+        return False, False
+    return False, False
+
+'''
+検索結果を取得
+'''
+def get_all_memo_uuids_by_tag(tag_uuid: str) -> list:
+    try:
+        exclusive_start_key = None
+        items = []
+        while True:
+            res = None
+            if exclusive_start_key is None:
+                res = tag_relation_table.query(
+                    IndexName='tag_uuid-memo_created_at-index',
+                    KeyConditionExpression=Key('tag_uuid').eq(tag_uuid)
+                )
+            else:
+                res = tag_relation_table.query(
+                    IndexName='tag_uuid-memo_created_at-index',
+                    KeyConditionExpression=Key('tag_uuid').eq(tag_uuid),
+                    ExclusiveStartKey=exclusive_start_key
+                )
+            items.extend(res['Items'])
+            exclusive_start_key = res.get('LastEvaluatedKey')
+            if ("LastEvaluatedKey" in res) == True:
+                exclusive_start_key = res["LastEvaluatedKey"]
+            else:
+                break
+
+        if len(items) == 0:
+            return [], None
+        items = [i['memo_uuid'] for i in items]
+        return items
+    except Exception as e:
+        print('Failed to get_all_memo_uuids_by_tag. tag_uuid: ' + tag_uuid)
         print(e)
         return False
     return False

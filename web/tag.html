@@ -3,9 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <script src="/js/loadCommonParts.js"></script>
+    <title>MemoEase タグ管理</title>
 </head>
 <body>
-    
+    <div id="header"></div>
+    <main id="main">
+        <div id="tagManager">
+            <!-- messages -->
+            <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
+                <p>{{ errorMessage }}</p>
+            </div>
+            <div id="tagListContainer">
+                <div id="tagList">
+                    <div class="tag-search-container form-group">
+                        <input type="text" class="form-control" :class="[{'text-light bg-dark': theme == 'dark'}]" v-model="tagSearchValue" placeholder="タグを検索">
+                    </div>
+                    <div v-for="tag in allTags" class="tag-name-container" @click="searchMemoByTag(tag.uuid)">
+                        <p class="tag-name" v-if="!tagSearchValue || tag.name.indexOf(tagSearchValue) != -1">
+                            {{tag.name}}
+                        </p>
+                        <div class="delete-tag-button" @click="deleteTag(tag.uuid)">
+                            <i class="fas fa-times"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="memoList">
+                <div class="memo-list">
+                    <memo-card v-for="memo of matchMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'tagSearch'" :is-view-checkbox="false"></memo-card>
+                </div>
+                <!-- 続きを読み込むボタン -->
+                <div class="load-more-button-container" v-if="this.nextPageMemoId">
+                    <button class="btn" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]" @click="addMemoList">続きを読み込む</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/auth.js', true);
+            appendScript('/js/memoListItemComponent.js', true)
+            appendScript('/js/tag.js', true);
+            appendCss('/css/tag.css');
+            appendCss('/css/memoItem.css');
+        });
+    </script>
 </body>
 </html>
