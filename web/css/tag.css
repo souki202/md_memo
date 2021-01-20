@@ -24,3 +24,8 @@
     background-color: var(--assort-hover-bg-color);
     color: var(--assort-hover-text-color);
 }
+
+#memoList {
+    width: 100%;
+    padding: 1rem;
+}

@@ -2,9 +2,12 @@ import getApiUrl from '/js/getApiUrl.js';
 import getEnv from '/js/getEnv.js';
 import urlParameter from '/js/urlParameter.js';
 import getTheme from '/js/colorTheme.js';
+import memoListItemComponent from '/js/memoListItemComponent.js';
 import '/js/js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
+
+Vue.component('memo-card', memoListItemComponent)
 
 new Vue({
     el: '#tagManager',
@@ -12,6 +15,7 @@ new Vue({
         return {
             errorMessage: '',
             allTags: [],
+            matchMemos: [],
             tagSearchValue: '',
             theme: 'light',
         }
@@ -53,8 +57,6 @@ new Vue({
                     name: newTag,
                 }
                 this.allTags.push(newTagData);
-                this.relatedTags.push(newTagData);
-                this.setTagRelation(newTagData);
             }).catch(err => {
                 console.log(err);
                 this.$parent.errorMessage = 'タグの追加に失敗しました';
@@ -70,6 +72,7 @@ new Vue({
                 }
             }).then((res) => {
                 console.log(res);
+                this.matchMemos = res.data.items;
             }).catch((err) => {
                 console.log(err);
             }).then(() => {

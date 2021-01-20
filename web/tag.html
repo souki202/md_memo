@@ -22,6 +22,11 @@
                     </div>
                 </div>
             </div>
+            <div id="memoList">
+                <div class="memo-list">
+                    <memo-card v-for="memo of matchMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'tagSearch'" :is-view-checkbox="false"></memo-card>
+                </div>
+            </div>
         </div>
     </main>
     <div id="footer"></div>
@@ -29,9 +34,11 @@
     <script>
         window.addEventListener('DOMContentLoaded', (e) => {
             appendScript('/js/auth.js', true);
+            appendScript('/js/memoListItemComponent.js', true)
             appendScript('/js/tag.js', true);
             appendCss('/css/tag.css');
-        })
+            appendCss('/css/memoItem.css');
+        });
     </script>
 </body>
 </html>

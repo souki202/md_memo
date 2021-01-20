@@ -1,44 +1,14 @@
 import getApiUrl from '/js/getApiUrl.js';
 import getTheme from '/js/colorTheme.js';
 import urlParameter from '/js/urlParameter.js';
+import memoListItemComponent from '/js/memoListItemComponent.js';
 import '/js/js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
 
 const Loading = window.VueLoading;
 
-Vue.component('memo-card', {
-    template: `
-    <div class="memo-card all-memo-item">
-        <!-- メモ選択のチェックボックス -->
-        <div class="form-group memo-check-button-container">
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" :id="'memoCheck'+listType+memo.uuid" v-model="memo.checked">
-                <label class="custom-control-label" :for="'memoCheck' + listType + memo.uuid"></label>
-            </div>
-        </div>
-
-        <!-- その他情報 -->
-        <div class="memo-title-container">
-            <div class="memo-title">
-                <a :href="'/memo.html?memo_id=' + memo.uuid" class="memo-list-link">{{ memo.title }}</a>
-            </div>
-        </div>
-        <div class="memo-updated-at">
-            {{ memo.created_at }}
-        </div>
-    </div>
-    `,
-
-    data: () => {
-        return {
-            memo: {},
-            listType: '',
-        }
-    },
-
-    props: ['memo', 'listType'],
-})
+Vue.component('memo-card', memoListItemComponent)
 
 new Vue({
     el: '#homeMemoList',
