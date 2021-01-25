@@ -71,7 +71,7 @@ function appendCss(url) {
 	el.href = url;
 	el.rel = 'stylesheet';
 	el.type = 'text/css';
-	document.getElementsByTagName('head')[0].appendChild(el);
+	document.head.appendChild(el);
 }
 
 function getIsDevelop() {
