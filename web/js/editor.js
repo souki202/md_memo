@@ -305,7 +305,15 @@ new Vue({
             historyEventDelay: 300,
             autofocus: true,
             dragDrop: false,
-            extraKeys: {"Enter": "newlineAndIndentContinueMarkdownList"},
+            extraKeys: {
+                "Enter": "newlineAndIndentContinueMarkdownList",
+                "Ctrl-Enter": "newlineAndIndentToUnder",
+                "Shift-Ctrl-Enter": "newlineAndIndentToAbove",
+                Tab: function(cm) {
+                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces);
+                }
+            },
         });
         // body変更時の挙動設定
         this.codemirror.on('change', () => {
