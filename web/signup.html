@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <script src="/js/loadCommonParts.js"></script>
-    <link rel="stylesheet" href="/css/login.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <script src="https://apis.google.com/js/platform.js" async defer></script>
@@ -68,7 +67,8 @@
             appendScript('/js/signup.js', true);
             appendScript('/js/authCheckInPublicPage.js', true);
             appendScript('/js/firebaseAuth.js', true);
-        })
+            appendCss('/css/login.css');
+        });
     </script>
 </body>
 </html>

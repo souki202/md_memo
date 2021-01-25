@@ -28,3 +28,15 @@ body {
 .form-option {
     font-size: 14px;
 }
+
+#sidebar {
+    display: none;
+}
+
+#main {
+    margin-left: 0;
+}
+
+.sidebar-switch-container {
+    display: none;
+}

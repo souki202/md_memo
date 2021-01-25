@@ -41,6 +41,7 @@ body {
     color: var(--base-text-color);
     font-size: 18px;
     font-family: "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro", "Yu Gothic Medium", "游ゴシック Medium", YuGothic, "游ゴシック体", "メイリオ", sans-serif;
+    min-width: 400px;
 }
 
 .alert {
