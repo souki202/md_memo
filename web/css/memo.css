@@ -122,6 +122,10 @@ body {
     z-index: 1000;
 }
 
+.tags-container .multiselect__single {
+    background-color: var(--assort-bg-color);
+}
+
 .tags-container .multiselect__tags {
     background-color: var(--assort-bg-color);
     border: none;
