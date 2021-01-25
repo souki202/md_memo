@@ -49,3 +49,7 @@
 
     --settings-group-title-border-color: #888;
 }
+
+body {
+    background-color: var(--base-bg-color);
+}
