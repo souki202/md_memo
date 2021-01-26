@@ -271,7 +271,6 @@ new Vue({
             memoMessages: [],
 
             isSaving: false,
-            canSave: true,
             saveInterval: 10000,
         }
     },
@@ -309,10 +308,13 @@ new Vue({
                 "Enter": "newlineAndIndentContinueMarkdownList",
                 "Ctrl-Enter": "newlineAndIndentContinueMarkdownListToUnder",
                 "Shift-Ctrl-Enter": "newlineAndIndentContinueMarkdownListToAbove",
+                "Ctrl-S": (cm) => {this.save();},
+                "Ctrl-Alt-Up": "addMultiCursorUp",
+                "Ctrl-Alt-Down": "addMultiCursorDown",
                 Tab: function(cm) {
                     var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
                     cm.replaceSelection(spaces);
-                }
+                },
             },
         });
         // body変更時の挙動設定
@@ -360,10 +362,6 @@ new Vue({
          * メモを保存する
          */
         _save() {
-            if (!this.canSave) {
-                return;
-            }
-
             // シェア画面で編集権限がないとき
             if (this.isSharedView && this.memo.share.type != 4) {
                 console.log(memo);
@@ -388,7 +386,6 @@ new Vue({
 
             // 保存処理
             this.isSaving = true;
-            this.canSave = false;
             axios.post(getApiUrl() + '/save_memo', {
                 params: {
                     memo: this.memo,
@@ -409,11 +406,6 @@ new Vue({
             }).then(() => {
                 this.isSaving = false;
             })
-
-            // 一定時間保存できないように
-            setTimeout(() => {
-                this.canSave = true
-            }, this.saveInterval);
         },
 
         save() {
@@ -718,7 +710,6 @@ new Vue({
                     // アップ完了の文字置換
                     this.invokeCodemirrorOperation('uploadComplete', tmpKey, key);
                     // 反映のため, 即保存
-                    this.canSave = true;
                     this.save();
 
                     // 画像本体アップ
