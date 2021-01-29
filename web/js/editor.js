@@ -301,7 +301,6 @@ new Vue({
             autoCloseBrackets: true,
             scrollbarStyle: "simple",
             keyMap: 'default',
-            inputStyle: 'contenteditable',
             historyEventDelay: 300,
             autofocus: true,
             dragDrop: false,
@@ -326,7 +325,11 @@ new Vue({
             if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
             this.autoSaveTimeout = setTimeout(this._save, this.autoSaveDelay);
         })
-
+        // this.codemirror.on('drop', (data, e) => {
+        //     console.log(e);
+        //     let files = e.dataTransfer.files;
+        //     // this.uploadFile(editor, e)
+        // })
         this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
 
         // memo idを取得
