@@ -288,10 +288,6 @@ new Vue({
         }
     },
     mounted() {
-        console.log(platform.name);
-        console.log(platform.version);
-        console.log(platform.os.toString());
-        console.log(platform.layout);
         // まずテーマ取得
         this.theme = getTheme();
 
