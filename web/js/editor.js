@@ -328,7 +328,8 @@ new Vue({
             this.autoSaveTimeout = setTimeout(this._save, this.autoSaveDelay);
         })
 
-        if (platform.os.toString() == 'Android' || platform.os.toString() == 'iOS' || platform.os.toString() == 'Windows Phone') {
+        const osName = platform.os.toString();
+        if (osName.indexOf('Android') >= 0 || osName.indexOf('iOS') >= 0 || osName.indexOf('Windows Phone') >= 0) {
             const origOnKeyPress = cm.display.input.onKeyPress; // 元のkeypressを取得
             cm.display.input.onKeyPress = function(e) {
             // iOSの絵文字キーボードのように、サロゲートペアの直接のkeypressは、CodeMirrorの処理を通すと文字化けるのでキャンセルする
