@@ -1,5 +1,5 @@
-import getApiUrl from '/js/getApiUrl.js'
-import getFileApiUrl from '/js/getFileApiUrl.js'
+import getApiUrl from './getApiUrl.js'
+import getFileApiUrl from './getFileApiUrl.js'
 export default class {
     constructor(codemirror) {
         this.codemirror = codemirror;

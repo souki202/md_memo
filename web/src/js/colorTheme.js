@@ -1,4 +1,4 @@
-import '/js/js.cookie.min.js';
+import Cookies from './js.cookie.min';
 
 function getTheme() {
     const theme = Cookies.get('theme');

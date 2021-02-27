@@ -112,6 +112,9 @@ function applyTheme(theme) {
     }
 })();
 
+window.appendCss = appendCss;
+window.appendScript = appendScript;
+
 window.addEventListener('DOMContentLoaded', (e) => {
     appendCss('/css/bootstrap.min.css');
     appendCss('/css/simplebar.css');
@@ -119,10 +122,10 @@ window.addEventListener('DOMContentLoaded', (e) => {
     appendScript('/js/axios.min.js');
     appendScript('/js/js.cookie.min.js', true);
     appendScript('/js/simplebar.min.js');
-    appendScript('/js/getApiUrl.js', true);
-    appendScript('/js/getFileApiUrl.js', true);
-    appendScript('/js/getEnv.js', true);
-    appendScript('/js/urlParameter.js', true);
+    // appendScript('/js/getApiUrl.js', true);
+    // appendScript('/js/getFileApiUrl.js', true);
+    // appendScript('/js/getEnv.js', true);
+    // appendScript('/js/urlParameter.js', true);
     if (getIsDevelop()) {
         appendScript('/js/vue.js', true);
     }

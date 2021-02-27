@@ -1,6 +1,6 @@
-import getApiUrl from '/js/getApiUrl.js'
-import urlParameter from '/js/urlParameter.js';
-import getTheme from '/js/colorTheme.js';
+import getApiUrl from './getApiUrl.js'
+import urlParameter from './urlParameter.js';
+import getTheme from './colorTheme.js';
 
 new Vue({
     el: '#userSettings',

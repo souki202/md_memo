@@ -1,5 +1,6 @@
-import getApiUrl from '/js/getApiUrl.js'
-import urlParameter from '/js/urlParameter.js';
+import getApiUrl from './getApiUrl.js'
+import urlParameter from './urlParameter.js';
+import Cookies from './js.cookie.min';
 
 const instance = axios.create({
     withCredentials: true

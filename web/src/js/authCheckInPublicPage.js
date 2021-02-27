@@ -1,4 +1,4 @@
-import getApiUrl from '/js/getApiUrl.js'
+import getApiUrl from './getApiUrl.js'
 
 axios.defaults.withCredentials = true;
 

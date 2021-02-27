@@ -1,9 +1,9 @@
-import getApiUrl from '/js/getApiUrl.js';
-import getEnv from '/js/getEnv.js';
-import urlParameter from '/js/urlParameter.js';
-import getTheme from '/js/colorTheme.js';
-import memoListItemComponent from '/js/memoListItemComponent.js';
-import '/js/js.cookie.min.js';
+import getApiUrl from './getApiUrl.js';
+import getEnv from './getEnv.js';
+import urlParameter from './urlParameter.js';
+import getTheme from './colorTheme.js';
+import memoListItemComponent from './memoListItemComponent.js';
+import './js.cookie.min.js';
 
 axios.defaults.withCredentials = true;
 

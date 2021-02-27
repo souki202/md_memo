@@ -1,5 +1,5 @@
-import getApiUrl from '/js/getApiUrl.js'
-import getTheme from '/js/colorTheme.js';
+import getApiUrl from './getApiUrl.js'
+import getTheme from './colorTheme.js';
 
 axios.defaults.withCredentials = true;
 

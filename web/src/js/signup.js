@@ -1,7 +1,7 @@
-import getApiUrl from '/js/getApiUrl.js'
-import '/js/js.cookie.min.js'
-import getTheme from '/js/colorTheme.js';
-// import '/js/axios.min.js';
+import getApiUrl from './getApiUrl.js'
+import './js.cookie.min.js'
+import getTheme from './colorTheme.js';
+// import './axios.min.js';
 
 new Vue({
     el: '#signupForm',

@@ -1,6 +1,6 @@
-import getApiUrl from '/js/getApiUrl.js'
-import getEnv from '/js/getEnv.js'
-import '/js/js.cookie.min.js'
+import getApiUrl from './getApiUrl.js'
+import getEnv from './getEnv.js'
+import './js.cookie.min.js'
 
 function createSigninOptions() {
     const domain = document.domain

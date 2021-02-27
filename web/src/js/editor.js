@@ -1,31 +1,46 @@
-import getApiUrl from '/js/getApiUrl.js'
-import getFileApiUrl from '/js/getFileApiUrl.js'
-import getTheme from '/js/colorTheme.js';
-import getEnv from '/js/getEnv.js';
-import urlParameter from '/js/urlParameter.js';
-import '/codemirror/lib/codemirror.js';
-import '/js/js.cookie.min.js';
-import '/js/uuidv4.min.js';
-import CodeMirrorHelper from '/js/memoHelper.js';
+import getApiUrl from './getApiUrl'
+import getTheme from './colorTheme';
+import getEnv from './getEnv';
+import urlParameter from './urlParameter';
+
+import {
+    history,
+    redo,
+    redoSelection,
+    undo,
+    undoSelection
+} from "@codemirror/history";
+import {EditorView, keymap} from "@codemirror/view";
+import {EditorState} from "@codemirror/state";
+import {standardKeymap} from "@codemirror/commands";
+import {defaultHighlightStyle} from "@codemirror/highlight";
+import {markdown} from "@codemirror/lang-markdown";
+import {lineNumbers} from '@codemirror/gutter';
+
+import './js.cookie.min';
+import './uuidv4.min';
+import CodeMirrorHelper from './memoHelper';
 
 axios.defaults.withCredentials = true;
 
-class ShareTypes {
-    static DoNotShare = 1;
-    static Readonly = 2;
-    static Editable = 4;
+const ShareTypes = {
+    DoNotShare: 1,
+    Readonly: 2,
+    Editable: 4,
 }
 
-class PinnedTypes {
-    static NoPinned = 1;
-    static Pinned = 2;
+const PinnedTypes = {
+    NoPinned: 1,
+    Pinned: 2,
 }
 
 class ViewModes {
-    static ModeList = {
-        Normal: 0,
-        Source: 1,
-        Preview: 2,
+    static getModeList() {
+        return {
+            Normal: 0,
+            Source: 1,
+            Preview: 2,
+        };
     }
 
     constructor(mode) {
@@ -34,6 +49,7 @@ class ViewModes {
         if (this.nowMode < 0 || this.nowMode >= this.modeDescriptions.length) {
             this.nowMode = 0;
         }
+        this.ModeList = ViewModes.getModeList();
     }
 
     switchMode() {
@@ -253,12 +269,13 @@ new Vue({
                 },
             },
 
-            viewModes: new ViewModes(ViewModes.ModeList.Normal),
+            viewModes: new ViewModes(ViewModes.getModeList().Normal),
             updatePreviewTimeout: null,
             autoSaveTimeout: null,
             autoSaveDelay: 5000,
 
             codemriror: null,
+            codemirrorExtensions: null,
             codemirrorHelper: null,
 
             showMessageTime: 3000,
@@ -292,91 +309,41 @@ new Vue({
         this.theme = getTheme();
 
         // codemirrorの適用
-        const cm = CodeMirror.fromTextArea(document.getElementById('memoBodyTextarea'), {
-            mode: 'markdown',
-            lineNumber: true,
-            indentUnit: 4,
-            theme: this.theme == 'light' ? 'mdn-like' : 'darcula',
-            lineNumbers: true,
-            autoCloseBrackets: true,
-            scrollbarStyle: "simple",
-            keyMap: 'default',
-            inputStyle: 'contenteditable',
-            historyEventDelay: 300,
-            autofocus: true,
-            dragDrop: false,
-            extraKeys: {
-                "Enter": "newlineAndIndentContinueMarkdownList",
-                "Ctrl-Enter": "newlineAndIndentContinueMarkdownListToUnder",
-                "Shift-Ctrl-Enter": "newlineAndIndentContinueMarkdownListToAbove",
-                "Ctrl-S": (cm) => {this.save();},
-                "Ctrl-Alt-Up": "addMultiCursorUp",
-                "Ctrl-Alt-Down": "addMultiCursorDown",
-                Tab: function(cm) {
-                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
-                    cm.replaceSelection(spaces);
-                },
-            },
-        });
-        this.codemirror = cm;
+        // const cm = CodeMirror.fromTextArea(document.getElementById('memoBodyTextarea'), {
+        //     mode: 'markdown',
+        //     lineNumber: true,
+        //     indentUnit: 4,
+        //     theme: this.theme == 'light' ? 'mdn-like' : 'darcula',
+        //     lineNumbers: true,
+        //     autoCloseBrackets: true,
+        //     scrollbarStyle: "simple",
+        //     keyMap: 'default',
+        //     inputStyle: 'contenteditable',
+        //     historyEventDelay: 300,
+        //     autofocus: true,
+        //     dragDrop: false,
+        //     extraKeys: {
+        //         "Enter": "newlineAndIndentContinueMarkdownList",
+        //         "Ctrl-Enter": "newlineAndIndentContinueMarkdownListToUnder",
+        //         "Shift-Ctrl-Enter": "newlineAndIndentContinueMarkdownListToAbove",
+        //         "Ctrl-S": (cm) => {this.save();},
+        //         "Ctrl-Alt-Up": "addMultiCursorUp",
+        //         "Ctrl-Alt-Down": "addMultiCursorDown",
+        //         Tab: function(cm) {
+        //             var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+        //             cm.replaceSelection(spaces);
+        //         },
+        //     },
+        // });
         // body変更時の挙動設定
-        this.codemirror.on('change', () => {
-            this.memo.body = this.codemirror.getValue();
-            this.updatePreview();
+        // this.codemirror.on('change', () => {
+        //     this.memo.body = this.codemirror.getValue();
+        //     this.updatePreview();
 
-            if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
-            this.autoSaveTimeout = setTimeout(this._save, this.autoSaveDelay);
-        })
+        //     if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
+        //     this.autoSaveTimeout = setTimeout(this._save, this.autoSaveDelay);
+        // })
 
-        const osName = platform.os.toString();
-        if (osName.indexOf('Android') >= 0 || osName.indexOf('iOS') >= 0 || osName.indexOf('Windows Phone') >= 0) {
-            const origOnKeyPress = cm.display.input.onKeyPress; // 元のkeypressを取得
-            cm.display.input.onKeyPress = function(e) {
-            // iOSの絵文字キーボードのように、サロゲートペアの直接のkeypressは、CodeMirrorの処理を通すと文字化けるのでキャンセルする
-            if(e.which >= 0x10000) {
-                return;
-            }
-        
-            if(!cm.display.input.composing) { // 文字入力中かどうかはcomposingでわかる
-                cm.keyPressTimer = setTimeout( () => {
-                    origOnKeyPress.call(this, e);
-                    }, 30); // 30ms以内（適当）にcompositionstartが呼ばれなければkeypressは実行して良い
-                }
-            }
-        
-            const inputArea = cm.display.input.div || cm.display.input.textarea; // 一応、inputStyleがどちらの状態でも大丈夫な書き方にした
-                inputArea.addEventListener('compositionstart', (_cm, e) => {
-                if(cm.keyPressTimer) {
-                    clearTimeout(cm.keyPressTimer);
-                }
-            }, false);
-        
-            const inputField = cm.display.input.getField();
-            // IME入力中のkeydownをCodeMirrorに渡さないようにする
-            window.addEventListener('keydown', function (e) {
-            if(e.target == inputField && cm.display.input.composing) {
-                e.stopPropagation();
-            }
-            }, true)
-        
-            // バーチャルキーボードの「完了」ボタンを押した時に、キーボードだけが消えないようにする
-            inputField.addEventListener('blur', function (e) {
-                if(e.relatedTarget) { // 「完了」ボタンでのblurかどうか
-                    return;
-                }
-                e.stopPropagation(); // stopしないと文字が二重で入力される
-            
-                if (cm.display.input.composing) {
-                    // 再focusが確定したらblurさせる
-                    inputField.focus();
-                    setTimeout(function () {
-                        inputField.blur();
-                    }, 1);
-                }
-            }, false)
-        }
-
-        this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
 
         // memo idを取得
         const memoId = urlParameter('memo_id');
@@ -391,6 +358,7 @@ new Vue({
         }
         else if (!memoId) {
             // 新規作成なので即保存
+            this.createCodeMirrorView('');
             this.save();
             this.$refs.tags.loadTags();
         }
@@ -505,6 +473,31 @@ new Vue({
             return a;
         },
 
+        createCodeMirrorView(text) {
+            let textarea = document.getElementById('memoBodyTextarea');
+            textarea.value = text;
+            this.codemirror = new EditorView({
+                state: EditorState.create({
+                    doc: textarea.value,
+                    extensions: [
+                        history(),
+                        lineNumbers(),
+                        keymap.of(standardKeymap),
+                        markdown(),
+                        defaultHighlightStyle,
+                    ]
+                }),
+                parent: document.getElementById('codemirrorContainer'),
+            });
+            this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
+            textarea.parentNode.insertBefore(this.codemirror.dom, textarea);
+            textarea.style.display = "none"
+            if (textarea.form) textarea.form.addEventListener("submit", () => {
+                textarea.value = this.codemirror.state.doc.toString()
+            });
+            return this.codemirror;
+        },
+
         setMemoData(memo) {
             let newMemoData = {}
             newMemoData.id = memo.uuid;
@@ -532,10 +525,11 @@ new Vue({
             }
             if (memo.is_trash) {
                 newMemoData.isTrash = true;
-                this.viewModes.setMode(ViewModes.ModeList.Preview);
+                this.viewModes.setMode(ViewModes.getModeList().Preview);
             }
             this.$set(this, 'memo', newMemoData);
-            this.codemirror.setValue(this.memo.body);
+            // this.codemirror.setValue(this.memo.body);
+            this.createCodeMirrorView(this.memo.body)
             this.updatePreviewCallback();
         },
 
@@ -574,7 +568,7 @@ new Vue({
 
                     // リードオンリーの場合はプレビュー表示が初期状態
                     if (this.memo.share.type == ShareTypes.Readonly) {
-                        this.viewModes.setMode(ViewModes.ModeList.Preview);
+                        this.viewModes.setMode(ViewModes.getModeList().Preview);
                     }
                 }).catch(err => {
                     console.log(err);

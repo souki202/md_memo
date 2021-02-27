@@ -138,6 +138,7 @@
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
+                        <div id="codemirrorContainer"></div>
                         
                         <!-- メッセージ等表示用overlay -->
                         <div class="memo-editor-overlay">
@@ -185,9 +186,6 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', (e) => {
-            appendScript('/js/uuidv4.min.js', true);
-            appendScript('/js/platform.js');
-
             // codemirror
             appendScript('/codemirror/lib/codemirror.js', true);
             // appendScript('/codemirror/keymap/sublime.js');
@@ -227,7 +225,6 @@
 
             appendScript('/js/marked.min.js');
             appendScript('/js/auth.js', true);
-            appendScript('/js/memoHelper.js', true);
             appendScript('/js/vue-multiselect.min.js');
             appendScript('/js/editor.js', true);
             appendCss('/css/memo.css');
