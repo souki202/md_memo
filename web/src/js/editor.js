@@ -488,9 +488,9 @@ new Vue({
                     ]
                 }),
                 parent: document.getElementById('codemirrorContainer'),
+                scrollDOM: document.getElementById('codemirrorContainer'),
             });
             this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
-            textarea.parentNode.insertBefore(this.codemirror.dom, textarea);
             textarea.style.display = "none"
             if (textarea.form) textarea.form.addEventListener("submit", () => {
                 textarea.value = this.codemirror.state.doc.toString()

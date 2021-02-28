@@ -38,6 +38,41 @@ module.exports = {
                         babelrc: true,
                     }
                 }
+            },
+            {
+                test: /\.(css)$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                ]
+            },
+            {
+                test: /\.(jpg|jpeg|gif|png)$/,
+                use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                        publicPath: 'images',
+                        outputPath: 'images',
+                    }
+                }
+            },
+            {
+                test: /\.(eot|ttf|woff|woff2)$/,
+                use: {
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                        publicPath: 'fonts',
+                        outputPath: 'fonts',
+                    }
+                }
+            },
+            {
+                test: /\.svg$/,
+                use: {
+                    loader: 'svg-url-loader'
+                }
             }
         ]
     },
