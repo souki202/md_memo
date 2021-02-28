@@ -84,9 +84,11 @@ body {
     position: absolute;
 }
 
-#memoEditor .CodeMirror {
+#memoEditor #codemirrorContainer {
     flex-grow: 1;
     font-family: consolas, monospace;
+    overflow-y: scroll;
+    height: 1px;
 }
 
 #memoBodyPreview pre {
