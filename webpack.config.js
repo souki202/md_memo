@@ -1,4 +1,6 @@
 const path = require('path')
+const CKEditorWebpackPlugin = require( '@ckeditor/ckeditor5-dev-webpack-plugin' );
+const { styles } = require( '@ckeditor/ckeditor5-dev-utils' );
 
 const jsOut = './web/dst/'
 const jsIn = './web/src/js/'
@@ -40,7 +42,38 @@ module.exports = {
                 }
             },
             {
+                test: /ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css$/,
+                use: [
+                    {
+                        loader: 'style-loader',
+                        options: {
+                            injectType: 'singletonStyleTag',
+                            attributes: {
+                                'data-cke': true
+                            }
+                        }
+                    },
+                    {
+                        loader: 'css-loader',
+                    },
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            postcssOptions: styles.getPostCssConfig( {
+                                themeImporter: {
+                                    themePath: require.resolve( '@ckeditor/ckeditor5-theme-lark' )
+                                },
+                                // minify: true
+                            })
+                        }
+                    },
+                ]
+            },
+            {
                 test: /\.(css)$/,
+                exclude: [
+                    /ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css$/,
+                ],
                 use: [
                     'style-loader',
                     'css-loader',
@@ -69,11 +102,19 @@ module.exports = {
                 }
             },
             {
-                test: /\.svg$/,
+                test: /ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
+                use: [ 'raw-loader' ]
+            },
+            {
+                test: /\.(otf|ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
+                exclude: [
+                    /ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
+                    /ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css/,
+                ],
                 use: {
-                    loader: 'svg-url-loader'
+                    loader: 'url-loader',
                 }
-            }
+            },
         ]
     },
 }

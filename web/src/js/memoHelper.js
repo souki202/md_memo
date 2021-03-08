@@ -110,7 +110,7 @@ export default class {
     }
 
     link() {
-        const selections = this.codemirror.getSelections();
+        const selections = this.getSelections();
         const replaced = selections.map(s => {
             // 選択文字列がhttp...
             if (s.match('^https?://.*')) {
@@ -145,7 +145,8 @@ export default class {
      * @param {string} addCh 挿入する文字
      */
     addTextAround(addCh) {
-        const selections = this.codemirror.getSelections();
+        const cm = this.codemirror;
+        const selections = this.getSelections();
         const replaced = selections.map(s => {
             // すでにその状態だったら解除する
             if (s.length >= addCh.length * 2 && s.indexOf(addCh) == 0 && s.indexOf(addCh, s.length - addCh.length) != -1) {
@@ -153,7 +154,7 @@ export default class {
             }
             return addCh + s + addCh
         });
-        this.codemirror.replaceSelections(replaced, 'around');
+        cm.replaceSelections(replaced, 'around');
     }
 
     /**
@@ -161,18 +162,18 @@ export default class {
      * @param {string} addCh 挿入する文字
      */
     addTextHead(addCh) {
-        const selections = this.codemirror.listSelections();
+        const selections = this.listSelections();
         selections.forEach(e => {
             const head = {
                 line: e.anchor.line,
                 ch: 0
             };
-            this.codemirror.replaceRange(addCh, head, head);
+            this.replaceRange(addCh, head, head);
         });
     }
 
     addTextHeadEachLine(addCh) {
-        const selections = this.codemirror.listSelections();
+        const selections = this.listSelections();
         selections.forEach(e => {
             const lineRange = {
                 start: e.anchor.line,
@@ -183,7 +184,7 @@ export default class {
                     line: i,
                     ch: 0
                 };
-                this.codemirror.replaceRange(addCh, head, head);
+                this.replaceRange(addCh, head, head);
             }
         });
     }
@@ -193,7 +194,7 @@ export default class {
      * @param {*} addCh 
      */
     replaceSelectionText(addCh) {
-        this.codemirror.replaceSelection(addCh, 'around');
+        this.replaceSelection(addCh);
     }
 
     /**
@@ -210,7 +211,7 @@ export default class {
     }
 
     debug() {
-        let nowSelections = this.codemirror.listSelections();
+        let nowSelections = this.listSelections();
         nowSelections.forEach(e => {
             console.log(e);
             let anchor = e.anchor;
@@ -218,7 +219,35 @@ export default class {
             anchor.ch = 1;
             head.ch = 5;
         });
-        this.codemirror.setSelections(nowSelections);
+        this.setSelections(nowSelections);
+    }
+
+    getSelections() {
+        return this.codemirror.state.selection.ranges.map(r => cm.state.sliceDoc(r.from, r.to));
+    }
+
+    listSelections() {
+        return this.codemirror.state.selection.ranges
+    }
+
+    replaceRange(text, from, to) {
+        return this.codemirror.dispatch({
+            changes: {from, to, insert: text}
+        });
+    }
+
+    replaceSelection(text) {
+        return this.codemirror.dispatch(cm.state.replaceSelection(text))
+    }
+
+    setSelections(ranges) {
+        return this.codemirror.dispatch({
+            selection: EditorSelection.create(ranges)
+        });
+    }
+
+    setSelection(anchor, head) {
+        return this.codemirror.dispatch({selection: {anchor, head}});
     }
 
     finalize() {

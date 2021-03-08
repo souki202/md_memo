@@ -17,6 +17,8 @@ import {defaultHighlightStyle} from "@codemirror/highlight";
 import {markdown} from "@codemirror/lang-markdown";
 import {lineNumbers} from '@codemirror/gutter';
 
+import ClassicEditor from './ckeditor';
+
 import './js.cookie.min';
 import './uuidv4.min';
 import CodeMirrorHelper from './memoHelper';
@@ -278,6 +280,8 @@ new Vue({
             codemirrorExtensions: null,
             codemirrorHelper: null,
 
+            ckeditor: null,
+
             showMessageTime: 3000,
             isShowShareDialog: false,
 
@@ -309,32 +313,9 @@ new Vue({
         this.theme = getTheme();
 
         // codemirrorの適用
-        // const cm = CodeMirror.fromTextArea(document.getElementById('memoBodyTextarea'), {
-        //     mode: 'markdown',
-        //     lineNumber: true,
-        //     indentUnit: 4,
-        //     theme: this.theme == 'light' ? 'mdn-like' : 'darcula',
-        //     lineNumbers: true,
-        //     autoCloseBrackets: true,
-        //     scrollbarStyle: "simple",
-        //     keyMap: 'default',
-        //     inputStyle: 'contenteditable',
-        //     historyEventDelay: 300,
-        //     autofocus: true,
-        //     dragDrop: false,
-        //     extraKeys: {
-        //         "Enter": "newlineAndIndentContinueMarkdownList",
-        //         "Ctrl-Enter": "newlineAndIndentContinueMarkdownListToUnder",
-        //         "Shift-Ctrl-Enter": "newlineAndIndentContinueMarkdownListToAbove",
-        //         "Ctrl-S": (cm) => {this.save();},
-        //         "Ctrl-Alt-Up": "addMultiCursorUp",
-        //         "Ctrl-Alt-Down": "addMultiCursorDown",
-        //         Tab: function(cm) {
-        //             var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
-        //             cm.replaceSelection(spaces);
-        //         },
-        //     },
-        // });
+        this.ckeditor = ClassicEditor
+            .create(document.getElementById('ckeditorContainer'))
+            .catch(err => console.log(err));
         // body変更時の挙動設定
         // this.codemirror.on('change', () => {
         //     this.memo.body = this.codemirror.getValue();
@@ -358,7 +339,6 @@ new Vue({
         }
         else if (!memoId) {
             // 新規作成なので即保存
-            this.createCodeMirrorView('');
             this.save();
             this.$refs.tags.loadTags();
         }
@@ -473,31 +453,6 @@ new Vue({
             return a;
         },
 
-        createCodeMirrorView(text) {
-            let textarea = document.getElementById('memoBodyTextarea');
-            textarea.value = text;
-            this.codemirror = new EditorView({
-                state: EditorState.create({
-                    doc: textarea.value,
-                    extensions: [
-                        history(),
-                        lineNumbers(),
-                        keymap.of(standardKeymap),
-                        markdown(),
-                        defaultHighlightStyle,
-                    ]
-                }),
-                parent: document.getElementById('codemirrorContainer'),
-                scrollDOM: document.getElementById('codemirrorContainer'),
-            });
-            this.codemirrorHelper = new CodeMirrorHelper(this.codemirror);
-            textarea.style.display = "none"
-            if (textarea.form) textarea.form.addEventListener("submit", () => {
-                textarea.value = this.codemirror.state.doc.toString()
-            });
-            return this.codemirror;
-        },
-
         setMemoData(memo) {
             let newMemoData = {}
             newMemoData.id = memo.uuid;
@@ -529,7 +484,7 @@ new Vue({
             }
             this.$set(this, 'memo', newMemoData);
             // this.codemirror.setValue(this.memo.body);
-            this.createCodeMirrorView(this.memo.body)
+            // this.createCodeMirrorView(this.memo.body)
             this.updatePreviewCallback();
         },
 
