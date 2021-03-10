@@ -1,10 +1,10 @@
 import getApiUrl from './getApiUrl.js'
 import getTheme from './colorTheme.js';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
 axios.defaults.withCredentials = true;
 
-new Vue({
-    el: '#loginForm',
+createApp({
     data: () => {
         return {
             errorMessage: '',
@@ -105,4 +105,4 @@ new Vue({
             })
         }
     },
-})
+}).mount('#loginForm');

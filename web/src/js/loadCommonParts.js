@@ -126,12 +126,6 @@ window.addEventListener('DOMContentLoaded', (e) => {
     // appendScript('/js/getFileApiUrl.js', true);
     // appendScript('/js/getEnv.js', true);
     // appendScript('/js/urlParameter.js', true);
-    if (getIsDevelop()) {
-        appendScript('/js/vue.js', true);
-    }
-    else {
-        appendScript('/js/vue.min.js', true);
-    }
     appendFontAwsome();
 
     loadCommonDOM();

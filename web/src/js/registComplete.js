@@ -1,8 +1,8 @@
 import getApiUrl from './getApiUrl.js'
 import urlParameter from './urlParameter.js';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
-new Vue({
-    el: '#app',
+createApp({
     data: () => {
         return {
             errorMessage: ''
@@ -27,4 +27,4 @@ new Vue({
     methods: {
 
     }
-})
+}).mount('#app');

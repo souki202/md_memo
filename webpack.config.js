@@ -1,6 +1,7 @@
 const path = require('path')
 const CKEditorWebpackPlugin = require( '@ckeditor/ckeditor5-dev-webpack-plugin' );
 const { styles } = require( '@ckeditor/ckeditor5-dev-utils' );
+const { VueLoaderPlugin } = require('vue-loader');
 
 const jsOut = './web/dst/'
 const jsIn = './web/src/js/'
@@ -29,6 +30,7 @@ module.exports = {
         filename: '[name].js'
     },
     plugins: [
+        new VueLoaderPlugin(),
     ],
     module: {
         rules: [
@@ -38,6 +40,15 @@ module.exports = {
                     loader: 'babel-loader',
                     options: {
                         babelrc: true,
+                    }
+                }
+            },
+            {
+                test: /\.vue$/,
+                loader: 'vue-loader',
+                options: {
+                    loaders: {
+                        js: 'babel-loader'
                     }
                 }
             },

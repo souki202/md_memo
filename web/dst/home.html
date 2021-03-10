@@ -11,7 +11,7 @@
     <main id="main">
         <div id="homeMemoList">
             <loading
-                :active.sync="isLoading"
+                :active="isLoading"
                 :can-cancel="false"
                 :is-full-page="fullPage"
             ></loading>
@@ -88,7 +88,6 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', (e) => {
-            appendScript('/js/vue-loading-overlay@3.js', true);
             appendScript('/js/auth.js', true);
             appendScript('/js/home.js', true);
             appendCss('/css/vue-loading.css');

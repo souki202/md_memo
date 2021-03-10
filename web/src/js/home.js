@@ -1,19 +1,17 @@
 import getApiUrl from './getApiUrl.js';
 import getTheme from './colorTheme.js';
 import urlParameter from './urlParameter.js';
-import memoListItemComponent from './memoListItemComponent.js';
+import memoListItemComponent from './memoListItemComponent.vue';
 import './js.cookie.min.js';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
+import Loading from 'vue3-loading-overlay';
 
 axios.defaults.withCredentials = true;
 
-const Loading = window.VueLoading;
-
-Vue.component('memo-card', memoListItemComponent)
-
-new Vue({
-    el: '#homeMemoList',
+createApp({
     components: {
-        'loading': Loading
+        Loading,
+        'memo-card': memoListItemComponent
     },
     data: () => {
         return {
@@ -236,4 +234,4 @@ new Vue({
             })
         }
     },
-});
+}).mount('#homeMemoList');

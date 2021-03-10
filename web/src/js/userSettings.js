@@ -1,9 +1,9 @@
 import getApiUrl from './getApiUrl.js'
 import urlParameter from './urlParameter.js';
 import getTheme from './colorTheme.js';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
-new Vue({
-    el: '#userSettings',
+createApp({
     data: () => {
         return {
             errorMessage: '',
@@ -106,4 +106,4 @@ new Vue({
             location.reload();
         }
     },
-});
+}).mount('#userSettings');

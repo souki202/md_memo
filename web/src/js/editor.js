@@ -3,25 +3,13 @@ import getTheme from './colorTheme';
 import getEnv from './getEnv';
 import urlParameter from './urlParameter';
 
-import {
-    history,
-    redo,
-    redoSelection,
-    undo,
-    undoSelection
-} from "@codemirror/history";
-import {EditorView, keymap} from "@codemirror/view";
-import {EditorState} from "@codemirror/state";
-import {standardKeymap} from "@codemirror/commands";
-import {defaultHighlightStyle} from "@codemirror/highlight";
-import {markdown} from "@codemirror/lang-markdown";
-import {lineNumbers} from '@codemirror/gutter';
-
 import ClassicEditor from './ckeditor';
+import CkeditorVue from '@ckeditor/ckeditor5-vue';
+
+import {createApp, defineComponent} from 'vue/dist/vue.esm-bundler.js';
 
 import './js.cookie.min';
 import './uuidv4.min';
-import CodeMirrorHelper from './memoHelper';
 
 axios.defaults.withCredentials = true;
 
@@ -77,7 +65,8 @@ class ViewModes {
     }
 }
 
-const tagsComponent = Vue.extend({
+const tagsComponent = defineComponent({
+    components: [window.VueMultiselect.default],
     name: 'tags-component',
     template:`
     <div class="tags-container">
@@ -235,11 +224,8 @@ const tagsComponent = Vue.extend({
     },
 });
 
-Vue.component('tags-component', tagsComponent);
-Vue.component('tags-select', window.VueMultiselect.default)
-
-new Vue({
-    el: '#memoEditor',
+const app = createApp({
+    components:{tagsComponent},
     data: () => {
         return {
             errorMessage: '',
@@ -281,6 +267,8 @@ new Vue({
             codemirrorHelper: null,
 
             ckeditor: null,
+            ckeditorClass: ClassicEditor,
+            CkeditorVue: null,
 
             showMessageTime: 3000,
             isShowShareDialog: false,
@@ -723,4 +711,6 @@ new Vue({
             return this.codemirrorHelper.invoke(op, ...args);
         },
     },
-})
+}).mount('#memoEditor');
+
+app.use(CkeditorVue);

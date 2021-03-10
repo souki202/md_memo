@@ -138,7 +138,7 @@
                         <!-- メモのテキスト保存用textarea -->
                         <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
                         </textarea>
-                        <div id="ckeditorContainer"></div>
+                        <div id="ckeditorContainer" :editor="ckeditorClass" v-model="memo.body" ></div>
                         
                         <!-- メッセージ等表示用overlay -->
                         <div class="memo-editor-overlay">

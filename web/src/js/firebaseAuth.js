@@ -1,6 +1,7 @@
 import getApiUrl from './getApiUrl.js'
 import getEnv from './getEnv.js'
 import './js.cookie.min.js'
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
 function createSigninOptions() {
     const domain = document.domain
@@ -53,8 +54,7 @@ function getFireBaseConfig() {
     }
 }
 
-new Vue({
-    el: '#firebaseApp',
+createApp({
     data: () => {
         return {
             errorMessage: '',
@@ -123,7 +123,4 @@ new Vue({
             })
         },
     },
-})
-
-window.addEventListener('load', (e) => {
-})
+}).mount('#firebaseApp');

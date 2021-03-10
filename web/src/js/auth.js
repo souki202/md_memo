@@ -1,6 +1,7 @@
 import getApiUrl from './getApiUrl.js'
 import urlParameter from './urlParameter.js';
 import Cookies from './js.cookie.min';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
 const instance = axios.create({
     withCredentials: true
@@ -10,8 +11,7 @@ const instance = axios.create({
  * userDataはwindowに代入しているためグローバル
  */
 
-new Vue({
-    el: '#header',
+createApp({
     data: () => {
         return {
             isLogin: false,
@@ -49,10 +49,9 @@ new Vue({
             })
         }
     }
-});
+}).mount('#header');
 
-new Vue({
-    el: "#sidebar",
+createApp({
     data: () => {
         return {
             userViewName: '',
@@ -95,4 +94,4 @@ new Vue({
             })
         }
     }
-})
+}).mount('#sidebar');

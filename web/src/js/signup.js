@@ -2,9 +2,9 @@ import getApiUrl from './getApiUrl.js'
 import './js.cookie.min.js'
 import getTheme from './colorTheme.js';
 // import './axios.min.js';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
-new Vue({
-    el: '#signupForm',
+createApp({
     data: () => {
         return {
             errorMessage: '',
@@ -67,4 +67,4 @@ new Vue({
             return false;
         }
     },
-})
+}).mount('#signupForm');

@@ -1,9 +1,9 @@
 import getApiUrl from './getApiUrl.js'
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
 axios.defaults.withCredentials = true;
 
-new Vue({
-    el: '#headerMenuNav',
+createApp({
     data: () => {
         return {
             isLogin: false,
@@ -28,4 +28,4 @@ new Vue({
             })
         },
     }
-});
+}).mount('#headerMenuNav');

@@ -2,15 +2,15 @@ import getApiUrl from './getApiUrl.js';
 import getEnv from './getEnv.js';
 import urlParameter from './urlParameter.js';
 import getTheme from './colorTheme.js';
-import memoListItemComponent from './memoListItemComponent.js';
+import memoListItemComponent from './memoListItemComponent.vue';
 import './js.cookie.min.js';
+import {createApp} from 'vue/dist/vue.esm-bundler.js';
 
 axios.defaults.withCredentials = true;
 
 Vue.component('memo-card', memoListItemComponent)
 
-new Vue({
-    el: '#tagManager',
+createApp({
     data() {
         return {
             errorMessage: '',
@@ -114,4 +114,4 @@ new Vue({
             });
         }
     }
-});
+}).mount('#tagManager');
