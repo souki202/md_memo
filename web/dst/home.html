@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <script src="/js/loadCommonParts.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoEase Home</title>
+</head>
+<body>
+    <div id="header"></div>
+    <main id="main">
+        <div id="homeMemoList">
+            <loading
+                :active="isLoading"
+                :can-cancel="false"
+                :is-full-page="fullPage"
+            ></loading>
+            <!-- messages -->
+            <div class="errors alert alert-danger" v-if="errorMessage != ''" v-cloak>
+                <p>{{ errorMessage }}</p>
+            </div>
+            <div class="memo-operation-items">
+                <!-- 新規メモボタン -->
+                <div class="main-operation-button-container" v-if="!isTrash">
+                    <div class="main-operation-button">
+                        <a href="/memo.html">
+                            <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
+                                <i class="main-operation-button-icon far fa-plus-square fa-2x"></i>
+                                <div class="main-operation-button-text">New Memo</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <!-- ゴミ箱を空にボタン -->
+                <div class="main-operation-button-container" v-if="isTrash">
+                    <div class="main-operation-button" @click="truncateTrash">
+                        <div class="btn" :class="[{'btn-light': theme == 'light'}, {'btn-dark': theme == 'dark'}]">
+                            <i class="fas fa-trash-alt"></i>
+                            <div class="main-operation-button-text">ゴミ箱を空に</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- その他操作用 -->
+                <div class="memo-operation-selector-container">
+                    <select class="form-control" name="memoOperationSelector" id="memoOperationSelector" @change="memoOperation" v-model="operationType">
+                        <option value="">操作を選択</option>
+                        <option value="trash" v-if="!isTrash">ゴミ箱に移動</option>
+                        <option value="delete" v-if="isTrash">完全に削除</option>
+                        <option value="restore" v-if="isTrash">ゴミ箱から戻す</option>
+                    </select>
+                </div>
+            </div>
+            <!-- メモ一覧 -->
+            <div class="memo-list-group-container">
+                <div id="allMemoList" class="col-6">
+                    <div class="all-memo-list-container memo-list-container">
+                        <div class="list-header">
+                            <p v-if="!isTrash">全てのメモ</p>
+                            <p v-if="isTrash">ゴミ箱内のメモ</p>
+                        </div>
+                        <div class="memo-list">
+                            <memo-card v-for="memo of memos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'all'"></memo-card>
+                        </div>
+                    </div>
+                    <!-- 続きを読み込むボタン -->
+                    <div class="load-more-button-container" v-if="this.nextPageMemoId">
+                        <button class="btn" :class="[{'btn-dark': theme == 'light'}, {'btn-light': theme == 'dark'}]" @click="addMemoList">続きを読み込む</button>
+                    </div>
+                    <div class="end-of-memo-list" v-if="!this.nextPageMemoId">
+                        <p>これ以上メモはありません</p>
+                    </div>
+                </div>
+                <div class="col-6 pinned-memo-list-container" v-if="!isTrash">
+                    <div class="memo-list-container">
+                        <div class="list-header">
+                            <p>ピン留めされたメモ</p>
+                        </div>
+                        <div class="memo-list">
+                            <memo-card v-for="memo of pinnedMemos" :class="[{'table-dark': theme == 'dark'}]" :memo="memo" :list-type="'pinned'"></memo-card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            appendScript('/js/auth.js', true);
+            appendScript('/js/home.js', true);
+            appendCss('/css/vue-loading.css');
+            appendCss('/css/home.css');
+            appendCss('/css/memoItem.css');
+        })
+    </script>
+</body>
+</html>

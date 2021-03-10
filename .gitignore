@@ -5,4 +5,4 @@ lambda/app/credentials
 lambda/my_layer_libs
 lambda/template-output.yaml
 _test
-lambda/template-output.yaml
+node_modules

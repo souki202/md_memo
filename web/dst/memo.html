@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/js/loadCommonParts.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoEase Editor</title>
+</head>
+<body>
+    <div id="header"></div>
+
+    <main id="main">
+        <div id="memoEditor" :class="[{'dark-theme': theme == 'dark'}, {'light-theme': theme == 'light'}]" @dragover.prevent @drop.prevent="uploadFile" v-cloak>
+            <!-- シェア機能設定ダイアログ -->
+            <div class="share-dialog-container absolute-fill" :class="[{'is-show-dialog': isShowShareDialog}]">
+                <div class="share-dialog-bg" @click="closeDialog"></div>
+                <div class="share-dialog-body">
+                    <div class="share-header-container">
+                        <h3>Share this memo</h3>
+                    </div>
+                    <form @submit.prevent="updateShareLink">
+                        <div class="share-settings-container">
+                            <!-- readonly, edtable等の権限設定 -->
+                            <div class="form-group share-auth-setting">
+                                <label for="shareAuthSetting">Authority</label>
+                                <select class="form-control form-control-sm text-light bg-dark" name="shareAuthSetting" id="shareAuthSetting" v-model="memo.share.type">
+                                    <option v-for="type of shareTypes" :value="type.id">{{ type.description }}</option>
+                                </select>
+                            </div>
+                            <!-- 公開範囲 -->
+                            <div class="form-group share-range-setting" v-if="memo.share.type != 1">
+                                <label for="shareScope">Scope</label>
+                                <select class="form-control form-control-sm text-light bg-dark" name="shareScope" id="shareScope" v-model="memo.share.scope">
+                                    <option v-for="scope in shareScopeTypes" :value="scope.id">{{ scope.description }}</option>
+                                </select>
+                            </div>
+                            <!-- ユーザ指定用 -->
+                            <div class="form-group share-auth-setting" v-if="memo.share.type != 1 && memo.share.scope == 2">
+                                <label for="userList">User list (comma separated)</label>
+                                <input type="text" class="form-control form-control-sm text-light bg-dark" id="userList" name="userList" v-model="memo.share.users" placeholder="aaa@example.com, bbb@example.com, ccc@example.com">
+                            </div>
+                            <!-- シェアURL表示用フォーム -->
+                            <div class="form-group" v-if="memo.share.type != 1 && memo.share.id != ''">
+                                <label for="shareLink">Share Link</label>
+                                <div class="input-group share-link">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text copy-to-clipboard" @click="copyShareUrl">
+                                            <i class="fas fa-clipboard"></i>
+                                        </div>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm text-light bg-dark" name="shareLink" id="shareLink" :value="shareUrl" readonly>
+                                </div>
+                            </div>
+                            <!-- シェア設定更新ボタン -->
+                            <div class="form-group share-setting-update-container">
+                                <input class="btn btn-light" type="submit" value="Get Link" v-if="memo.share.id == ''">
+                                <input class="btn btn-light" type="submit" value="Update" v-if="memo.share.id != ''">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- タイトル部分 -->
+            <div class="form-group memo-title-container">
+                <input type="text" class="form-control memo-title" v-model="memo.title" placeholder="Title" @change="save" :readonly="isSharedView && memo.share.type != 4">
+                <div class="memo-title-border"></div>
+            </div>
+
+            <div class="memo-editor-container">
+                <div class="memo-body-container" :class="[{'source-only': this.viewModes.mode == 1}, {'preview-only': this.viewModes.mode == 2}]">
+                    <!-- メモエディター本体 -->
+                    <div class="form-group memo-body-edit-container">
+                        <!-- 入力ヘルパー -->
+                        <div class="memo-input-helper">
+                            <div class="helper-button-set">
+                                <!-- 文字装飾 -->
+                                <div class="helper-button helper-bold" @click="invokeCodemirrorOperation('bold')">
+                                    <i class="fas fa-bold"></i>
+                                </div>
+                                <div class="helper-button helper-italic" @click="invokeCodemirrorOperation('italic')">
+                                    <i class="fas fa-italic"></i>
+                                </div>
+                                <div class="helper-button helper-delete-text" @click="invokeCodemirrorOperation('deleteText')">
+                                    <i class="fas fa-strikethrough"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- ヘッダー -->
+                            <div class="helper-button-set header-button-set">
+                                <div class="helper-button helper-header1" v-for="i in [...Array(3).keys()]" @click="invokeCodemirrorOperation('header', i + 1)">
+                                    H{{i + 1}}
+                                </div>
+                            </div>
+
+                            <!-- リスト列挙 -->
+                            <div class="helper-button-set list-button-set">
+                                <div class="helper-button helper-unorderd-list" @click="invokeCodemirrorOperation('unorderdList')">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <div class="helper-button helper-orderd-list" @click="invokeCodemirrorOperation('orderdList')">
+                                    <i class="fas fa-list-ol"></i>
+                                </div>
+                                <div class="helper-button helper-list-indent" @click="invokeCodemirrorOperation('addIndent')">
+                                    <i class="fas fa-indent"></i>
+                                </div>
+                            </div>
+
+                            <!-- リンク, 引用 -->
+                            <div class="helper-button-set">
+                                <div class="helper-button helper-link" @click="invokeCodemirrorOperation('link')">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <div class="helper-button helper-quote" @click="invokeCodemirrorOperation('addQuote')">
+                                    <i class="fas fa-quote-left"></i>
+                                </div>
+                            </div>
+
+                            <!-- 水平線 -->
+                            <div class="helper-button-set">
+                                <div class="helper-button helper-hr" @click="invokeCodemirrorOperation('hr')">
+                                    hr
+                                </div>
+                            </div>
+
+                            <!-- コード -->
+                            <div class="helper-button-set code-button-set">
+                                <div class="helper-button helper-single-line-code" @click="invokeCodemirrorOperation('singleLineCode')">
+                                    `code`
+                                </div>
+    
+                                <div class="helper-button helper-single-line-code" @click="invokeCodemirrorOperation('multiLineCode')">
+                                    ```code```
+                                </div>
+                            </div>
+                        </div>
+                        <tags-component :memo-id="memo.id" ref="tags" v-if="!isReadOnly"></tags-component>
+                        <!-- メモのテキスト保存用textarea -->
+                        <textarea class="form-control memo-body" name="" id="memoBodyTextarea" cols="30" rows="10" v-model="memo.body" @change="updatePreview" @input="updatePreview">
+                        </textarea>
+                        <div id="ckeditorContainer" :editor="ckeditorClass" v-model="memo.body" ></div>
+                        
+                        <!-- メッセージ等表示用overlay -->
+                        <div class="memo-editor-overlay">
+                            <p v-for="msg in memoMessages" class="memo-message">{{ msg.message }}</p>
+                        </div>
+                    </div>
+                    <!-- プレビュー表示 -->
+                    <div class="memo-body-preview-container">
+                        <div class="memo-body-preview" id="memoBodyPreview"></div>
+                    </div>
+                </div>
+                
+                <!-- 各種メモの操作用ボタン -->
+                <div class="tool-tip" v-if="!isReadOnly">
+                    <div class="tool-tip-icons">
+                        <!-- 保存アイコン -->
+                        <div class="tool-tip-icon-container save-icon" v-if="!isReadOnly">
+                            <i class="fas fa-save fa-2x tool-tip-icon" @click="save"></i>
+                        </div>
+                        <!-- シェアアイコン -->
+                        <div class="tool-tip-icon-container share-icon" v-if="!isSharedView">
+                            <i class="fas fa-link fa-2x tool-tip-icon" @click="showShareDialog"></i>
+                        </div>
+                        <!-- <div class="tool-tip-icon-container share-icon" v-if="!isSharedView">
+                            <i class="fas fa-share-alt-square fa-2x tool-tip-icon" @click="showShareDialog"></i>
+                        </div> -->
+                        <!-- 表示状態のスイッチ -->
+                        <div class="tool-tip-icon-container switch-view-icon" v-if="!isReadOnly">
+                            <i class="far fa-window-restore fa-2x tool-tip-icon" @click="switchViewMode"></i>
+                        </div>
+                        <!-- ピン留め -->
+                        <div class="tool-tip-icon-container pinned-icon" v-if="!isSharedView">
+                            <i class="fas fa-thumbtack fa-2x tool-tip-icon" :class="[{'pinned-active': memo.pinnedType == 2}]" @click="switchPinned"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="errors alert alert-danger" v-if="errorMessage != ''">
+                <p>{{ errorMessage }}</p>
+            </div>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', (e) => {
+            // codemirror
+            // appendScript('/codemirror/lib/codemirror.js', true);
+            // appendScript('/codemirror/keymap/sublime.js');
+            // appendScript('/codemirror/mode/meta.js');
+            // appendScript('/codemirror/mode/markdown/markdown.js');
+            // appendScript('/codemirror/mode/css/css.js');
+            // appendScript('/codemirror/mode/clike/clike.js');
+            // appendScript('/codemirror/mode/d/d.js');
+            // appendScript('/codemirror/mode/dart/dart.js');
+            // appendScript('/codemirror/mode/elm/elm.js');
+            // appendScript('/codemirror/mode/go/go.js');
+            // appendScript('/codemirror/mode/haml/haml.js');
+            // appendScript('/codemirror/mode/javascript/javascript.js');
+            // appendScript('/codemirror/mode/lua/lua.js');
+            // appendScript('/codemirror/mode/php/php.js');
+            // appendScript('/codemirror/mode/ruby/ruby.js');
+            // appendScript('/codemirror/mode/sass/sass.js');
+            // appendScript('/codemirror/mode/shell/shell.js');
+            // appendScript('/codemirror/mode/yaml/yaml.js');
+            // appendScript('/codemirror/mode/xml/xml.js');
+            // appendScript('/codemirror/addon/edit/continuelist.js');
+            // appendScript('/codemirror/addon/edit/mynewline.js');
+            // appendScript('/codemirror/addon/edit/mycursor.js');
+            // appendScript('/codemirror/addon/edit/closebrackets.js');
+            // appendScript('/codemirror/addon/scroll/simplescrollbars.js');
+            // appendScript('/codemirror/addon/search/searchcursor.js');
+            // appendCss('/codemirror/lib/codemirror.css');
+            // appendCss('/codemirror/addon/scroll/simplescrollbars.css');
+            // appendCss('/codemirror/theme/darcula.css');
+            // appendCss('/codemirror/theme/mdn-like.css');
+
+            // highlight
+            // appendCss('/highlight/styles/darcula.css');
+            // appendScript('/highlight/highlight.pack.js');
+
+            appendCss('/css/vue-multiselect.min.css');
+
+            appendScript('/js/marked.min.js');
+            appendScript('/js/auth.js', true);
+            appendScript('/js/vue-multiselect.min.js');
+            appendScript('/js/editor.js', true);
+            appendCss('/css/memo.css');
+        })
+    </script>
+</body>
+</html>
